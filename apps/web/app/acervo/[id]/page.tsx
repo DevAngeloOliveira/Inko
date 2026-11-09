@@ -6,7 +6,7 @@ import { works } from '../../../lib/demo';
 
 export function generateStaticParams() { return works.map(work => ({ id: work.id })); }
 
-export default async function WorkDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function WorkDetailsPage({ params }: Readonly<{ params: Promise<{ id: string }> }>) {
   const { id } = await params;
   const work = works.find(item => item.id === id);
   if (!work) notFound();
