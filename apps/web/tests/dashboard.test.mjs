@@ -4,7 +4,7 @@ import { test } from 'node:test';
 
 const dashboard = readFileSync(new URL('../components/dashboard.tsx', import.meta.url), 'utf8');
 const home = readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
-const stylesheet = readFileSync(new URL('../app/inko-dashboard.css', import.meta.url), 'utf8');
+const stylesheet = readFileSync(new URL('../app/inko-ui.css', import.meta.url), 'utf8');
 
 test('homepage renders the real INKO layout rather than temporary system health', () => {
   assert.match(home, /Dashboard/);
@@ -24,7 +24,7 @@ test('domain navigation links are defined and demonstration data is identified',
 });
 
 test('dashboard consumes original INKO assets and design tokens', () => {
-  assert.match(readFileSync(new URL('../components/brand.tsx', import.meta.url), 'utf8'), /inko-logo-inverse\.png/);
+  assert.match(readFileSync(new URL('../components/app-shell.tsx', import.meta.url), 'utf8'), /inko-logo-inverse\.png/);
   assert.match(dashboard, /enso-seal\.svg/);
   assert.match(stylesheet, /var\(--inko-background-default\)/);
   assert.match(stylesheet, /prefers-reduced-motion:reduce/);
