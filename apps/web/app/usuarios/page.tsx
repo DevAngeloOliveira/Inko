@@ -3,6 +3,7 @@ import { useMemo, useState, type FormEvent } from 'react';
 import { AppShell } from '../../components/app-shell';
 import { DemoNotice, InkoButton, InkoEmpty, InkoInput, PageHeading, Section } from '../../components/inko-kit';
 import { libraryUsers, loans, formatDate } from '../../lib/demo';
+import { isValidEmailAddress } from '../../lib/validation';
 
 export default function UsersPage() {
   const [search, setSearch] = useState('');
@@ -13,7 +14,7 @@ export default function UsersPage() {
   const filtered = useMemo(() => libraryUsers.filter(user => `${user.name} ${user.id} ${user.email}`.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'))), [search]);
   const user = libraryUsers.find(item => item.id === selected) ?? libraryUsers[0];
   const userLoans = loans.filter(loan => loan.user === user.name);
-  const valid = candidate.name.trim().length > 1 && /^\S+@\S+\.\S+$/.test(candidate.email) && Boolean(candidate.registration.trim());
+  const valid = candidate.name.trim().length > 1 && isValidEmailAddress(candidate.email) && Boolean(candidate.registration.trim());
   function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault();setTried(true); }
   return <AppShell><PageHeading eyebrow="USUÁRIOS / CADASTROS" title="Usuários" description="Consulta, histórico e cadastro de leitores" action={<InkoButton onClick={() => {setCreating(true);setTried(false);}}>+ Novo usuário</InkoButton>}/><DemoNotice>Usuários, empréstimos e dados pessoais são fictícios. O cadastro real e a autorização ficarão no MS Usuários.</DemoNotice>
     <div className="inko-user-layout"><Section title="Leitores"><label className="inko-field"><span className="inko-label">Buscar leitor</span><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Nome, e-mail ou identificador…"/></label><div className="inko-table-wrap"><table className="inko-table"><thead><tr><th>Leitor</th><th>Código</th><th>Ativos</th><th>Situação</th></tr></thead><tbody>{filtered.map(item => <tr key={item.id} className={selected===item.id?'inko-selected-row':''}><td><button type="button" className="inko-user-picker" onClick={() => setSelected(item.id)}><span className="inko-avatar">{item.name.split(' ').map(p=>p[0]).slice(0,2).join('')}</span>{item.name}</button></td><td>{item.id}</td><td>{item.active}</td><td><span className={`inko-badge inko-badge--${item.late?'danger':'success'}`}>{item.late?'Com atraso':'Regular'}</span></td></tr>)}</tbody></table></div>{filtered.length===0&&<InkoEmpty title="Sem resultados" text="Nenhum usuário corresponde à pesquisa."/>}</Section>
