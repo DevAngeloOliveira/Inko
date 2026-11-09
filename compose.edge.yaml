@@ -1,0 +1,46 @@
+services:
+  postgres:
+    ports: !reset []
+    restart: unless-stopped
+
+  gateway:
+    ports: !reset []
+    restart: unless-stopped
+
+  web:
+    ports: !reset []
+    restart: unless-stopped
+
+  catalogo:
+    restart: unless-stopped
+
+  usuarios:
+    restart: unless-stopped
+
+  circulacao:
+    restart: unless-stopped
+
+  relatorios:
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.11.9-alpine
+    restart: unless-stopped
+    environment:
+      INKO_DOMAIN: ${INKO_DOMAIN:?Configure a DNS name in the host .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    networks: [inko-internal]
+
+volumes:
+  caddy_data:
+  caddy_config:
