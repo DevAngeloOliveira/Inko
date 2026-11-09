@@ -18,7 +18,7 @@ export default function NewWorkPage() {
       <InkoInput id="work-author" label="Autor *" value={values.author} onChange={event => update('author',event.target.value)} error={attempted?errors.author:undefined}/>
       <label className="inko-field"><span className="inko-label">Categoria *</span><select value={values.category} aria-invalid={attempted && Boolean(errors.category)} onChange={event => update('category',event.target.value)}><option value="">Selecionar categoria</option>{['Mangá','HQ','Graphic novel'].map(cat=><option key={cat}>{cat}</option>)}</select>{attempted && errors.category && <span className="inko-field-error">{errors.category}</span>}</label>
       <div className="inko-actions"><InkoButton type="submit">Validar cadastro</InkoButton><InkoLinkButton href="/acervo" variant="ghost">Cancelar</InkoLinkButton></div>
-      {validated && <div className="inko-alert inko-alert--success" role="status">Todos os campos passaram na validação. A gravação fica disponível quando o MS Catálogo for implementado.</div>}
+      {validated && <output className="inko-alert inko-alert--success">Todos os campos passaram na validação. A gravação fica disponível quando o MS Catálogo for implementado.</output>}
     </form></Section><Section title="Prévia da obra"><div className="inko-preview"><div className="inko-preview-cover">INKO <span>EDIÇÃO EM PREPARAÇÃO</span></div><div><span className="inko-tag">{values.category || 'Categoria'}</span><h3>{values.title || 'Título da obra'}</h3><p>{values.author || 'Autor'}</p><small>{values.id || 'INK-0000'}</small></div></div></Section></div>
   </AppShell>;
 }

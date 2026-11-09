@@ -38,7 +38,7 @@ export function InkoStatus({ status }: { status: Availability }) {
 }
 
 export function DemoNotice({ children }: { children?: ReactNode }) {
-  return <div className="inko-demo-notice" role="status"><InkoIcon name="info" size={18}/><div><strong>Ambiente demonstrativo</strong><span>{children ?? 'Conteúdo fictício do protótipo Claude Design. Nenhuma operação é gravada no banco de dados.'}</span></div></div>;
+  return <output className="inko-demo-notice"><InkoIcon name="info" size={18}/><span className="inko-notice-body"><strong>Ambiente demonstrativo</strong><span>{children ?? 'Conteúdo fictício do protótipo Claude Design. Nenhuma operação é gravada no banco de dados.'}</span></span></output>;
 }
 
 export function InkoCover({ work, compact = false }: { work: Work; compact?: boolean }) {

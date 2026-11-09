@@ -12,11 +12,11 @@ export function InkoTabs({ items, active, onChange }: { items: readonly string[]
 }
 
 export function InkoSkeleton({ lines = 3 }: { lines?: number }) {
-  return <div className="inko-skeleton" role="status" aria-label="Carregando conteúdo">{Array.from({ length: lines }, (_, index) => <span key={index} className="inko-skeleton-line" style={{ width: `${100 - index * 17}%` }} />)}</div>;
+  return <output className="inko-skeleton" aria-label="Carregando conteúdo">{Array.from({ length: lines }, (_, index) => <span key={index} className="inko-skeleton-line" style={{ width: `${100 - index * 17}%` }} />)}</output>;
 }
 
 export function InkoAlert({ tone = 'warning', children }: { tone?: 'warning' | 'success' | 'danger'; children: ReactNode }) {
-  return <div role={tone === 'danger' ? 'alert' : 'status'} className={`inko-alert inko-alert--${tone}`}>{children}</div>;
+  return <output role={tone === 'danger' ? 'alert' : undefined} className={`inko-alert inko-alert--${tone}`}>{children}</output>;
 }
 
 export function LoanCard({ loan, reference }: { loan: Loan; reference: string }) {
