@@ -1,0 +1,20 @@
+groups:
+  - name: inko-health
+    rules:
+      - alert: InkoServiceMetricsUnavailable
+        expr: up{job="inko-java"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "INKO Java metrics unavailable"
+          description: "Cannot scrape {{ $labels.instance }} for at least 2 minutes"
+
+      - alert: InkoPublicEntryPointUnavailable
+        expr: probe_success{job="inko-http"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "INKO HTTP probe failed"
+          description: "Probe for {{ $labels.instance }} failed for 2 minutes"
