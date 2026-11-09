@@ -93,3 +93,7 @@ O script usa `pg_dump --format=custom` em cada banco, com arquivos separados e p
 ## Limites atuais
 
 Ainda não existem métricas Prometheus/Micrometer, OpenTelemetry, centralização de logs, alertas, regras de backup remoto, provisionamento IaC de servidor nem ambiente de produção. Esses itens dependem de infraestrutura e requisitos operacionais concretos. O gateway e microsserviços ainda são uma baseline acadêmica sem operações reais de domínio.
+
+## Publicação automatizada GHCR por manifesto
+
+A primeira release é controlada por `releases/inko.json`. O workflow `INKO GHCR Release` publica seis imagens e só cria a tag e o GitHub Release após validar todas. Instruções e visibilidade dos packages: [GHCR-RELEASE.md](GHCR-RELEASE.md).
