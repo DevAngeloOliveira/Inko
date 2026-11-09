@@ -23,7 +23,26 @@ jobs:
       - name: Validate Compose configuration
         run: docker compose --env-file .env.example config --quiet
       - name: Validate shell scripts
-        run: bash -n scripts/ci/smoke-compose.sh scripts/ops/backup-postgres.sh scripts/ops/deploy-staging.sh
+        run: bash -n scripts/ci/smoke-compose.sh scripts/ops/backup-postgres.sh scripts/ops/verify-backup.sh scripts/ops/restore-isolated.sh scripts/ops/deploy-staging.sh
+      - name: Validate optional monitoring Compose
+        env:
+          GRAFANA_ADMIN_PASSWORD: ci-only-password
+        run: docker compose --env-file .env.example -f compose.yaml -f compose.monitoring.yaml config --quiet
+      - name: Validate HTTPS edge Compose
+        env:
+          INKO_DOMAIN: inko.example.com
+          INKO_RELEASE_TAG: v0.0.0
+        run: docker compose --env-file .env.example -f compose.yaml -f compose.release.yaml -f compose.edge.yaml config --quiet
+      - name: Validate Prometheus config and alert rules
+        run: |
+          docker run --rm --entrypoint promtool \
+            -v "$PWD/infra/observability/prometheus:/etc/prometheus:ro" \
+            prom/prometheus:v3.16.0 check config /etc/prometheus/prometheus.yml
+      - name: Validate Caddyfile
+        run: |
+          docker run --rm -e INKO_DOMAIN=inko.example.com \
+            -v "$PWD/infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            caddy:2.11.9-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: Validate release overlay
         run: |
           INKO_RELEASE_TAG=v0.0.0 docker compose --env-file .env.example -f compose.yaml -f compose.release.yaml config --quiet
