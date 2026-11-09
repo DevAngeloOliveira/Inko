@@ -155,3 +155,18 @@ A rota `/` contém o Dashboard visual inicial com o logotipo e os elementos grá
 O frontend usa os design tokens semânticos gerados a partir de `packages/design-tokens/inko.tokens.json`. Módulos ainda não implementados são exibidos como indisponíveis e não direcionam a rotas inexistentes.
 
 O layout foi estruturado com componentes React sem compartilhar lógica de negócios entre a interface e os microsserviços. Funcionalidades dos RFs serão implementadas incrementalmente.
+
+
+## Assets estáticos no Docker
+
+O build `standalone` do Next.js não incorpora automaticamente `public/` na pasta `.next/standalone`. O estágio final de `apps/web/Dockerfile` copia explicitamente `apps/web/public` para `apps/web/public` dentro da imagem, além de `.next/static`.
+
+O GitHub Actions compila a imagem e executa um smoke test HTTP dos logos, ícones SVG e elementos gráficos, incluindo a otimização de PNG pelo Next.js. Para verificar localmente após o merge:
+
+```bash
+git pull --ff-only origin main
+docker compose up -d --build --force-recreate web
+node apps/web/scripts/smoke-static-assets.mjs
+```
+
+O teste exige um frontend acessível em `http://127.0.0.1:3000` (ou pela variável `INKO_BASE_URL`). Os demais containers permanecem preservados.
