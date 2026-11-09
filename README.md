@@ -12,11 +12,11 @@ pnpm tokens:check
 pnpm tokens:test
 ```
 
-Documentação: `packages/design-tokens/README.md` e `docs/architecture/ADR-002-design-tokens.md`. Os assets do logo e os componentes completos React ainda não foram importados.
+Documentação: `packages/design-tokens/README.md` e `docs/architecture/ADR-002-design-tokens.md`. Os logos, SVGs e motions originais estão versionados; os componentes React de domínio serão implementados nas próximas sprints.
 
 ## Estado do projeto
 
-Este pacote implementa **apenas o setup inicial**: builds, configuração, endpoints diagnósticos, Docker Compose, bancos isolados, frontend provisório e testes de sanidade. Ainda não implementa cadastro de livros, circulação, multas ou regras de negócio. O logotipo do INKO e o Design System completo devem ser incorporados a partir dos assets aprovados no Figma.
+Este pacote implementa **apenas o setup inicial**: builds, configuração, endpoints diagnósticos, Docker Compose, bancos isolados, frontend provisório e testes de sanidade. Ainda não implementa cadastro de livros, circulação, multas ou regras de negócio. Os logos e SVGs originais já foram incorporados, e o Design System completo segue em implementação incremental a partir do Figma.
 
 ## Requisitos
 
@@ -81,7 +81,7 @@ inko-monorepo-starter/
 │   ├── usuarios/            Spring Boot 4 + JDBC
 │   ├── circulacao/          Spring Boot 4 + JDBC
 │   └── relatorios/          Spring Boot 4, sem DB próprio
-├── packages/design-tokens/  Integração futura do Figma
+├── packages/design-tokens/  Tokens do Claude com aliases do Figma
 ├── infra/
 │   ├── docker/
 │   └── postgres/init/
@@ -123,7 +123,7 @@ Testes Maven devem ser repetidos em cada um dos quatro serviços. O GitHub Actio
 
 ## Próximos passos
 
-1. Adicionar lockfile do pnpm com `pnpm install` e versioná-lo.
+1. Manter `pnpm-lock.yaml` versionado e instalar dependências com `pnpm install --frozen-lockfile`.
 2. Revisar o Design System no Figma e exportar tokens/assets originais.
 3. Definir os contratos OpenAPI antes dos recursos de negócio.
 4. Criar migrations versionadas nos serviços proprietários dos dados.
@@ -137,3 +137,9 @@ As senhas de `.env.example` são **apenas exemplos para desenvolvimento local**.
 ## Motion Lab (Claude Design source)
 
 O pacote `INKO-Design-System-Figma.zip` foi auditado. A versão `v0.3` inclui SVGs/PNG originais de marca, motions de fonte em `apps/web/app/inko-motion.css`, a rota demonstrativa `/motion-lab` e uma matriz de rastreabilidade em `docs/design/claude-source-motion-audit.md`. Os arquivos `.dc.html` são um formato do Claude Design, não páginas React diretamente reutilizáveis.
+
+## Baseline de reprodutibilidade
+
+O monorepo utiliza pnpm 10.15.0 com `pnpm-lock.yaml` versionado. O CI e a imagem Docker do frontend devem instalar exatamente as versões resolvidas, com `--frozen-lockfile`. Novas dependências devem atualizar `package.json` e o lockfile no mesmo Pull Request.
+
+Os assets originais estão em `apps/web/public/inko`. O CSS gerado de `packages/design-tokens/inko.tokens.json` e os motions do Claude estão em `apps/web/app`. A rota `/motion-lab` permanece disponível para demonstrar os efeitos; a home visual passa a ser portitada gradualmente do Figma. O conteúdo demonstrativo não é dado persistido.
