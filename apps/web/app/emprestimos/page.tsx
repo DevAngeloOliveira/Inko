@@ -6,6 +6,12 @@ import { DEMO_REFERENCE_DATE, formatDate, libraryUsers, works } from '../../lib/
 
 const labels = ['Usuário','Obra','Disponibilidade','Datas','Confirmar'];
 
+function stepClassName(step: number, currentStep: number): string {
+  if (step === currentStep) return 'inko-step-current';
+  if (step < currentStep) return 'inko-step-complete';
+  return '';
+}
+
 export default function LoansPage() {
   const [userId, setUserId] = useState('');
   const [workId, setWorkId] = useState('');
@@ -17,7 +23,7 @@ export default function LoansPage() {
   const dueDate = new Date(`${DEMO_REFERENCE_DATE}T00:00:00Z`);
   dueDate.setUTCDate(dueDate.getUTCDate()+term);
   return <AppShell><PageHeading eyebrow="CIRCULAÇÃO / EMPRÉSTIMOS" title="Novo empréstimo" description="Fluxo guiado de seleção, disponibilidade e conferência" action={<InkoLinkButton href="/acervo" variant="outline">Consultar acervo</InkoLinkButton>}/><DemoNotice>Este fluxo funciona como prévia interativa. Não registra empréstimos no backend e não altera disponibilidade.</DemoNotice>
-    <ol className="inko-stepper">{labels.map((label,i)=><li key={label} className={step===i+1?'inko-step-current':i+1<step?'inko-step-complete':''}><span>{i+1<step?'✓':i+1}</span>{label}</li>)}</ol>
+    <ol className="inko-stepper">{labels.map((label,i)=><li key={label} className={stepClassName(i + 1, step)}><span>{i+1<step?'✓':i+1}</span>{label}</li>)}</ol>
     <div className="inko-two-columns"><Section title={`${step} · ${labels[step-1]}`}>
       {step===1&&<div className="inko-choice-list">{libraryUsers.slice(0,4).map(item=><button key={item.id} type="button" aria-pressed={userId===item.id} className={userId===item.id?'inko-choice--selected':''} onClick={()=>setUserId(item.id)}><span className="inko-avatar">{item.name.charAt(0)}</span><span><strong>{item.name}</strong><small>{item.id} · {item.late?'Possui atraso':'Sem alerta na amostra'}</small></span></button>)}</div>}
       {step===2&&<div className="inko-choice-list">{works.filter(w=>['INK-0002','INK-0003','INK-0004','INK-0006'].includes(w.id)).map(item=><button key={item.id} type="button" aria-pressed={workId===item.id} className={workId===item.id?'inko-choice--selected':''} onClick={()=>setWorkId(item.id)}><span className={`inko-choice-thumbnail inko-cover--${item.cover}`}/><span><strong>{item.title} · {item.volume}</strong><small>{item.author} · {item.id}</small></span><InkoStatus status={item.availability}/></button>)}</div>}

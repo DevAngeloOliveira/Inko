@@ -15,18 +15,22 @@ const navigation = [
   { href: '/relatorios', icon: 'relatorios', label: 'Relatórios' },
 ] as const;
 
-function Navigation({ current, onNavigate }: { current: string; onNavigate?: () => void }) {
+function isActiveRoute(pathname: string, href: string): boolean {
+  return pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
+}
+
+function Navigation({ current, onNavigate }: Readonly<{ current: string; onNavigate?: () => void }>) {
   return <nav className="inko-navigation" aria-label="Navegação principal">
     <span className="inko-nav-eyebrow">OPERAÇÃO</span>
     {navigation.map(item => <Link key={item.href} href={item.href} onClick={onNavigate}
-      className={`inko-nav-link ${current === item.href || (item.href !== '/' && current.startsWith(`${item.href}/`)) ? 'inko-nav-link--active' : ''}`}
+      className={isActiveRoute(current, item.href) ? 'inko-nav-link inko-nav-link--active' : 'inko-nav-link'}
       aria-current={current === item.href ? 'page' : undefined}><InkoIcon name={item.icon}/>{item.label}</Link>)}
   </nav>;
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   const pathname = usePathname();
-  const current = navigation.find(item => item.href === pathname || (item.href !== '/' && pathname.startsWith(`${item.href}/`)))?.label ?? 'INKO';
+  const current = navigation.find(item => isActiveRoute(pathname, item.href))?.label ?? 'INKO';
   return <div className="inko-app-layout">
     <aside className="inko-app-sidebar">
       <Link href="/" className="inko-sidebar-logo" aria-label="INKO — início"><Image src="/inko/logo/inko-logo-inverse.png" alt="INKO" width={132} height={99} priority/></Link>
