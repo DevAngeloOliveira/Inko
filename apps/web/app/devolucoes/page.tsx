@@ -10,7 +10,7 @@ export default function ReturnsPage() {
   const [returnDate,setReturnDate]=useState(DEMO_REFERENCE_DATE);
   const filtered=useMemo(()=>loans.filter(loan=>!loan.returnedAt&&`${loan.id} ${loan.work} ${loan.user}`.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'))),[search]);
   const loan=loans.find(item=>item.id===selected);
-  const valid=isValidISODate(returnDate)&&Boolean(loan)&&returnDate>=loan.start&&returnDate<=DEMO_REFERENCE_DATE;
+  const valid=isValidISODate(returnDate)&&loan!==undefined&&returnDate>=loan.start&&returnDate<=DEMO_REFERENCE_DATE;
   const late=loan&&valid?daysOverdue(loan.due,returnDate):0;
   return <AppShell><PageHeading eyebrow="CIRCULAÇÃO / DEVOLUÇÕES" title="Registrar devolução" description="Localize o empréstimo e confira os dados da operação"/>
     <DemoNotice>Conferência demonstrativa. A ação de devolução fica indisponível até o MS Circulação implementar RF-09. Multas de empréstimos devolvidos não são calculadas nesta versão.</DemoNotice>
