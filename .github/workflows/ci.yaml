@@ -40,7 +40,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm install -g pnpm@10.15.0
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: node packages/design-tokens/scripts/generate.mjs --check
       - run: node --test packages/design-tokens/tests/*.test.mjs
       - run: pnpm --filter @inko/web typecheck
