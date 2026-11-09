@@ -1,0 +1,212 @@
+name: INKO GHCR Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'releases/inko.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inko-ghcr-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Validate version manifest
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.manifest.outputs.version }}
+      publish: ${{ steps.manifest.outputs.publish }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Validate SemVer and reject existing tag
+        id: manifest
+        shell: bash
+        run: |
+          version="$(jq -er '.version' releases/inko.json)"
+          [[ "$version" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$ ]] || exit 1
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/$version" >/dev/null 2>&1; then
+            echo "Tag $version already exists; no images will be republished."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  verify:
+    name: Verify source before publishing
+    needs: prepare
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: 'services/*/pom.xml'
+      - name: Validate Compose and versioned images
+        env:
+          INKO_RELEASE_TAG: ${{ needs.prepare.outputs.version }}
+        run: |
+          docker compose --env-file .env.example config --quiet
+          docker compose --env-file .env.example -f compose.yaml -f compose.release.yaml config --quiet
+      - name: Verify frontend, tokens and tests
+        run: |
+          npm install -g pnpm@10.15.0
+          pnpm install --frozen-lockfile
+          pnpm tokens:check
+          pnpm tokens:test
+          pnpm --filter @inko/web typecheck
+          pnpm --filter @inko/web test
+          pnpm --filter @inko/web build
+      - name: Test FastAPI Gateway
+        run: |
+          python -m pip install -e './apps/gateway[test]'
+          python -m pytest -q apps/gateway/tests
+      - name: Test all Spring Boot services
+        shell: bash
+        run: |
+          for service in catalogo usuarios circulacao relatorios; do
+            mvn -B -ntp -f "services/$service/pom.xml" test
+          done
+
+  publish:
+    name: Publish GHCR / ${{ matrix.component }}
+    needs: [prepare, verify]
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: web
+            dockerfile: apps/web/Dockerfile
+            context: .
+            build_args: ''
+          - component: gateway
+            dockerfile: apps/gateway/Dockerfile
+            context: ./apps/gateway
+            build_args: ''
+          - component: catalogo
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=catalogo
+          - component: usuarios
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=usuarios
+          - component: circulacao
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=circulacao
+          - component: relatorios
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=relatorios
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Calculate image reference
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.component }}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          build-args: ${{ matrix.build_args }}
+          platforms: linux/amd64
+          push: true
+          sbom: true
+          provenance: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ needs.prepare.outputs.version }}
+            ${{ steps.image.outputs.name }}:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ needs.prepare.outputs.version }}
+          cache-from: type=gha,scope=release-${{ matrix.component }}
+          cache-to: type=gha,scope=release-${{ matrix.component }},mode=max
+
+  finalize:
+    name: Verify images and create GitHub Release
+    needs: [prepare, publish]
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify all six versioned image manifests
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        run: |
+          for component in web gateway catalogo usuarios circulacao relatorios; do
+            image="ghcr.io/${GITHUB_REPOSITORY,,}/$component:$RELEASE_VERSION"
+            docker buildx imagetools inspect "$image" >/dev/null
+            echo "Verified $image"
+          done
+      - name: Create release tag only after all images are published
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        run: |
+          git fetch origin --tags
+          if git rev-parse -q --verify "refs/tags/$RELEASE_VERSION" >/dev/null; then
+            target="$(git rev-list -n 1 "$RELEASE_VERSION")"
+            [[ "$target" == "$GITHUB_SHA" ]] || exit 1
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_VERSION" -m "INKO $RELEASE_VERSION" "$GITHUB_SHA"
+            git push origin "refs/tags/$RELEASE_VERSION"
+          fi
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        run: |
+          if ! gh release view "$RELEASE_VERSION" >/dev/null 2>&1; then
+            gh release create "$RELEASE_VERSION" --verify-tag --generate-notes --title "INKO $RELEASE_VERSION"
+          fi
+      - name: Summarize
+        env:
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          echo "## INKO GHCR release $RELEASE_VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "Six verified images: web, gateway, catalogo, usuarios, circulacao, relatorios." >> "$GITHUB_STEP_SUMMARY"
+          echo "No deployment was performed." >> "$GITHUB_STEP_SUMMARY"
