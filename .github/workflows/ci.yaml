@@ -46,3 +46,10 @@ jobs:
       - run: pnpm --filter @inko/web typecheck
       - run: pnpm --filter @inko/web test
       - run: pnpm --filter @inko/web build
+      - name: Build standalone Docker image
+        run: docker build --file apps/web/Dockerfile --tag inko-web:smoke .
+      - name: Smoke test static assets from the running container
+        run: |
+          docker run --detach --name inko-web-smoke --env HOSTNAME=0.0.0.0 --publish 127.0.0.1:3000:3000 inko-web:smoke
+          trap 'docker rm --force inko-web-smoke >/dev/null 2>&1 || true' EXIT
+          node apps/web/scripts/smoke-static-assets.mjs

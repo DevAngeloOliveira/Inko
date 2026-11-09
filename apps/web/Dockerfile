@@ -14,6 +14,7 @@ ENV NODE_ENV=production
 RUN addgroup -S inko && adduser -S inko -G inko
 COPY --from=build --chown=inko:inko /workspace/apps/web/.next/standalone ./
 COPY --from=build --chown=inko:inko /workspace/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=inko:inko /workspace/apps/web/public ./apps/web/public
 USER inko
 EXPOSE 3000
 CMD ["node", "apps/web/server.js"]
