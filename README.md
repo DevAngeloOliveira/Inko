@@ -170,3 +170,14 @@ node apps/web/scripts/smoke-static-assets.mjs
 ```
 
 O teste exige um frontend acessível em `http://127.0.0.1:3000` (ou pela variável `INKO_BASE_URL`). Os demais containers permanecem preservados.
+
+## DevOps automatizado
+
+A infraestrutura de engenharia é gerenciada pelo GitHub Actions: CI por serviço, validação de Compose, scanner de segurança, integração de sete containers, publicação versionada no GHCR e staging manual com backup de PostgreSQL. Não existe deployment automático em produção nem alteração automática de código pelo bot.
+
+- Guia de operação, releases, rollback e segurança: [docs/devops/README.md](docs/devops/README.md)
+- Teste integrado manual: **Actions → INKO Integration → Run workflow**
+- Release GHCR: criar tag `vX.Y.Z` na `main`, após aprovação do CI
+- Staging: requer Environment protegido, servidor SSH e secrets, conforme o guia
+
+O SonarCloud permanece um gate separado e não é substituído pelo scanner Trivy.

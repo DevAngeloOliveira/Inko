@@ -1,4 +1,11 @@
 name: inko
+
+x-inko-logging: &inko-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -19,6 +26,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 15
+    logging: *inko-logging
     networks: [inko-internal]
 
   catalogo:
@@ -41,6 +49,7 @@ services:
       timeout: 5s
       retries: 15
       start_period: 30s
+    logging: *inko-logging
     networks: [inko-internal]
 
   usuarios:
@@ -63,6 +72,7 @@ services:
       timeout: 5s
       retries: 15
       start_period: 30s
+    logging: *inko-logging
     networks: [inko-internal]
 
   circulacao:
@@ -85,6 +95,7 @@ services:
       timeout: 5s
       retries: 15
       start_period: 30s
+    logging: *inko-logging
     networks: [inko-internal]
 
   relatorios:
@@ -101,6 +112,7 @@ services:
       timeout: 5s
       retries: 15
       start_period: 30s
+    logging: *inko-logging
     networks: [inko-internal]
 
   gateway:
@@ -124,6 +136,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    logging: *inko-logging
     networks: [inko-internal]
 
   web:
@@ -138,6 +151,13 @@ services:
       - "127.0.0.1:3000:3000"
     depends_on:
       gateway: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    logging: *inko-logging
     networks: [inko-internal]
 
 volumes:

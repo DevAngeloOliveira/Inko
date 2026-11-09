@@ -1,0 +1,92 @@
+name: INKO Staging Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Published tag (for example v0.4.0)"
+        required: true
+        type: string
+      operation:
+        description: "Deploy or rollback to the requested tag"
+        type: choice
+        required: true
+        options: [deploy, rollback]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inko-staging
+  cancel-in-progress: false
+
+jobs:
+  staging:
+    name: ${{ inputs.operation }} staging (${{ inputs.release_tag }})
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+      - name: Validate release tag and origin
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        shell: bash
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]] || exit 1
+          [[ "$GITHUB_SHA" == "$(git rev-parse "$RELEASE_TAG^{commit}")" ]] || exit 1
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
+      - name: Configure trusted SSH transport
+        env:
+          DEPLOY_HOST: ${{ secrets.INKO_STAGING_HOST }}
+          DEPLOY_USER: ${{ secrets.INKO_STAGING_USER }}
+          DEPLOY_PATH: ${{ secrets.INKO_STAGING_PATH }}
+          DEPLOY_KEY: ${{ secrets.INKO_STAGING_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.INKO_STAGING_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          for variable in DEPLOY_HOST DEPLOY_USER DEPLOY_PATH DEPLOY_KEY DEPLOY_KNOWN_HOSTS; do
+            test -n "${!variable}" || { echo "Missing secret: $variable" >&2; exit 1; }
+          done
+          [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || exit 1
+          [[ "$DEPLOY_USER" =~ ^[a-z_][a-z0-9_-]*$ ]] || exit 1
+          [[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9_./-]+$ ]] || exit 1
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_ed25519" "$HOME/.ssh/known_hosts"
+          {
+            echo "INKO_DEPLOY_HOST=$DEPLOY_HOST"
+            echo "INKO_DEPLOY_USER=$DEPLOY_USER"
+            echo "INKO_DEPLOY_PATH=$DEPLOY_PATH"
+          } >> "$GITHUB_ENV"
+      - name: Transfer deployment manifests without application secrets
+        shell: bash
+        run: |
+          remote="${INKO_DEPLOY_USER}@${INKO_DEPLOY_HOST}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$remote" "mkdir -p '${INKO_DEPLOY_PATH}'"
+          tar -cf - compose.yaml compose.release.yaml \
+            infra/postgres/init/01-create-databases.sh \
+            scripts/ops/backup-postgres.sh scripts/ops/deploy-staging.sh |
+            ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$remote" "tar -xf - -C '${INKO_DEPLOY_PATH}'"
+      - name: Deploy or rollback versioned containers
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        shell: bash
+        run: |
+          remote="${INKO_DEPLOY_USER}@${INKO_DEPLOY_HOST}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$remote" \
+            "cd '${INKO_DEPLOY_PATH}' && INKO_RELEASE_TAG='${RELEASE_TAG}' bash scripts/ops/deploy-staging.sh"
+      - name: Record deployment summary
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          OPERATION: ${{ inputs.operation }}
+        run: |
+          echo "### INKO staging" >> "$GITHUB_STEP_SUMMARY"
+          echo "Operation: $OPERATION" >> "$GITHUB_STEP_SUMMARY"
+          echo "Release: $RELEASE_TAG" >> "$GITHUB_STEP_SUMMARY"
+          echo "Database volumes were not removed." >> "$GITHUB_STEP_SUMMARY"

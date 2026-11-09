@@ -1,14 +1,38 @@
 name: INKO CI
 on:
   push:
+    branches: [main]
+    tags: ['v*']
   pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inko-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  compose:
+    name: Docker Compose validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Validate Compose configuration
+        run: docker compose --env-file .env.example config --quiet
+      - name: Validate shell scripts
+        run: bash -n scripts/ci/smoke-compose.sh scripts/ops/backup-postgres.sh scripts/ops/deploy-staging.sh
+      - name: Validate release overlay
+        run: |
+          INKO_RELEASE_TAG=v0.0.0 docker compose --env-file .env.example -f compose.yaml -f compose.release.yaml config --quiet
+
   gateway:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.13'
       - run: python -m pip install -e '.[test]'
@@ -22,8 +46,8 @@ jobs:
       matrix:
         service: [catalogo, usuarios, circulacao, relatorios]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
         with:
           distribution: temurin
           java-version: '21'
@@ -35,8 +59,8 @@ jobs:
   web:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
       - run: npm install -g pnpm@10.15.0
@@ -53,3 +77,78 @@ jobs:
           docker run --detach --name inko-web-smoke --env HOSTNAME=0.0.0.0 --publish 127.0.0.1:3000:3000 inko-web:smoke
           trap 'docker rm --force inko-web-smoke >/dev/null 2>&1 || true' EXIT
           node apps/web/scripts/smoke-static-assets.mjs
+
+  publish:
+    name: Publish ${{ matrix.component }} to GHCR
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [compose, gateway, java, web]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: web
+            dockerfile: apps/web/Dockerfile
+            context: .
+            build_args: ''
+          - component: gateway
+            dockerfile: apps/gateway/Dockerfile
+            context: ./apps/gateway
+            build_args: ''
+          - component: catalogo
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=catalogo
+          - component: usuarios
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=usuarios
+          - component: circulacao
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=circulacao
+          - component: relatorios
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=relatorios
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Verify release tag and ancestry
+        shell: bash
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]] || exit 1
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Compute lowercase image name
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.component }}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          build-args: ${{ matrix.build_args }}
+          platforms: linux/amd64
+          push: true
+          provenance: true
+          sbom: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ github.ref_name }}
+            ${{ steps.image.outputs.name }}:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,scope=${{ matrix.component }},mode=max

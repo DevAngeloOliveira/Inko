@@ -1,0 +1,19 @@
+services:
+  catalogo:
+    image: ghcr.io/${GHCR_REPOSITORY:-devangelooliveira/inko}/catalogo:${INKO_RELEASE_TAG:?Set INKO_RELEASE_TAG}
+    pull_policy: always
+  usuarios:
+    image: ghcr.io/${GHCR_REPOSITORY:-devangelooliveira/inko}/usuarios:${INKO_RELEASE_TAG:?Set INKO_RELEASE_TAG}
+    pull_policy: always
+  circulacao:
+    image: ghcr.io/${GHCR_REPOSITORY:-devangelooliveira/inko}/circulacao:${INKO_RELEASE_TAG:?Set INKO_RELEASE_TAG}
+    pull_policy: always
+  relatorios:
+    image: ghcr.io/${GHCR_REPOSITORY:-devangelooliveira/inko}/relatorios:${INKO_RELEASE_TAG:?Set INKO_RELEASE_TAG}
+    pull_policy: always
+  gateway:
+    image: ghcr.io/${GHCR_REPOSITORY:-devangelooliveira/inko}/gateway:${INKO_RELEASE_TAG:?Set INKO_RELEASE_TAG}
+    pull_policy: always
+  web:
+    image: ghcr.io/${GHCR_REPOSITORY:-devangelooliveira/inko}/web:${INKO_RELEASE_TAG:?Set INKO_RELEASE_TAG}
+    pull_policy: always
