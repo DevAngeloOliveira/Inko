@@ -1,5 +1,6 @@
 @import './inko-tokens.css';
 @import './inko-motion.css';
+@import './dashboard.css';
 
 :root {
   font-family: 'Inter', Arial, sans-serif;
