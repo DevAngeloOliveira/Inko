@@ -1,9 +1,31 @@
 name: INKO CI
 on:
   push:
+    branches: [main]
+    tags: ['v*']
   pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inko-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  compose:
+    name: Docker Compose validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose configuration
+        run: docker compose --env-file .env.example config --quiet
+      - name: Validate release overlay
+        run: |
+          INKO_RELEASE_TAG=v0.0.0 docker compose --env-file .env.example -f compose.yaml -f compose.release.yaml config --quiet
+
   gateway:
     runs-on: ubuntu-latest
     steps:
@@ -53,3 +75,78 @@ jobs:
           docker run --detach --name inko-web-smoke --env HOSTNAME=0.0.0.0 --publish 127.0.0.1:3000:3000 inko-web:smoke
           trap 'docker rm --force inko-web-smoke >/dev/null 2>&1 || true' EXIT
           node apps/web/scripts/smoke-static-assets.mjs
+
+  publish:
+    name: Publish ${{ matrix.component }} to GHCR
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [compose, gateway, java, web]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: web
+            dockerfile: apps/web/Dockerfile
+            context: .
+            build_args: ''
+          - component: gateway
+            dockerfile: apps/gateway/Dockerfile
+            context: ./apps/gateway
+            build_args: ''
+          - component: catalogo
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=catalogo
+          - component: usuarios
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=usuarios
+          - component: circulacao
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=circulacao
+          - component: relatorios
+            dockerfile: infra/docker/java-service.Dockerfile
+            context: .
+            build_args: SERVICE=relatorios
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify release tag and ancestry
+        shell: bash
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]] || exit 1
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Compute lowercase image name
+        id: image
+        shell: bash
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}/${{ matrix.component }}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          build-args: ${{ matrix.build_args }}
+          platforms: linux/amd64
+          push: true
+          provenance: true
+          sbom: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ github.ref_name }}
+            ${{ steps.image.outputs.name }}:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,scope=${{ matrix.component }},mode=max
