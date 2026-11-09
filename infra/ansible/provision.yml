@@ -1,0 +1,55 @@
+---
+- name: Prepare Ubuntu 24.04 host for INKO
+  hosts: inko
+  become: true
+  vars:
+    inko_deploy_user: inko_deploy
+    inko_install_dir: /opt/inko
+  pre_tasks:
+    - name: Validate required public SSH key
+      ansible.builtin.assert:
+        that:
+          - inko_deploy_public_key is defined
+          - inko_deploy_public_key | length > 40
+        fail_msg: "Provide a real deployment public SSH key via encrypted Ansible vars"
+  tasks:
+    - name: Install container runtime and host utilities
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+          - ca-certificates
+          - curl
+          - tar
+        state: present
+        update_cache: true
+
+    - name: Enable Docker service
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Create non-root deployment user
+      ansible.builtin.user:
+        name: "{{ inko_deploy_user }}"
+        groups: docker
+        append: true
+        create_home: true
+        shell: /bin/bash
+        state: present
+
+    - name: Install deployment SSH key
+      ansible.posix.authorized_key:
+        user: "{{ inko_deploy_user }}"
+        key: "{{ inko_deploy_public_key }}"
+        exclusive: false
+        state: present
+
+    - name: Prepare deployment directory
+      ansible.builtin.file:
+        path: "{{ inko_install_dir }}"
+        state: directory
+        owner: "{{ inko_deploy_user }}"
+        group: "{{ inko_deploy_user }}"
+        mode: "0750"

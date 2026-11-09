@@ -1,0 +1,14 @@
+{$INKO_DOMAIN} {
+    encode zstd gzip
+
+    @internalApi path /api/*
+    respond @internalApi 404
+
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    reverse_proxy web:3000
+}

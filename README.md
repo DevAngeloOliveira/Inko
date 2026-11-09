@@ -181,3 +181,7 @@ A infraestrutura de engenharia é gerenciada pelo GitHub Actions: CI por serviç
 - Staging: requer Environment protegido, servidor SSH e secrets, conforme o guia
 
 O SonarCloud permanece um gate separado e não é substituído pelo scanner Trivy.
+
+## Operação avançada e observabilidade
+
+Veja [docs/devops/OPERATIONS.md](docs/devops/OPERATIONS.md) para o smoke integrado em PR, monitoramento Prometheus/Grafana, edge Caddy, backups verificáveis, restauração isolada e provisionamento Ansible. O deploy remoto requer um Environment protegido e um host real.
