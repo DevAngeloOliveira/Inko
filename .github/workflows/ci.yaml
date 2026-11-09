@@ -1,0 +1,48 @@
+name: INKO CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -e '.[test]'
+        working-directory: apps/gateway
+      - run: python -m pytest -q
+        working-directory: apps/gateway
+
+  java:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [catalogo, usuarios, circulacao, relatorios]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: services/${{ matrix.service }}/pom.xml
+      - run: mvn -B -ntp test
+        working-directory: services/${{ matrix.service }}
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install -g pnpm@10.15.0
+      - run: pnpm install --no-frozen-lockfile
+      - run: node packages/design-tokens/scripts/generate.mjs --check
+      - run: node --test packages/design-tokens/tests/*.test.mjs
+      - run: pnpm --filter @inko/web typecheck
+      - run: pnpm --filter @inko/web test
+      - run: pnpm --filter @inko/web build

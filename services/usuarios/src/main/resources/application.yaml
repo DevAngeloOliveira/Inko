@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: usuarios
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/inko_usuarios}
+    username: ${DB_USER:usuarios_user}
+    password: ${DB_PASSWORD:}
+server:
+  port: ${SERVER_PORT:8082}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never

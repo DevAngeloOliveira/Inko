@@ -1,0 +1,115 @@
+@keyframes inko-entrance {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes inko-ink-reveal {
+  0% { clip-path: inset(0 100% 0 0); }
+  45%, 100% { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes inko-enso-ink-draw {
+  0% { stroke-dashoffset: 440; }
+  55%, 100% { stroke-dashoffset: 60; }
+}
+
+@keyframes inko-enso-entry-draw {
+  from { stroke-dashoffset: 520; }
+  to { stroke-dashoffset: 70; }
+}
+
+@keyframes inko-panel-in {
+  0% { transform: translate(-24px, 12px) rotate(-3deg); opacity: 0; }
+  30%, 100% { transform: none; opacity: 1; }
+}
+
+@keyframes inko-pop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes inko-toast-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes inko-swap-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes inko-shimmer {
+  from { background-position: -300px 0; }
+  to { background-position: 300px 0; }
+}
+
+@keyframes inko-spinner {
+  to { transform: rotate(360deg); }
+}
+
+.inko-motion-enter {
+  animation: inko-entrance var(--inko-duration-panel) var(--inko-easing-out) both;
+}
+
+.inko-motion-stagger-1 { animation-delay: 90ms; }
+.inko-motion-stagger-2 { animation-delay: 180ms; }
+.inko-motion-stagger-3 { animation-delay: 270ms; }
+.inko-motion-stagger-4 { animation-delay: 360ms; }
+
+.inko-motion-demo-brush {
+  animation: inko-ink-reveal 2.4s cubic-bezier(.65, 0, .35, 1) infinite;
+}
+
+.inko-motion-demo-enso {
+  stroke-dasharray: 440;
+  animation: inko-enso-ink-draw 2.4s cubic-bezier(.65, 0, .35, 1) infinite;
+}
+
+.inko-motion-demo-panel {
+  animation: inko-panel-in 2.4s cubic-bezier(.2, .8, .2, 1) infinite;
+}
+
+.inko-motion-enso-entry {
+  stroke-dasharray: 520;
+  animation: inko-enso-entry-draw 900ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+.inko-motion-pop { animation: inko-pop 200ms cubic-bezier(.2, .8, .2, 1) both; }
+.inko-motion-toast { animation: inko-toast-in 200ms cubic-bezier(.2, .8, .2, 1) both; }
+.inko-motion-swap { animation: inko-swap-in 220ms cubic-bezier(.2, .8, .2, 1) both; }
+.inko-motion-spin { animation: inko-spinner 800ms linear infinite; }
+
+.inko-motion-shimmer {
+  background: linear-gradient(90deg, #ECE6DD 0, #F5F0E8 50%, #ECE6DD 100%);
+  background-size: 600px 100%;
+  animation: inko-shimmer 1.4s linear infinite;
+}
+
+.inko-motion-interactive {
+  background-color: var(--inko-action-primary);
+  transition: background-color var(--inko-duration-hover) var(--inko-easing-out),
+    border-color var(--inko-duration-hover) var(--inko-easing-out),
+    color var(--inko-duration-hover) var(--inko-easing-out),
+    box-shadow var(--inko-duration-state) var(--inko-easing-out);
+}
+
+.inko-motion-interactive:hover { background-color: var(--inko-action-primary-hover); }
+.inko-motion-interactive:active { background-color: var(--inko-action-primary-pressed); }
+
+@media (prefers-reduced-motion: reduce) {
+  .inko-motion-enter,
+  .inko-motion-demo-brush,
+  .inko-motion-demo-enso,
+  .inko-motion-demo-panel,
+  .inko-motion-enso-entry,
+  .inko-motion-pop,
+  .inko-motion-toast,
+  .inko-motion-swap,
+  .inko-motion-spin,
+  .inko-motion-shimmer { animation: none !important; }
+
+  .inko-motion-demo-brush { clip-path: inset(0 0 0 0); }
+  .inko-motion-demo-enso { stroke-dashoffset: 60; }
+  .inko-motion-enso-entry { stroke-dashoffset: 70; }
+  .inko-motion-interactive { transition: none !important; }
+}

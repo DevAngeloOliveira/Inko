@@ -1,0 +1,70 @@
+@import './inko-tokens.css';
+@import './inko-motion.css';
+
+:root {
+  font-family: 'Inter', Arial, sans-serif;
+  color: var(--inko-text-primary);
+  background: var(--inko-background-default);
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; min-height: 100vh; }
+
+.app-shell { min-height: 100vh; display: grid; grid-template-columns: 244px minmax(0, 1fr); }
+
+.sidebar { background: var(--inko-surface-inverse); color: var(--inko-text-inverse); padding: 32px 20px; }
+
+.brand {
+  font-family: 'Manrope', 'Inter', Arial, sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: -3px;
+}
+
+.brand-dot { color: var(--inko-brand-seal); }
+.sidebar-subtitle { color: var(--inko-neutral-sand); font-size: 12px; margin: 0 0 52px; }
+nav { display: grid; gap: 12px; }
+.nav-item { padding: 12px 14px; border-radius: var(--inko-radius-sm); font-size: 14px; }
+.current { background: var(--inko-action-primary); color: var(--inko-text-inverse); font-weight: 700; }
+.muted { color: var(--inko-neutral-sand); }
+.main-content { padding: 68px clamp(22px, 6vw, 96px); }
+.eyebrow { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--inko-brand-seal); }
+
+h1 {
+  max-width: 720px;
+  font-family: 'Manrope', 'Inter', Arial, sans-serif;
+  font-size: clamp(32px, 5vw, 56px);
+  letter-spacing: -2px;
+  line-height: 1.1;
+  margin: 16px 0;
+}
+
+.description { max-width: 700px; color: var(--inko-text-secondary); line-height: 1.7; }
+.section-title { margin: 54px 0 18px; font-family: 'Manrope', 'Inter', Arial, sans-serif; font-weight: 800; }
+.service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+
+.service-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--inko-surface-default);
+  border: 1px solid var(--inko-border-default);
+  border-radius: var(--inko-radius-md);
+  padding: 19px;
+  box-shadow: var(--inko-shadow-sm);
+}
+
+.service-card strong { display: block; text-transform: capitalize; }
+.service-card small { display: block; margin-top: 4px; color: var(--inko-text-secondary); }
+.status { border-radius: 50%; width: 10px; height: 10px; background: var(--inko-status-danger-fg); flex: none; }
+.status.up { background: var(--inko-status-success-fg); }
+
+@media (max-width: 760px) {
+  .app-shell { display: block; }
+  .sidebar { padding: 20px; }
+  .sidebar-subtitle { margin-bottom: 16px; }
+  nav { display: none; }
+  .main-content { padding: 44px 22px; }
+}

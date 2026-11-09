@@ -1,0 +1,15 @@
+{
+  "name": "inko-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.15.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @inko/web dev",
+    "build:web": "pnpm tokens:check && pnpm --filter @inko/web build",
+    "typecheck:web": "pnpm --filter @inko/web typecheck",
+    "test:web": "pnpm --filter @inko/web test",
+    "tokens:build": "node packages/design-tokens/scripts/generate.mjs",
+    "tokens:check": "node packages/design-tokens/scripts/generate.mjs --check",
+    "tokens:test": "node --test packages/design-tokens/tests/*.test.mjs"
+  }
+}

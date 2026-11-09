@@ -1,0 +1,376 @@
+{
+  "collections": [
+    {
+      "name": "INKO / Primitives + Semantic",
+      "modes": [
+        "Light"
+      ],
+      "variables": [
+        {
+          "name": "brand/ink",
+          "type": "COLOR",
+          "values": {
+            "Light": "#111111"
+          }
+        },
+        {
+          "name": "brand/paper",
+          "type": "COLOR",
+          "values": {
+            "Light": "#F7F3ED"
+          }
+        },
+        {
+          "name": "brand/seal",
+          "type": "COLOR",
+          "values": {
+            "Light": "#C43B2F"
+          }
+        },
+        {
+          "name": "neutral/brown",
+          "type": "COLOR",
+          "values": {
+            "Light": "#5B4636"
+          }
+        },
+        {
+          "name": "neutral/sand",
+          "type": "COLOR",
+          "values": {
+            "Light": "#E8D9C5"
+          }
+        },
+        {
+          "name": "neutral/gray",
+          "type": "COLOR",
+          "values": {
+            "Light": "#9CA3AF"
+          }
+        },
+        {
+          "name": "neutral/graphite",
+          "type": "COLOR",
+          "values": {
+            "Light": "#2D3748"
+          }
+        },
+        {
+          "name": "semantic/background/default",
+          "type": "COLOR",
+          "values": {
+            "Light": "#F7F3ED"
+          }
+        },
+        {
+          "name": "semantic/background/subtle",
+          "type": "COLOR",
+          "values": {
+            "Light": "#EFE8DD"
+          }
+        },
+        {
+          "name": "semantic/surface/default",
+          "type": "COLOR",
+          "values": {
+            "Light": "#FFFDF9"
+          }
+        },
+        {
+          "name": "semantic/surface/elevated",
+          "type": "COLOR",
+          "values": {
+            "Light": "#FFFFFF"
+          }
+        },
+        {
+          "name": "semantic/surface/inverse",
+          "type": "COLOR",
+          "values": {
+            "Light": "#111111"
+          }
+        },
+        {
+          "name": "semantic/text/primary",
+          "type": "COLOR",
+          "values": {
+            "Light": "#111111"
+          }
+        },
+        {
+          "name": "semantic/text/secondary",
+          "type": "COLOR",
+          "values": {
+            "Light": "#6B6158"
+          }
+        },
+        {
+          "name": "semantic/text/inverse",
+          "type": "COLOR",
+          "values": {
+            "Light": "#F7F3ED"
+          }
+        },
+        {
+          "name": "semantic/text/disabled",
+          "type": "COLOR",
+          "values": {
+            "Light": "#8A8279"
+          }
+        },
+        {
+          "name": "semantic/border/default",
+          "type": "COLOR",
+          "values": {
+            "Light": "#E2D6C4"
+          }
+        },
+        {
+          "name": "semantic/border/strong",
+          "type": "COLOR",
+          "values": {
+            "Light": "#8C7B68"
+          }
+        },
+        {
+          "name": "semantic/action/primary",
+          "type": "COLOR",
+          "values": {
+            "Light": "#C43B2F"
+          }
+        },
+        {
+          "name": "semantic/action/primaryHover",
+          "type": "COLOR",
+          "values": {
+            "Light": "#A8302A"
+          }
+        },
+        {
+          "name": "semantic/action/primaryPressed",
+          "type": "COLOR",
+          "values": {
+            "Light": "#8E2721"
+          }
+        },
+        {
+          "name": "semantic/focus/ring",
+          "type": "COLOR",
+          "values": {
+            "Light": "#111111"
+          }
+        },
+        {
+          "name": "semantic/status/success/fg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#2F6B4F"
+          }
+        },
+        {
+          "name": "semantic/status/success/bg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#E3EEE6"
+          }
+        },
+        {
+          "name": "semantic/status/success/border",
+          "type": "COLOR",
+          "values": {
+            "Light": "#9CC3AE"
+          }
+        },
+        {
+          "name": "semantic/status/warning/fg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#7A4E00"
+          }
+        },
+        {
+          "name": "semantic/status/warning/bg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#F8EBCF"
+          }
+        },
+        {
+          "name": "semantic/status/warning/border",
+          "type": "COLOR",
+          "values": {
+            "Light": "#E0B867"
+          }
+        },
+        {
+          "name": "semantic/status/danger/fg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#9B1C2E"
+          }
+        },
+        {
+          "name": "semantic/status/danger/bg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#F6E1E3"
+          }
+        },
+        {
+          "name": "semantic/status/danger/border",
+          "type": "COLOR",
+          "values": {
+            "Light": "#D99AA3"
+          }
+        },
+        {
+          "name": "semantic/status/info/fg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#2B5C8A"
+          }
+        },
+        {
+          "name": "semantic/status/info/bg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#E2EAF3"
+          }
+        },
+        {
+          "name": "semantic/status/info/border",
+          "type": "COLOR",
+          "values": {
+            "Light": "#9DB7D3"
+          }
+        },
+        {
+          "name": "semantic/status/disabled/fg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#8A8279"
+          }
+        },
+        {
+          "name": "semantic/status/disabled/bg",
+          "type": "COLOR",
+          "values": {
+            "Light": "#ECE6DD"
+          }
+        },
+        {
+          "name": "semantic/status/disabled/border",
+          "type": "COLOR",
+          "values": {
+            "Light": "#D5CABB"
+          }
+        },
+        {
+          "name": "space/1",
+          "type": "FLOAT",
+          "values": {
+            "Light": 4.0
+          }
+        },
+        {
+          "name": "space/2",
+          "type": "FLOAT",
+          "values": {
+            "Light": 8.0
+          }
+        },
+        {
+          "name": "space/3",
+          "type": "FLOAT",
+          "values": {
+            "Light": 12.0
+          }
+        },
+        {
+          "name": "space/4",
+          "type": "FLOAT",
+          "values": {
+            "Light": 16.0
+          }
+        },
+        {
+          "name": "space/5",
+          "type": "FLOAT",
+          "values": {
+            "Light": 20.0
+          }
+        },
+        {
+          "name": "space/6",
+          "type": "FLOAT",
+          "values": {
+            "Light": 24.0
+          }
+        },
+        {
+          "name": "space/8",
+          "type": "FLOAT",
+          "values": {
+            "Light": 32.0
+          }
+        },
+        {
+          "name": "space/10",
+          "type": "FLOAT",
+          "values": {
+            "Light": 40.0
+          }
+        },
+        {
+          "name": "space/12",
+          "type": "FLOAT",
+          "values": {
+            "Light": 48.0
+          }
+        },
+        {
+          "name": "space/16",
+          "type": "FLOAT",
+          "values": {
+            "Light": 64.0
+          }
+        },
+        {
+          "name": "radius/xs",
+          "type": "FLOAT",
+          "values": {
+            "Light": 4.0
+          }
+        },
+        {
+          "name": "radius/sm",
+          "type": "FLOAT",
+          "values": {
+            "Light": 8.0
+          }
+        },
+        {
+          "name": "radius/md",
+          "type": "FLOAT",
+          "values": {
+            "Light": 12.0
+          }
+        },
+        {
+          "name": "radius/lg",
+          "type": "FLOAT",
+          "values": {
+            "Light": 16.0
+          }
+        },
+        {
+          "name": "radius/xl",
+          "type": "FLOAT",
+          "values": {
+            "Light": 24.0
+          }
+        }
+      ]
+    }
+  ]
+}

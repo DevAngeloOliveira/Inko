@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: relatorios
+server:
+  port: ${SERVER_PORT:8084}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
