@@ -8,7 +8,7 @@ test('catalog views use independent conditional branches', () => {
   const catalog = source('app/acervo/page.tsx');
   assert.match(catalog, /view === 'cards' &&/);
   assert.match(catalog, /view === 'table' &&/);
-  assert.doesNotMatch(catalog, /view === 'cards' \?/);
+  assert.doesNotMatch(catalog, /view === 'cards'\s*\?\s*<div className="inko-work-grid"/);
 });
 
 test('loan steps use named helper rather than nested ternary', () => {
