@@ -66,17 +66,22 @@ jobs:
           docker compose --env-file .env.example -f compose.yaml -f compose.release.yaml config --quiet
       - name: Verify frontend, tokens and tests
         run: |
-          npm install -g pnpm@10.15.0
+          npm install -g --ignore-scripts pnpm@10.15.0
           pnpm install --frozen-lockfile
           pnpm tokens:check
           pnpm tokens:test
           pnpm --filter @inko/web typecheck
           pnpm --filter @inko/web test
           pnpm --filter @inko/web build
-      - name: Test FastAPI Gateway
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e
+        with:
+          version: '0.13.7'
+      - name: Test FastAPI Gateway with locked Python dependencies
+        working-directory: apps/gateway
         run: |
-          python -m pip install -e './apps/gateway[test]'
-          python -m pytest -q apps/gateway/tests
+          uv lock --check
+          uv sync --locked --extra test --no-editable
+          uv run --locked --extra test python -m pytest -q
       - name: Test all Spring Boot services
         shell: bash
         run: |
