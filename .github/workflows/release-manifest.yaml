@@ -80,8 +80,8 @@ jobs:
         working-directory: apps/gateway
         run: |
           uv lock --check
-          uv sync --locked --extra test --no-editable
-          uv run --locked --extra test python -m pytest -q
+          uv sync --locked --extra test --no-build --no-install-project
+          .venv/bin/python -m pytest -q
       - name: Test all Spring Boot services
         shell: bash
         run: |

@@ -7,12 +7,18 @@ For development:
 ```bash
 cd apps/gateway
 uv lock --check
-uv sync --locked --extra test --no-editable
-uv run --locked --extra test python -m pytest -q
+uv sync --locked --extra test --no-build --no-install-project
+.venv/bin/python -m pytest -q
 ```
 
-The production Dockerfile installs the locked dependency set with `uv sync --locked --no-dev --no-editable`. The CI and the release workflow both verify that the lock matches `pyproject.toml`.
+The production Dockerfile installs the locked dependency set with `uv sync --locked --no-dev --no-build --no-install-project`. The CI and the release workflow both verify that the lock matches `pyproject.toml`.
 
 When modifying dependencies, regenerate and commit `uv.lock` in the same PR using `uv lock`. Do not bypass `--locked` in CI or production. The build should fail if a dependency is missing from the lock instead of resolving a different version silently.
 
 The project source is deliberately packaged locally; only third-party dependencies are retrieved from the registry. The build image uses a versioned uv binary and runs the Gateway as the unprivileged `inko` user.
+
+## Binary-only security policy
+
+The gateway imports its own source directly from the working directory. The project itself is not installed using third-party build scripts. The CI and Docker installation commands include `--no-build --no-install-project`, which prevents execution of third-party source-distribution build backends while installing dependencies locked with SHA-256 hashes.
+
+If a dependency stops publishing wheels for our platform, CI must fail rather than quietly build it from source. Changes to these flags require explicit review of supply-chain consequences.

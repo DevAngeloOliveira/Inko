@@ -61,10 +61,10 @@ jobs:
         run: uv lock --check
         working-directory: apps/gateway
       - name: Install locked Gateway dependencies
-        run: uv sync --locked --extra test --no-editable
+        run: uv sync --locked --extra test --no-build --no-install-project
         working-directory: apps/gateway
       - name: Test Gateway with locked dependencies
-        run: uv run --locked --extra test python -m pytest -q
+        run: .venv/bin/python -m pytest -q
         working-directory: apps/gateway
 
   java:
