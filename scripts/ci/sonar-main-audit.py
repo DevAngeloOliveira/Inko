@@ -33,7 +33,7 @@ def issue_security(issues):
             results.append(issue)
     return results
 
-def retrieve_issues():
+def retrieve_issues(target):
     issues = []
     total = None
     for page in range(1, 11):
@@ -42,6 +42,7 @@ def retrieve_issues():
             "resolved": "false",
             "ps": 100,
             "p": page,
+            **target,
         })
         if "error" in payload:
             return {"error": payload["error"], "issues": issues}
@@ -54,23 +55,25 @@ def retrieve_issues():
 def rating(value):
     return {"1.0": "A", "2.0": "B", "3.0": "C", "4.0": "D", "5.0": "E"}.get(str(value), "unknown")
 
-def audit(strict=False):
-    gate_response = fetch("qualitygates/project_status", {"projectKey": PROJECT, "branch": "main"})
+def audit(strict=False, pull_request=None):
+    target = {"pullRequest": pull_request} if pull_request else {"branch": "main"}
+    gate_response = fetch("qualitygates/project_status", {"projectKey": PROJECT, **target})
     gate = gate_response.get("projectStatus") or {}
     status = gate.get("status", "UNAVAILABLE")
     measures = fetch("measures/component", {
         "component": PROJECT,
-        "branch": "main",
+        **target,
         "metricKeys": "security_rating,reliability_rating,sqale_rating,alert_status",
     })
     found = {}
     for metric in (measures.get("component") or {}).get("measures", []):
         found[metric["metric"]] = metric.get("value")
-    issue_report = retrieve_issues()
+    issue_report = retrieve_issues(target)
     security_issues = issue_security(issue_report.get("issues", []))
     result = {
         "project": PROJECT,
-        "branch": "main",
+        "branch": "main" if not pull_request else None,
+        "pullRequest": pull_request,
         "qualityGate": status,
         "qualityGateConditions": gate.get("conditions", []),
         "overallSecurityRating": rating(found.get("security_rating")),
@@ -131,5 +134,6 @@ def audit(strict=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--strict", action="store_true")
+    parser.add_argument("--pull-request", type=int)
     args = parser.parse_args()
-    sys.exit(audit(args.strict))
+    sys.exit(audit(args.strict, args.pull_request))

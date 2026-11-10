@@ -29,10 +29,11 @@ jobs:
         env:
           SONAR_TOKEN: ${{ github.event_name != 'pull_request' && secrets.SONAR_TOKEN || '' }}
           INKO_STRICT_SONAR: ${{ github.event_name != 'pull_request' }}
+          INKO_PR_NUMBER: ${{ github.event.pull_request.number }}
         shell: bash
         run: |
           if [[ "$INKO_STRICT_SONAR" == "true" ]]; then
             python scripts/ci/sonar-main-audit.py --strict
           else
-            python scripts/ci/sonar-main-audit.py
+            python scripts/ci/sonar-main-audit.py --pull-request "$INKO_PR_NUMBER"
           fi
