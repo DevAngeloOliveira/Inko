@@ -1,4 +1,38 @@
 groups:
+  - name: inko-gateway
+    rules:
+      - alert: InkoGatewayRejectionsSustained
+        expr: (sum(rate(inko_gateway_rate_rejections_total[1m])) or vector(0)) + (sum(rate(inko_gateway_admission_rejections_total[1m])) or vector(0)) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "INKO Gateway sustaining more than one admission or rate rejection per second"
+
+      - alert: InkoGatewayCircuitOpen
+        expr: inko_gateway_circuit_state == 1
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "INKO Gateway circuit open for {{ $labels.service }}"
+
+      - alert: InkoGatewaySnapshotStale
+        expr: inko_gateway_status_snapshot_age_seconds > 15
+        for: 15s
+        labels:
+          severity: warning
+        annotations:
+          summary: "INKO Gateway health snapshot is stale"
+
+      - alert: InkoGatewayMetricsUnavailable
+        expr: up{job="inko-gateway"} == 0 or absent(up{job="inko-gateway"})
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "INKO Gateway metrics cannot be scraped"
+
   - name: inko-health
     rules:
       - alert: InkoServiceMetricsUnavailable

@@ -2,25 +2,27 @@ export const dynamic = 'force-dynamic';
 
 type Service = { service: string; status: string };
 
-type StatusResponse = { services: Service[] };
+type StatusResponse = { services: Service[]; stale?: boolean };
 
-async function getStatus(): Promise<Service[]> {
+async function getStatus(): Promise<StatusResponse | null> {
   try {
     const gateway = process.env.GATEWAY_INTERNAL_URL ?? 'http://localhost:8000';
     const response = await fetch(`${gateway}/api/v1/system/status`, {
       cache: 'no-store',
       signal: AbortSignal.timeout(6000),
     });
-    if (!response.ok) return [];
+    if (!response.ok) return null;
     const data = (await response.json()) as StatusResponse;
-    return data.services;
+    return Array.isArray(data?.services) ? data : null;
   } catch {
-    return [];
+    return null;
   }
 }
 
 export default async function HomePage() {
-  const services = await getStatus();
+  const snapshot = await getStatus();
+  const services = snapshot?.services ?? [];
+  const stale = snapshot?.stale;
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -42,11 +44,18 @@ export default async function HomePage() {
           Os componentes definitivos serão incorporados do Design System aprovado.
         </p>
         <div className="section-title">Estado dos microsserviços</div>
+        {services.length > 0 && stale !== false && (
+          <p className="description">
+            {stale ? 'Dados desatualizados. Os estados abaixo são da última observação.' : 'Horário da última atualização indisponível.'}
+          </p>
+        )}
         <div className="service-grid inko-motion-enter inko-motion-stagger-3">
           {services.length ? services.map(({ service, status }) => (
             <article className="service-card" key={service}>
               <span className={`status ${status}`} aria-hidden="true" />
-              <div><strong>{service}</strong><small>{status === 'up' ? 'Operacional' : 'Indisponível'}</small></div>
+              <div><strong>{service}</strong><small>
+                {stale === false ? '' : 'Última observação: '}{status === 'up' ? 'Operacional' : 'Indisponível'}
+              </small></div>
             </article>
           )) : <article className="service-card">Gateway não disponível ou indisponível para consulta.</article>}
         </div>

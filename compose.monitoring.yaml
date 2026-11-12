@@ -32,6 +32,8 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./infra/observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+      - ./infra/observability/grafana/dashboard-provider.yml:/etc/grafana/provisioning/dashboards/inko.yml:ro
+      - ./infra/observability/grafana/gateway-dashboard.json:/var/lib/grafana/dashboards/gateway.json:ro
     ports:
       - "127.0.0.1:3001:3000"
     depends_on: [prometheus]

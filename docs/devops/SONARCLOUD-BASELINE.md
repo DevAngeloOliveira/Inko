@@ -10,9 +10,10 @@ O último check `SonarCloud Code Analysis` da main retornou GitHub conclusion `n
 
 O workflow `INKO SonarCloud Baseline Audit` consulta a API pública do SonarCloud e apresenta um relatório de Quality Gate, métricas e issues abertas com impacto SECURITY. Não modifica nem aceita issues, não reduz o Quality Gate e não substitui o scanner do SonarCloud.
 
-Em PRs, a auditoria é diagnóstica e não usa secrets. Em execuções na main (push, agendamento ou manual), o job falha se:
+Em PRs, a auditoria é diagnóstica e não usa secrets. Configure o check nativo `SonarCloud Code Analysis` como obrigatório nas regras de integração da main. Em execuções na main (push, agendamento ou manual), o job associa o gate ao SHA do workflow e espera até dez minutos. O job falha se:
 
 - A API não estiver acessível e não for possível conferir o resultado.
+- A análise mais recente divergir do SHA esperado ou mudar durante a auditoria.
 - O Quality Gate não estiver calculado como `OK`.
 - O Security Rating geral for diferente de A.
 - A coleta de issues estiver incompleta.
@@ -40,7 +41,7 @@ Uma interpolação de variável GitHub Actions na shell do workflow CI foi corri
 
 ```bash
 python scripts/ci/sonar-main-audit.py
-python scripts/ci/sonar-main-audit.py --strict
+python scripts/ci/sonar-main-audit.py --strict --expected-sha <SHA-integrado-na-main>
 ```
 
 O script utiliza apenas a biblioteca padrão do Python e, quando `SONAR_TOKEN` está presente, acessa o projeto por Basic Auth com token sem registrar o segredo. A saída JSON é adequada para anexar ao backlog de correções. A versão `--strict` retorna código diferente de zero enquanto o gate ou a segurança geral ainda estiverem pendentes.

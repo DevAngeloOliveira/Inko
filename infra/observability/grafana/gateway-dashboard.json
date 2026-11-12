@@ -1,0 +1,301 @@
+{
+  "uid": "inko-gateway",
+  "title": "INKO Gateway — Capacidade e Resiliência",
+  "schemaVersion": 41,
+  "version": 1,
+  "tags": [
+    "inko",
+    "gateway"
+  ],
+  "timezone": "browser",
+  "refresh": "15s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Requisições por segundo",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "inko-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (status_class) (rate(inko_gateway_requests_total[$__rate_interval]))",
+          "legendFormat": "{{status_class}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Latência do Gateway",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "inko-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, route_id) (rate(inko_gateway_request_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p95 {{route_id}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.99, sum by (le, route_id) (rate(inko_gateway_request_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "p99 {{route_id}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Rejeições por segundo",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "inko-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (scope) (rate(inko_gateway_rate_rejections_total[$__rate_interval]))",
+          "legendFormat": "quota {{scope}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (service, reason) (rate(inko_gateway_admission_rejections_total[$__rate_interval]))",
+          "legendFormat": "admissão {{service}} {{reason}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Ocupação por plano e destino",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "inko-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "inko_gateway_inflight",
+          "legendFormat": "{{plane}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        },
+        {
+          "refId": "B",
+          "expr": "inko_gateway_upstream_inflight",
+          "legendFormat": "{{service}} {{plane}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Circuitos (0 fechado, 1 aberto, 2 half-open)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "inko-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "inko_gateway_circuit_state",
+          "legendFormat": "{{service}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Idade do snapshot de saúde",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "inko-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "inko_gateway_status_snapshot_age_seconds",
+          "legendFormat": "idade",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Tentativas de negócio por requisição admitida",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "inko-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(inko_gateway_upstream_attempts_total{plane=\"business\"}[5m])) / (sum(increase(inko_gateway_admitted_total[5m])) > 0)",
+          "legendFormat": "tentativas / admitidas",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Disponibilidade do scrape",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "inko-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up{job=\"inko-gateway\"}",
+          "legendFormat": "{{instance}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "inko-prometheus"
+          }
+        }
+      ]
+    }
+  ]
+}

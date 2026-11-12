@@ -22,10 +22,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U inko_admin -d postgres"]
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "inko_admin", "-d", "postgres"]
       interval: 5s
       timeout: 3s
       retries: 15
+      start_period: 90s
     logging: *inko-logging
     networks: [inko-internal]
 
@@ -125,12 +126,12 @@ services:
       CIRCULACAO_URL: http://circulacao:8083
       RELATORIOS_URL: http://relatorios:8084
     depends_on:
-      catalogo: {condition: service_healthy}
-      usuarios: {condition: service_healthy}
-      circulacao: {condition: service_healthy}
-      relatorios: {condition: service_healthy}
+      catalogo: {condition: service_started}
+      usuarios: {condition: service_started}
+      circulacao: {condition: service_started}
+      relatorios: {condition: service_started}
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${GATEWAY_PORT:-8000}:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
       interval: 10s
@@ -148,7 +149,7 @@ services:
       PORT: 3000
       HOSTNAME: 0.0.0.0
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
     depends_on:
       gateway: {condition: service_healthy}
     healthcheck:
