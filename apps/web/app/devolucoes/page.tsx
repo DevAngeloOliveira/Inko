@@ -178,7 +178,7 @@ function ReturnsContent() {
       <section className={styles.list} aria-label="Empréstimos ativos">
         <InkoSearch label="Buscar empréstimo ativo por obra, usuário ou código" placeholder="Obra, usuário ou código EMP-…" value={query} onChange={event => setQuery(event.target.value)} className={styles.search}/>
         <output className={styles.count}>{countLabel(filtered.length, active.length, term !== '')} · dados demonstrativos</output>
-        {filtered.length > 0 && <div role="radiogroup" aria-label="Empréstimo" className="inko-choice-list" onKeyDown={onRadioKeyDown}>
+        {filtered.length > 0 && <div role="radiogroup" tabIndex={-1} aria-label="Empréstimo" className="inko-choice-list" onKeyDown={onRadioKeyDown}>
           {filtered.map((loan, index) => {
             const checked = loan.id === selectedId;
             return <button key={loan.id} type="button" role="radio" aria-checked={checked} tabIndex={radioTabIndex(checked, index, anyChecked)} className="inko-choice" onClick={() => select(loan.id)}>

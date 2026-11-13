@@ -28,13 +28,21 @@ O gerador usa o HTTPX do lock do Gateway. Executar da raiz do repositório com o
 ```bash
 for scenario in normal saturation soak; do
   apps/gateway/.venv/bin/python scripts/ops/measure-gateway.py "$scenario" \
-    --url "http://127.0.0.1:$GATEWAY_PORT" --source "$(git rev-parse HEAD)" > "$scenario.json"
+    --port "$GATEWAY_PORT" --source "$(git rev-parse HEAD)" > "$scenario.json"
 done
 ```
 
-No cenário de isolamento, executar o modo `stub --bind 0.0.0.0` em uma rede Docker descartável, sem publicar suas portas. O stub responde a health e ping nas portas 8081 a 8084 e atrasa em 1,5 s o ping da porta 8084. Em um Gateway de teste conectado à mesma rede, configurar os quatro `*_URL` para o nome do stub e sua porta correspondente, aplicar o mesmo limite de CPU e memória e publicar o Gateway apenas em loopback. Rodar `measure-gateway.py isolation` nesse endereço. Os testes pytest usam barreiras para provar o limite exato de slots independentemente da taxa de chegada.
+No cenário de isolamento, executar o modo `stub --bind 0.0.0.0 --isolated-docker` em uma rede Docker descartável, sem publicar suas portas. O stub responde a health e ping nas portas 8081 a 8084 e atrasa em 1,5 s o ping da porta 8084. Em um Gateway de teste conectado à mesma rede, configurar os quatro `*_URL` para o nome do stub e sua porta correspondente, aplicar o mesmo limite de CPU e memória e publicar o Gateway apenas em loopback. Rodar `measure-gateway.py isolation` nesse endereço. Os testes pytest usam barreiras para provar o limite exato de slots independentemente da taxa de chegada.
 
 Os JSONs registram chegadas programadas, envios, descartes do gerador, latência por serviço, respostas `503` da aplicação e do Uvicorn e amostras de recursos antes, durante e após o teste. Para memória do container, registrar também `memory.peak` em cgroup v2. Avaliar o pico de slots e conexões, tentativas de negócio em relação às admissões e retorno de operações em curso a zero. Metas de latência e memória são hipóteses locais. Os pings validam o transporte. Dimensionar Tomcat, Hikari e PostgreSQL com os contratos de domínio e uma carga que exercite SQL.
+
+### Validação SDD-001.1
+
+Use o JSON versão 2 do gerador. Para cada cenário, aqueça o Gateway por 30 s, aguarde a conclusão da carga e capture uma janela limpa. Execute três rodadas independentes de carga normal, saturação e isolamento, seguidas de um soak de 600 s. Aguarde pelo menos 12 s entre rodadas e verifique que as operações em andamento retornaram a zero e os circuitos se recuperaram. Preserve os JSONs de todas as rodadas, inclusive as inválidas.
+
+Compare percentis de sucesso por destino e latência fim a fim desde a chegada programada. Use todas as chegadas como denominador da taxa de sucesso. Uma rodada com mais de 1% de descartes do gerador, cobertura de scrape inferior a 95%, reinício, imagem incorreta ou build concorrente fica fora do aceite. Registre SHA, IDs das imagens, CPU/memória do host, versões e perfil efetivo. No container, colete também `/sys/fs/cgroup/cpu.stat` e `memory.peak` antes e após a janela.
+
+Com o overlay de monitoramento ativo, execute `INKO_CHECK_MONITORING=1 bash scripts/ci/smoke-compose.sh` no mesmo projeto para exigir que o Prometheus tenha os quatro alvos Java e o Gateway em estado UP. O smoke base valida os quatro endpoints Java de dentro da rede Docker.
 
 ## SonarCloud
 

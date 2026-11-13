@@ -9,6 +9,8 @@ on:
       - 'services/**'
       - 'infra/**'
       - 'scripts/ci/**'
+      - 'scripts/ops/measure-gateway.py'
+      - 'scripts/ops/test_measure_gateway.py'
       - '.github/workflows/integration.yaml'
   workflow_dispatch:
   schedule:
