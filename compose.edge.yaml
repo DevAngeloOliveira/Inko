@@ -5,6 +5,8 @@ services:
 
   gateway:
     ports: !reset []
+    environment:
+      INKO_GATEWAY_DOCS_ENABLED: 'false'
     restart: unless-stopped
 
   web:

@@ -28,6 +28,8 @@ jobs:
         env:
           GRAFANA_ADMIN_PASSWORD: ci-only-password
         run: docker compose --env-file .env.example -f compose.yaml -f compose.monitoring.yaml config --quiet
+      - name: Validate capacity measurement Compose
+        run: docker compose --env-file .env.example -f compose.yaml -f compose.capacity.yaml config --quiet
       - name: Validate HTTPS edge Compose
         env:
           INKO_DOMAIN: inko.example.com
