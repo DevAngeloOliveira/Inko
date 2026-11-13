@@ -160,7 +160,7 @@ export default function NewWorkPage() {
               <InkoInput id="work-original-title" label="Título original" lang="ja" autoComplete="off" value={values.originalTitle} onChange={event => set('originalTitle', event.target.value)}/>
               <label className={styles.upload}>
                 <Icon name="upload" size={24}/>
-                <span className={styles.uploadText}>Enviar capa
+                <span className={styles.uploadText}>Enviar capa{' '}
                   <small>JPG ou PNG, proporção 2:3, mín. 400×600. Somente imagens com licença de uso.</small>
                   {coverName && <small className={styles.uploadFile}>{coverName} selecionado — não será enviado nesta demonstração.</small>}
                 </span>

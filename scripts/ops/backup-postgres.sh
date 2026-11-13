@@ -10,7 +10,7 @@ for database in inko_catalogo inko_usuarios inko_circulacao; do
   docker compose --env-file .env -f compose.yaml exec -T postgres \
     pg_dump --format=custom --username=inko_admin --dbname="$database" \
     > "$destination/$database.dump"
-  test -s "$destination/$database.dump"
+  [[ -s "$destination/$database.dump" ]]
   docker compose --env-file .env -f compose.yaml exec -T postgres \
     pg_restore --list < "$destination/$database.dump" >/dev/null
 done

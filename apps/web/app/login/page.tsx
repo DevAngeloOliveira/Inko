@@ -111,7 +111,7 @@ export default function LoginPage() {
             onChange={event => { setPassword(event.target.value); setErrors(current => ({ ...current, password: undefined })); }}/>
           <div className={styles.options}>
             <label className={styles.remember}>
-              <input type="checkbox" name="remember" onChange={event => { if (event.target.checked) needsBackend('Manter conectado'); }}/>
+              <input type="checkbox" name="remember" onChange={event => { if (event.target.checked) needsBackend('Manter conectado'); }}/>{' '}
               Manter conectado neste dispositivo
             </label>
             <button type="button" className={styles.forgot} onClick={() => needsBackend('A recuperação de senha')}>Esqueci a senha</button>

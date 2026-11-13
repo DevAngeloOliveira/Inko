@@ -68,6 +68,8 @@ jobs:
       - name: Test Gateway with locked dependencies
         run: .venv/bin/python -m pytest -q
         working-directory: apps/gateway
+      - name: Test the Gateway capacity instrument
+        run: apps/gateway/.venv/bin/python -m pytest -q scripts/ops/test_measure_gateway.py
 
   java:
     runs-on: ubuntu-latest

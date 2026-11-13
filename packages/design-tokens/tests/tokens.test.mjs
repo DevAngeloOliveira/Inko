@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const base = new URL('../', import.meta.url);
 const tokens = JSON.parse(readFileSync(new URL('../inko.tokens.json', import.meta.url), 'utf8'));
@@ -66,6 +67,6 @@ test('generated CSS references only defined custom properties', () => {
 });
 
 test('committed CSS stays reproducible from the token source', () => {
-  const result = execFileSync(process.execPath, [new URL('../scripts/generate.mjs', import.meta.url).pathname, '--check']);
+  const result = execFileSync(process.execPath, [fileURLToPath(new URL('../scripts/generate.mjs', import.meta.url)), '--check']);
   assert.match(result.toString(), /Validated 73 tokens/);
 });

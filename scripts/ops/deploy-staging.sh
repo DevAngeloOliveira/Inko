@@ -2,7 +2,7 @@
 set -euo pipefail
 
 : "${INKO_RELEASE_TAG:?Set INKO_RELEASE_TAG to an already-published version}"
-test -f .env || { echo "Staging .env file is required and must be managed on the host" >&2; exit 1; }
+[[ -f .env ]] || { echo "Staging .env file is required and must be managed on the host" >&2; exit 1; }
 
 args=(docker compose --env-file .env -f compose.yaml -f compose.release.yaml)
 
