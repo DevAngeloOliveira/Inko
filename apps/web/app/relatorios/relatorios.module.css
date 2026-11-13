@@ -1,0 +1,189 @@
+/* Relatórios & Multas — estilos específicos da tela (prancha Desktop-Relatorios). */
+
+/* ---------- Data de referência ---------- */
+
+.reference {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--inko-spacing-4);
+  padding: var(--inko-spacing-4);
+  border: 1px solid var(--inko-border-default);
+  border-radius: var(--inko-radius-md);
+  background: var(--inko-surface-default);
+}
+
+.referenceField { flex: 0 1 300px; }
+.referenceField input { max-width: 180px; height: 44px; font-variant-numeric: tabular-nums; }
+
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  /* Alinha os atalhos à linha do campo (rótulo de 18 px + 6 px de respiro). */
+  padding: 26px 0 0;
+  border: 0;
+  min-width: 0;
+}
+
+.quick button {
+  height: 40px;
+  padding: 0 14px;
+  border: 1.5px solid var(--inko-border-strong);
+  border-radius: 20px;
+  background: var(--inko-surface-elevated);
+  color: var(--inko-text-primary);
+  font: 600 13px/18px var(--inko-font-body);
+  cursor: pointer;
+}
+
+.quick button:hover { border-color: var(--inko-brand-ink); }
+
+.quick button[aria-pressed='true'] {
+  border-color: var(--inko-brand-ink);
+  background: var(--inko-brand-ink);
+  color: var(--inko-brand-paper);
+}
+
+/* ---------- KPIs ---------- */
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--inko-border-default);
+  border-radius: var(--inko-radius-md);
+  background: var(--inko-surface-default);
+}
+
+.kpi strong {
+  font: 700 32px/40px var(--inko-font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi small {
+  font: 400 12px/18px var(--inko-font-body);
+  color: var(--inko-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.kpiDark {
+  border-color: var(--inko-surface-inverse);
+  background: var(--inko-surface-inverse);
+  color: var(--inko-text-inverse);
+}
+
+.kpiDark strong { font-weight: 800; }
+.kpiDark :global(.inko-caption), .kpiDark small { color: #CFC6BA; }
+.kpiDanger strong { color: var(--inko-status-danger-fg); }
+
+/* ---------- Tabela de multas ---------- */
+
+.table { min-width: 760px; }
+.table tfoot tr { border-top: 2px solid var(--inko-brand-ink); font-weight: 700; }
+.table tfoot td { height: 52px; border-top: 0; }
+
+.days {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--inko-status-danger-fg);
+}
+
+.code { color: var(--inko-text-secondary); }
+.fine { font-weight: 600; }
+.grandTotal { font: 800 16px/24px var(--inko-font-display); }
+
+.mobileList { padding: 0 var(--inko-spacing-4) var(--inko-spacing-4); }
+
+.mobileFine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--inko-spacing-2);
+  padding-top: var(--inko-spacing-2);
+}
+
+.mobileFine strong { font: 700 16px/24px var(--inko-font-display); font-variant-numeric: tabular-nums; }
+
+.mobileTotal {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--inko-spacing-3);
+  margin: 0 var(--inko-spacing-4) var(--inko-spacing-4);
+  padding-top: var(--inko-spacing-3);
+  border-top: 2px solid var(--inko-brand-ink);
+  font: 700 14px/20px var(--inko-font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Painéis de distribuição ---------- */
+
+.panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: var(--inko-spacing-6);
+  align-items: stretch;
+}
+
+.panel { gap: 14px; padding: var(--inko-spacing-5); }
+.panel h2 { font: 600 18px/26px var(--inko-font-display); }
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(0, 130px) 1fr 28px;
+  gap: var(--inko-spacing-3);
+  align-items: center;
+  font: 400 13px/20px var(--inko-font-body);
+}
+
+.barRow strong { text-align: right; font-variant-numeric: tabular-nums; }
+
+.barStack { display: flex; flex-direction: column; gap: 6px; }
+.barStack > span:first-child { display: flex; justify-content: space-between; gap: var(--inko-spacing-3); font: 500 13px/20px var(--inko-font-body); }
+.barStack strong { font-variant-numeric: tabular-nums; }
+.bars.stacked { gap: 14px; }
+
+.track {
+  display: block;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--inko-background-subtle);
+  overflow: hidden;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  background: var(--inko-brand-ink);
+  transition: width 220ms var(--inko-easing-out);
+}
+
+.note { font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+.muted { font: 400 13px/20px var(--inko-font-body); color: var(--inko-text-secondary); }
+
+@media (max-width: 767px) {
+  .quick { padding-top: 0; }
+  .quick button { height: 44px; }
+  .referenceField { flex-basis: 100%; }
+  .kpi strong { font-size: 28px; line-height: 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar { transition: none; }
+}

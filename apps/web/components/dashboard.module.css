@@ -1,0 +1,141 @@
+/* Dashboard — específico da tela. Mobile-first; ≥ 768 px segue Prototype-Dashboard. */
+
+/* ---------- Hero editorial ---------- */
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  min-height: 148px;
+  border: 2px solid var(--inko-brand-ink);
+  border-radius: var(--inko-radius-lg);
+  background: var(--inko-background-default);
+  overflow: hidden;
+}
+
+.heroArt { position: absolute; inset: 0; }
+.frameRays,
+.frameDots { position: absolute; display: block; border: 4px solid var(--inko-brand-ink); transform: rotate(-6deg); }
+.frameRays {
+  right: -16px; top: -12px; width: 140px; height: 96px;
+  background: repeating-conic-gradient(from 0deg at 30% 80%, #111111 0 1deg, #F7F3ED 1deg 7deg);
+}
+.frameDots,
+.heroEnso { display: none; }
+
+.heroText {
+  position: relative;
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  /* O topo reserva a área do quadro inclinado: texto nunca sobre a retícula. */
+  padding: 92px 18px 18px;
+}
+.heroText h1 { margin: 0; font: 800 26px/32px var(--inko-font-display); }
+.heroText p { margin: 0; font: 400 14px/22px var(--inko-font-body); color: var(--inko-neutral-brown); }
+.heroText p strong { color: var(--inko-status-danger-fg); }
+
+.heroActions { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 6px; }
+.hero .heroButton { height: 44px; padding: 0 18px; }
+.hero .reminders { background: rgba(247, 243, 237, 0.7); }
+.hero .remindersSent { border-color: var(--inko-status-success-border); color: var(--inko-status-success-fg); cursor: default; }
+.hero .remindersSent:hover { background: rgba(247, 243, 237, 0.7); }
+
+/* ---------- Visão geral ---------- */
+
+.overviewHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--inko-spacing-3); }
+.overviewHead h2 { margin: 0; font: 600 18px/26px var(--inko-font-display); }
+.overviewTools { display: flex; align-items: center; gap: var(--inko-spacing-2); }
+
+.stats a { transition: border-color 150ms, box-shadow 150ms; }
+.stats a:hover { border-color: var(--inko-brand-ink); box-shadow: var(--inko-shadow-sm); }
+
+/* ---------- Movimentações ---------- */
+
+.moveRow td { height: 56px; }
+.when { color: var(--inko-text-secondary); white-space: nowrap; }
+
+.moveList { margin: 0; padding: 0; list-style: none; }
+.moveList li {
+  display: flex; align-items: center; gap: var(--inko-spacing-3);
+  min-height: 60px; padding: 10px 12px;
+  border-top: 1px solid var(--inko-background-subtle);
+}
+.moveListText { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.moveListText strong { font: 600 14px/20px var(--inko-font-body); overflow-wrap: anywhere; }
+.moveListText span { font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+
+/* ---------- Coluna lateral ---------- */
+
+.side { display: flex; flex-direction: column; gap: var(--inko-spacing-6); }
+
+.shortcuts { gap: var(--inko-spacing-3); padding: 18px; }
+.shortcuts ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.shortcuts li { display: flex; }
+.shortcuts a {
+  display: flex; flex: 1; flex-direction: column; gap: var(--inko-spacing-2);
+  min-height: 44px; padding: 14px;
+  border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-md);
+  font: 600 13px/18px var(--inko-font-body); color: var(--inko-text-primary); text-decoration: none;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.shortcuts a:hover { border-color: var(--inko-brand-ink); box-shadow: var(--inko-shadow-sm); }
+.shortcuts a svg { color: var(--inko-action-primary); }
+
+/* ---------- Rodapé ---------- */
+
+.footer {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--inko-spacing-2) var(--inko-spacing-5);
+  /* Espaço para o botão flutuante não cobrir os links no fim da rolagem. */
+  padding: var(--inko-spacing-2) 0 72px;
+  font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary);
+}
+.signature { display: flex; align-items: center; gap: var(--inko-spacing-2); margin: 0; font: 600 13px/20px var(--inko-font-display); color: var(--inko-text-primary); }
+.footer nav { display: flex; flex-wrap: wrap; gap: 0 var(--inko-spacing-4); }
+.footer nav a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; color: var(--inko-neutral-brown); }
+.footer nav a:hover { color: var(--inko-action-primary-hover); }
+
+.fab {
+  position: fixed; right: var(--inko-spacing-4); bottom: 20px; z-index: 15;
+  display: flex; align-items: center; gap: var(--inko-spacing-2);
+  height: 56px; padding: 0 20px; border-radius: 28px;
+  background: var(--inko-action-primary); color: #FFFFFF;
+  font: 600 15px/20px var(--inko-font-body); text-decoration: none;
+  box-shadow: var(--inko-shadow-lg);
+}
+.fab:hover { background: var(--inko-action-primary-hover); }
+.fab:active { background: var(--inko-action-primary-pressed); }
+
+/* Indicadores compactos em grade 2×2, como na prancha mobile. */
+@media (max-width: 767px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stats :global(.inko-stat) { flex-direction: column; gap: 6px; padding: 12px; }
+  .stats :global(.inko-stat-icon) { width: 28px; height: 28px; border-radius: 6px; }
+  .stats :global(.inko-stat-icon) svg { width: 14px; height: 14px; }
+  .stats :global(.inko-stat-body) strong { font: 700 22px/30px var(--inko-font-display); }
+  .stats :global(.inko-stat-body) small { display: none; }
+}
+
+@media (min-width: 768px) {
+  .hero { min-height: 240px; border-radius: var(--inko-radius-xl); }
+  .heroArt { position: relative; inset: auto; flex: 1 1 340px; order: 2; min-height: 220px; }
+  .frameRays { right: 24px; top: -12px; width: 62%; height: 70%; border-width: 5px; }
+  .frameDots {
+    display: block; right: 62%; bottom: 18px; width: 26%; height: 44%;
+    background-color: var(--inko-brand-paper);
+    background-image: radial-gradient(#111111 1.1px, transparent 1.4px);
+    background-size: 5px 5px;
+  }
+  .heroEnso { display: block; position: absolute; right: 12%; bottom: 0; max-width: 60%; height: auto; }
+  .heroText { flex: 1 1 340px; order: 1; justify-content: center; gap: var(--inko-spacing-3); padding: var(--inko-spacing-8); }
+  .heroText h1 { font: 800 40px/48px var(--inko-font-display); letter-spacing: -0.015em; }
+  .heroText p { max-width: 440px; font: 400 16px/26px var(--inko-font-body); }
+  .overviewHead h2 { font: 600 20px/28px var(--inko-font-display); }
+  .footer { padding-bottom: 0; }
+  .footer nav { margin-left: auto; }
+  .footer nav a { min-height: 32px; }
+}

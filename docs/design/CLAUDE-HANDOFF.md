@@ -1,48 +1,57 @@
 # INKO — Implementação do handoff Claude Design
 
-Referência: exportação dos 17 artboards `.dc.html` recebidos em 09/11/2026.
+Referência: canvas "INKO — Design System" (25 pranchas `.dc.html`, páginas 00–08), aplicado em 12/11/2026.
+A primeira exportação (17 pranchas, 09/11/2026) foi substituída por esta.
 
 ## Mapeamento de fontes para o Next.js
 
 | Fonte do Claude | Aplicação Next.js | Cobertura |
 | --- | --- | --- |
-| `Foundations-Color.dc.html` | `app/inko-tokens.css`, `app/inko-ui.css` | Paleta, cores semânticas e contraste visual |
-| `Foundations-Type.dc.html` | `app/inko-ui.css` | Hierarquia tipográfica e famílias de fontes |
-| `Foundations-Layout.dc.html` | `app/inko-ui.css`, `app/inko-motion.css` | Grid, spacing, raios, responsividade e motion |
-| `Foundations-Graphics.dc.html` | `public/inko/svg`, `components/inko-kit.tsx` | Logo, Enso, pinceladas, capas sintéticas e retículas |
-| `Components-Core.dc.html` | `components/inko-kit.tsx`, `components/inko-interactions.tsx` | Botões, inputs, variantes, interação e foco |
-| `Components-Data.dc.html` | `components/inko-patterns.tsx` | Cards estatísticos, skeleton, alert, modal, toast e tabs |
-| `Components-Domain.dc.html` | `components/inko-kit.tsx`, `components/inko-patterns.tsx` | MangaCard, CollectionCard, LoanCard, FineSummary, EditorialBanner |
-| `Desktop-Dashboard.dc.html` | `components/dashboard.tsx`, `app/page.tsx` | Dashboard responsivo e navegação |
-| `Desktop-Acervo.dc.html` | `app/acervo/page.tsx` | Filtros, categorias, cards e tabela |
-| `Desktop-Cadastro.dc.html` | `app/acervo/novo/page.tsx` | Formulário, validação e prévia |
-| `Desktop-Obra.dc.html` | `app/acervo/[id]/page.tsx` | Detalhes e disponibilidade |
-| `Desktop-Usuarios.dc.html` | `app/usuarios/page.tsx` | Lista, seleção, histórico e validação de novo usuário |
-| `Desktop-Emprestimo.dc.html` | `app/emprestimos/page.tsx` | Wizard de prévia e validação de disponibilidade |
-| `Desktop-Devolucao.dc.html` | `app/devolucoes/page.tsx` | Busca, seleção e conferência sem gravação |
-| `Desktop-Relatorios.dc.html` | `app/relatorios/page.tsx` | Multa de ativos atrasados, estatísticas e filtros |
-| `Desktop-Login.dc.html` | `app/login/page.tsx` | Formulário visual e validação local, sem autenticação fictícia |
-| `Handoff.dc.html` | Todos os componentes e esta documentação | Rastreabilidade e adaptação idiomática para React |
+| `Main`, `Foundations-Color/Type/Layout/Graphics` | `app/inko-tokens.css` (gerado), `app/inko-ui.css`, `app/inko-motion.css`, `app/design-system/` | Marca, paleta, tipografia, espaço, raios, sombras, motion, gráficos e ícones |
+| `Components-Core` | `components/inko-kit.tsx`, `components/inko-interactions.tsx`, `components/icon.tsx` | Botões (variante × estado × tamanho), campos, busca, select, switch, segmentado |
+| `Components-Data` | `components/inko-patterns.tsx`, `components/inko-interactions.tsx` | Tabela, paginação, badges, statistic, skeleton, tabs, alert, toast, modal, vazios e erro |
+| `Components-Domain` | `components/inko-kit.tsx`, `components/inko-patterns.tsx` | MangaCard, capas fictícias, CollectionCard, LoanCard, FineSummary, ciclo de circulação, EditorialBanner |
+| `Prototype-Dashboard`, `Desktop-Dashboard`, `Mobile-Dashboard`, `Mobile-Nav` | `components/app-shell.tsx`, `components/dashboard.tsx`, `app/page.tsx` | Shell (sidebar 248 / rail 72 / drawer), busca global, notificações, menu do usuário, dashboard |
+| `Desktop-Login`, `Mobile-Login` | `app/login/` | Login com sessão mockada |
+| `Desktop-Acervo`, `Mobile-Acervo` | `app/acervo/` | Filtros na URL, cards/tabela, paginação |
+| `Desktop-Obra` | `app/acervo/[id]/` | Detalhes, circulação, histórico, exclusão |
+| `Desktop-Cadastro` | `app/acervo/novo/` | Cadastro com validação e prévia |
+| `Desktop-Usuarios` | `app/usuarios/` | Lista, detalhe, histórico, novo usuário |
+| `Desktop-Emprestimo`, `Mobile-Emprestimo` | `app/emprestimos/` | Fluxo guiado com passo na URL |
+| `Desktop-Devolucao` | `app/devolucoes/` | Conferência, data efetiva, multa |
+| `Desktop-Relatorios` | `app/relatorios/` | Multas de ativos atrasados, estatísticas, CSV |
+| `Landing` | `app/landing/` | Landing page promocional (pública) |
+| `Handoff` | Este documento e a seção "Diretrizes" de `/design-system` | Comportamento, responsividade, acessibilidade |
 
-## Fontes e comportamento
+Os `.dc.html` usam `DCLogic`, `sc-if`, `sc-for`, `{{ }}` e `/_blob/`: são referência visual e de comportamento,
+não código a copiar. A implementação é React idiomático com CSS sobre tokens (ADR-002). Tailwind e shadcn/ui,
+sugeridos na prancha de handoff, continuam fora das dependências.
 
-Os arquivos `.dc.html` utilizam `DCLogic`, `sc-if`, `sc-for`, interpolação `{{ }}` e referências internas `/_blob/`. Esses elementos são específicos do protótipo Claude e não devem ser copiados diretamente para o Next.js.
+## Camada mock
 
-A implementação usa `useState`, `useMemo`, componentes React tipados, rotas App Router e SVGs previamente incorporados em `public/inko`.
+Enquanto os microsserviços não expõem contratos, toda leitura e escrita passa por `apps/web/lib/mock-api.ts`:
+
+- `useLibrary()` devolve o estado reativo (obras, usuários, empréstimos, sessão).
+- `signIn`, `createWork`, `deleteWork`, `createUser`, `createLoan`, `returnLoan` são assíncronas, simulam latência
+  e lançam `MockApiError` nas regras de negócio (identificador duplicado, obra indisponível, datas inválidas).
+- O estado nasce de `lib/demo.ts` e é persistido em `sessionStorage`: vale para a aba e some ao fechá-la.
+  "Restaurar dados demo", no menu do usuário, volta à semente. Nada trafega pela rede.
+- "Hoje" é fixo em `DEMO_REFERENCE_DATE` (09/11/2026) para que prazos e multas coincidam com o design.
+- Disponibilidade de obra e situação de usuário são derivadas dos empréstimos; não há campo duplicado.
+
+Para integrar o backend, substitua o corpo dessas funções por chamadas ao gateway mantendo as assinaturas.
 
 ## Limites explicitados
 
-- **Operações de escrita são demos**. Formulários validam localmente, mas cadastro, autenticação, empréstimo e devolução não são enviados ao backend enquanto os contratos e serviços reais não estiverem implementados.
-- O modelo de dados de demonstração foi extraído das pranchas e organizado em `lib/demo.ts`. Não há uso de senhas fixas para simular autenticação bem-sucedida.
-- O relatório considera **somente empréstimos ativos atrasados**, com multa de R$ 2,00/dia e `map`, `filter` e `reduce`. Não cria cobrança de multas para empréstimos devolvidos, respeitando a especificação acadêmica.
-- O Dashboard preserva métricas demonstrativas da prancha (3.842/1.286/412/4), que não são totais calculados sobre a pequena coleção de dados de teste. Ambas as origens são claramente sinalizadas na interface.
-- As capas são composições CSS fictícias. Imagens licenciadas, integração com APIs, validações de autorização reais, testes E2E e análise visual pixel a pixel permanecem pendentes.
-- A base evita adicionar bibliotecas de UI até que se aprove o contrato visual da primeira implementação. `Tailwind/shadcn` são recomendações do handoff, ainda não dependências instaladas.
+- **Autenticação é demonstrativa.** Qualquer e-mail válido com senha de 6+ caracteres abre uma sessão local; não há
+  credencial fixa, verificação de identidade nem autorização. A guarda de rota é só do lado do cliente.
+- **Multas**: a regra (R$ 2,00/dia, somente empréstimos ativos atrasados) é espelhada no cliente para a demonstração;
+  o cálculo oficial será do serviço Java.
+- Capas são composições CSS fictícias; envio de capa, e-mails de lembrete e recuperação de senha são apenas visuais.
+- Tema escuro está reservado nos tokens e não foi implementado.
+- Sem testes E2E nem comparação visual pixel a pixel automatizados.
 
 ## Validação
 
-Na raiz do frontend: `node --test tests/*.test.mjs`.
-
-No monorepo: `pnpm install --frozen-lockfile && pnpm --filter @inko/web typecheck && pnpm --filter @inko/web build`.
-
-Após integração do código na branch do GitHub, o workflow deverá compilar a imagem do Docker, validar seus assets e executar testes dos quatro serviços Java e do gateway Python.
+Em `apps/web`: `pnpm typecheck`, `pnpm test` e `pnpm build`.
+`tests/demo-rules.test.mjs` executa as regras de `lib/demo.ts` (requer Node 24, que importa TypeScript sem transpilar).

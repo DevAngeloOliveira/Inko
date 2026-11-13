@@ -1,17 +1,129 @@
 'use client';
+
 import Image from 'next/image';
-import Link from 'next/link';
-import { useState, type FormEvent } from 'react';
-import { InkoButton, InkoInput } from '../../components/inko-kit';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Icon } from '../../components/icon';
+import { InkoPasswordInput, useToast } from '../../components/inko-interactions';
+import { Enso, InkoButton, InkoInput, SeigaihaBand, WashiTexture } from '../../components/inko-kit';
+import { InkoAlert } from '../../components/inko-patterns';
+import { MockApiError, signIn, useLibrary } from '../../lib/mock-api';
 import { isValidEmailAddress } from '../../lib/validation';
+import styles from './login.module.css';
+
+type FieldErrors = { email?: string; password?: string };
+
+const EMAIL_ID = 'login-email';
+const PASSWORD_ID = 'login-password';
+
+function emailError(email: string): string | undefined {
+  if (!email.trim()) return 'Informe seu e-mail.';
+  return isValidEmailAddress(email) ? undefined : 'Informe um e-mail válido, como nome@biblioteca.org.';
+}
+
+function passwordError(password: string): string | undefined {
+  if (!password) return 'Informe sua senha.';
+  return password.length < 6 ? 'A senha tem pelo menos 6 caracteres.' : undefined;
+}
+
+function focusFirstInvalid(errors: FieldErrors) {
+  const target = errors.email ? EMAIL_ID : PASSWORD_ID;
+  document.getElementById(target)?.focus();
+}
 
 export default function LoginPage() {
-  const [email,setEmail]=useState('');
-  const [password,setPassword]=useState('');
-  const [visible,setVisible]=useState(false);
-  const [attempted,setAttempted]=useState(false);
-  const emailError=attempted&&!isValidEmailAddress(email)?'Informe um e-mail válido.':undefined;
-  const passwordError=attempted&&password.length<6?'A senha deve ter pelo menos 6 caracteres.':undefined;
-  function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();setAttempted(true);}
-  return <main className="inko-login"><section className="inko-login-art"><div className="inko-login-panels" aria-hidden="true"/><Image src="/inko/svg/elementos/enso-seal.svg" alt="" width={310} height={310} className="inko-login-enso"/><Image src="/inko/logo/inko-logo.png" alt="INKO" width={340} height={250} className="inko-login-logo"/><p>Uma biblioteca de universos em tinta.</p><Image src="/inko/svg/elementos/seigaiha-tile.svg" alt="" width={500} height={250} className="inko-login-waves"/></section><section className="inko-login-form"><div className="inko-login-card"><span className="inko-eyebrow">INKO / ADMINISTRATIVO</span><h1>Entrar</h1><p>Acesse o gerenciamento do acervo de mangás e HQs.</p><form className="inko-form" onSubmit={submit} noValidate><InkoInput id="email" label="E-mail" type="email" autoComplete="username" value={email} onChange={event=>setEmail(event.target.value)} error={emailError}/><label className="inko-field"><span className="inko-label">Senha</span><div className="inko-password"><input id="password" type={visible?'text':'password'} autoComplete="current-password" value={password} onChange={event=>setPassword(event.target.value)} aria-invalid={Boolean(passwordError)}/><button type="button" onClick={()=>setVisible(value=>!value)} aria-label={visible?'Ocultar senha':'Mostrar senha'}>{visible?'Ocultar':'Mostrar'}</button></div>{passwordError&&<span className="inko-field-error">{passwordError}</span>}</label><InkoButton type="submit">Validar campos</InkoButton></form><div className="inko-alert inko-alert--warning">Autenticação indisponível na Sprint 00. O formulário valida os campos localmente; nenhuma credencial é transmitida ou armazenada.</div><Link href="/">Acessar demonstração visual →</Link></div></section></main>;
+  const router = useRouter();
+  const library = useLibrary();
+  const toast = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  // Só é verdadeiro no navegador, depois de o estado mockado ser lido (evita divergência na hidratação).
+  const signedIn = library.ready && Boolean(library.session);
+
+  useEffect(() => {
+    if (signedIn) router.replace('/');
+  }, [signedIn, router]);
+
+  function needsBackend(feature: string) {
+    toast({ title: `${feature} depende do backend`, text: 'Disponível quando o serviço de autenticação for integrado.' });
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting) return;
+    const local: FieldErrors = { email: emailError(email), password: passwordError(password) };
+    setErrors(local);
+    setFormError('');
+    if (local.email || local.password) {
+      focusFirstInvalid(local);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await signIn(email, password);
+      router.replace('/');
+    } catch (error) {
+      setSubmitting(false);
+      if (error instanceof MockApiError && (error.field === 'email' || error.field === 'password')) {
+        const remote: FieldErrors = { [error.field]: error.message };
+        setErrors(remote);
+        focusFirstInvalid(remote);
+        return;
+      }
+      setFormError(error instanceof Error ? error.message : 'Tente novamente em instantes.');
+    }
+  }
+
+  return <div className={styles.page}>
+    <section className={styles.art} aria-label="INKO">
+      <WashiTexture/>
+      <span className={`${styles.frame} ${styles.frameDots}`} aria-hidden="true"/>
+      <span className={`${styles.frame} ${styles.frameRays}`} aria-hidden="true"/>
+      <div className={styles.brand}>
+        <Enso size={420} strokeWidth={10} animated className={styles.enso}/>
+        <Image src="/inko/logo/inko-logo.png" alt="INKO" width={900} height={665} priority sizes="(max-width: 767px) 280px, 560px" className={styles.logo}/>
+      </div>
+      <p className={styles.tagline}>Gestão de acervo físico · mangás, HQs e graphic novels</p>
+      <p className={styles.signature}>Cada volume, no seu lugar.</p>
+      <SeigaihaBand className={styles.waves}/>
+    </section>
+
+    <main className={styles.main}>
+      <div className={styles.card}>
+        <header className={styles.heading}>
+          <h1>Entrar</h1>
+          <p>Use sua conta de equipe da biblioteca.</p>
+        </header>
+
+        {formError && <InkoAlert tone="danger" title="Não foi possível entrar">{formError}</InkoAlert>}
+
+        {signedIn && <InkoAlert tone="success" title={`Autenticado como ${library.session?.name ?? ''}`}>Abrindo o Dashboard…</InkoAlert>}
+
+        {!signedIn && <form className={styles.form} onSubmit={submit} noValidate>
+          <InkoInput id={EMAIL_ID} label="E-mail" type="email" name="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false}
+            value={email} error={errors.email}
+            onChange={event => { setEmail(event.target.value); setErrors(current => ({ ...current, email: undefined })); }}/>
+          <InkoPasswordInput id={PASSWORD_ID} label="Senha" name="password" autoComplete="current-password"
+            value={password} error={errors.password}
+            onChange={event => { setPassword(event.target.value); setErrors(current => ({ ...current, password: undefined })); }}/>
+          <div className={styles.options}>
+            <label className={styles.remember}>
+              <input type="checkbox" name="remember" onChange={event => { if (event.target.checked) needsBackend('Manter conectado'); }}/>
+              Manter conectado neste dispositivo
+            </label>
+            <button type="button" className={styles.forgot} onClick={() => needsBackend('A recuperação de senha')}>Esqueci a senha</button>
+          </div>
+          <InkoButton type="submit" size="lg" loading={submitting} className={styles.submit}>Entrar</InkoButton>
+        </form>}
+
+        <p className={styles.demo}>
+          <Icon name="info" size={16}/>
+          <span><strong>Acesso demonstrativo.</strong> Qualquer e-mail válido e senha com 6 ou mais caracteres entram. Nada é transmitido: a sessão fica apenas nesta aba do navegador.</span>
+        </p>
+      </div>
+    </main>
+  </div>;
 }
