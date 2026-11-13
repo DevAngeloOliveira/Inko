@@ -1,0 +1,122 @@
+/* Novo empréstimo — stepper, cartão do passo, navegação e resumo lateral. */
+
+/* Stepper */
+.stepper { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr)); gap: var(--inko-spacing-2); margin: 0; padding: 0; list-style: none; max-width: 1080px; }
+.step { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid transparent; border-radius: 10px; color: var(--inko-text-secondary); }
+.stepDot { display: flex; align-items: center; justify-content: center; flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--inko-background-subtle); color: var(--inko-neutral-brown); font: 700 12px/1 var(--inko-font-display); }
+.stepLabel { font: 600 13px/18px var(--inko-font-body); }
+.stepCurrent { border-color: var(--inko-brand-ink); background: var(--inko-surface-elevated); color: var(--inko-text-primary); }
+.stepCurrent .stepDot { background: var(--inko-action-primary); color: #FFFFFF; }
+.stepDone { color: var(--inko-text-primary); }
+.stepDone .stepDot { background: var(--inko-brand-ink); color: var(--inko-brand-paper); }
+.mobileStep { margin: 0; font: 500 12px/16px var(--inko-font-body); color: var(--inko-text-secondary); }
+
+/* Estrutura */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--inko-spacing-6); align-items: start; max-width: 1080px; }
+.main { display: flex; flex-direction: column; gap: var(--inko-spacing-6); min-width: 0; }
+.card { display: flex; flex-direction: column; gap: 18px; min-height: 380px; padding: var(--inko-spacing-6); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-lg); background: var(--inko-surface-default); }
+.card h2 { margin: 0; font: 600 20px/28px var(--inko-font-display); }
+.card h2:focus { outline: none; }
+.search { flex: none; }
+
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 10px; }
+.choices :global(.inko-choice) { background: var(--inko-surface-elevated); }
+
+/* Passo 3 — veredito de disponibilidade */
+.verdict { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 14px; padding: 18px; border: 1px solid; border-radius: var(--inko-radius-md); }
+.verdictOk { background: var(--inko-status-success-bg); border-color: var(--inko-status-success-border); color: #1F4D38; }
+.verdictConflict { background: var(--inko-status-danger-bg); border-color: var(--inko-status-danger-border); color: #7A1524; }
+.verdictIcon { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: var(--inko-surface-default); }
+.verdictOk .verdictIcon { color: var(--inko-status-success-fg); }
+.verdictConflict .verdictIcon { color: var(--inko-status-danger-fg); }
+.verdictText { display: flex; flex-direction: column; min-width: 0; }
+.verdictText strong { font: 700 16px/24px var(--inko-font-display); }
+.verdictText span { font: 400 13px/20px var(--inko-font-body); font-variant-numeric: tabular-nums; }
+.verdictActions { grid-column: 2; display: flex; flex-wrap: wrap; gap: var(--inko-spacing-2); }
+.inkButton { background: var(--inko-brand-ink); color: var(--inko-brand-paper); }
+.inkButton:hover { background: var(--inko-neutral-graphite); }
+.conflictLink { border-color: #7A1524; color: #7A1524; }
+.conflictLink:hover { background: rgba(122, 21, 36, 0.08); color: #7A1524; }
+.conflictHint { margin: 0; font: 400 14px/22px var(--inko-font-body); color: var(--inko-neutral-brown); }
+
+/* Passo 4 — datas */
+.dates { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: var(--inko-spacing-5); }
+.terms { display: flex; flex-direction: column; gap: var(--inko-spacing-2); margin: 0; padding: 0; border: 0; min-width: 0; }
+.terms legend { margin-bottom: 6px; padding: 0; font: 600 13px/18px var(--inko-font-body); }
+.termOptions { display: flex; flex-wrap: wrap; gap: var(--inko-spacing-2); }
+.term { height: 40px; padding: 0 14px; border: 1.5px solid var(--inko-border-strong); border-radius: 20px; background: var(--inko-surface-elevated); color: var(--inko-text-primary); font: 600 13px/18px var(--inko-font-body); cursor: pointer; }
+.term:hover { border-color: var(--inko-brand-ink); }
+.term[aria-checked='true'] { border-color: var(--inko-brand-ink); background: var(--inko-brand-ink); color: var(--inko-brand-paper); }
+.due { font: 500 13px/20px var(--inko-font-body); }
+.due strong { font-variant-numeric: tabular-nums; }
+
+/* Passo 5 — revisão */
+.review { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 1px; margin: 0; border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-md); background: var(--inko-background-subtle); overflow: hidden; }
+.review > div { padding: 14px 18px; background: var(--inko-surface-elevated); }
+.review dt { font: 600 11px/16px var(--inko-font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--inko-neutral-brown); }
+.review dd { margin: 4px 0 0; font: 600 15px/22px var(--inko-font-body); font-variant-numeric: tabular-nums; }
+.review dd span { font-weight: 400; color: var(--inko-text-secondary); }
+
+/* Passo 6 — resultado */
+.success { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: auto 0; padding: var(--inko-spacing-4) 0; text-align: center; }
+.success h2 { font: 800 28px/36px var(--inko-font-display); }
+.success output { font: 400 15px/24px var(--inko-font-body); color: var(--inko-neutral-brown); font-variant-numeric: tabular-nums; }
+.success output strong { color: var(--inko-text-primary); }
+.success output .loaned { color: var(--inko-status-info-fg); }
+.successActions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--inko-spacing-2); padding-top: var(--inko-spacing-2); }
+
+/* Navegação do fluxo */
+.nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--inko-spacing-2); }
+.navButton { height: 44px; padding: 0 18px; }
+
+/* Resumo */
+.summary { display: flex; flex-direction: column; gap: var(--inko-spacing-3); padding: 18px; border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-md); background: var(--inko-surface-default); }
+.summary h2 { margin: 0; font: 600 16px/24px var(--inko-font-display); }
+.summary dl { display: flex; flex-direction: column; margin: 0; }
+.summary dl > div { display: flex; justify-content: space-between; gap: var(--inko-spacing-3); padding: 10px 0; border-top: 1px solid var(--inko-background-subtle); }
+.summary dt { flex: none; font: 500 13px/20px var(--inko-font-body); color: var(--inko-text-secondary); }
+.summary dd { margin: 0; font: 600 14px/20px var(--inko-font-body); text-align: right; font-variant-numeric: tabular-nums; }
+.summary dd span { font-weight: 400; color: var(--inko-text-secondary); }
+
+@media (min-width: 1024px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 300px; }
+  .summary { position: sticky; top: 92px; }
+}
+
+/* Abaixo de 1024 px o resumo sobe para antes do passo, como na prancha mobile. */
+@media (max-width: 1023px) {
+  .summary { order: -1; padding: 0 14px; gap: 0; }
+  .summary h2, .summary :global(.inko-footnote) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .summary dl > div:first-child { border-top: 0; }
+  .summary dl > div { padding: 12px 0; }
+}
+
+@media (max-width: 767px) {
+  /* Stepper vira barra de progresso em 6 segmentos; o rótulo fica em "Etapa N de 6". */
+  .stepper { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+  .step { height: 4px; padding: 0; border: 0; border-radius: 2px; background: var(--inko-border-default); }
+  .stepDone { background: var(--inko-brand-ink); }
+  .stepCurrent { background: var(--inko-action-primary); }
+  .stepDot { display: none; }
+  .stepLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .layout, .main { gap: var(--inko-spacing-4); }
+  .card { min-height: 0; padding: var(--inko-spacing-4); gap: 14px; border-radius: var(--inko-radius-md); }
+  .verdict { grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: var(--inko-spacing-3); padding: var(--inko-spacing-4); }
+  .verdictIcon { width: 40px; height: 40px; }
+  .verdictText { gap: 2px; }
+  .verdictText span { font: 400 14px/22px var(--inko-font-body); }
+  .verdictActions { display: none; }
+  .term { height: 44px; }
+
+  /* Barra de ações fixa na base, com a ação principal em cima. */
+  .nav { position: sticky; bottom: 0; z-index: 5; flex-direction: column-reverse; margin: 0 calc(-1 * var(--inko-spacing-4)) calc(-1 * var(--inko-spacing-8)); padding: 12px var(--inko-spacing-4) 20px; border-top: 1px solid var(--inko-border-default); background: var(--inko-background-default); }
+  .nav .navButton { width: 100%; height: 48px; font: 600 15px/22px var(--inko-font-body); }
+  .nav .navButton:not(:global(.inko-button--ghost)) { height: 52px; font: 600 16px/24px var(--inko-font-body); }
+  .successActions { flex-direction: column; align-self: stretch; }
+  .successActions .navButton { width: 100%; height: 48px; }
+}
+
+@media (min-width: 768px) {
+  .conflictHint { display: none; }
+}

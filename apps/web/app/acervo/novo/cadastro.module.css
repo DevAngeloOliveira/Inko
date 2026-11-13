@@ -1,0 +1,54 @@
+/* Cadastro de obra — formulário em duas colunas com pré-visualização do card. */
+
+.layout { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--inko-spacing-8); }
+.main { display: flex; flex: 2 1 480px; flex-direction: column; gap: var(--inko-spacing-6); min-width: 0; }
+.form { gap: var(--inko-spacing-6); }
+
+.alertLink { align-self: center; white-space: nowrap; }
+.errorList { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+
+.required {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: var(--inko-spacing-5);
+  min-width: 0; margin: 0; padding: var(--inko-spacing-6);
+  border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-lg); background: var(--inko-surface-default);
+}
+.required legend { padding: 0 var(--inko-spacing-2); font: 600 16px/24px var(--inko-font-display); }
+.identifier :global(.inko-input) { font-variant-numeric: tabular-nums; text-transform: uppercase; }
+.identifier :global(.inko-input)::placeholder { text-transform: none; }
+
+.optional { padding: 0 var(--inko-spacing-6); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-lg); background: var(--inko-surface-default); }
+.optional summary { padding: 18px 0; font: 600 16px/24px var(--inko-font-display); cursor: pointer; }
+.optional summary span { font: 400 13px/20px var(--inko-font-body); color: var(--inko-text-secondary); }
+.optionalGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: var(--inko-spacing-5); padding-bottom: var(--inko-spacing-6); }
+
+.upload {
+  position: relative; grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: var(--inko-spacing-4);
+  border: 1.5px dashed var(--inko-border-strong); border-radius: var(--inko-radius-md); cursor: pointer;
+  transition: border-color var(--inko-duration-hover) var(--inko-easing-out), background-color var(--inko-duration-hover) var(--inko-easing-out);
+}
+.upload:hover { border-color: var(--inko-brand-ink); background: var(--inko-surface-elevated); }
+/* O campo de arquivo fica oculto; o foco do teclado aparece na área inteira. */
+.upload:focus-within { outline: 2px solid var(--inko-brand-ink); outline-offset: 2px; }
+.upload > :global(.inko-icon) { color: var(--inko-neutral-brown); }
+.uploadText { display: flex; flex-direction: column; min-width: 0; font: 600 14px/20px var(--inko-font-body); }
+.uploadText small { font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+.uploadText .uploadFile { font-weight: 500; color: var(--inko-text-primary); overflow-wrap: anywhere; }
+.uploadNote { grid-column: 1 / -1; }
+
+.formFoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--inko-spacing-3); }
+.progress { font: 500 13px/20px var(--inko-font-body); color: var(--inko-text-secondary); font-variant-numeric: tabular-nums; }
+.formFoot .action { height: 44px; padding: 0 20px; }
+
+.preview { display: flex; flex: 1 1 240px; flex-direction: column; gap: 10px; max-width: 300px; min-width: 0; }
+.previewTitle { font: 700 15px/22px var(--inko-font-display); overflow-wrap: anywhere; }
+
+@media (max-width: 767px) {
+  .layout { gap: var(--inko-spacing-5); }
+  .main { gap: var(--inko-spacing-4); }
+  .required { padding: var(--inko-spacing-4); border-radius: var(--inko-radius-md); }
+  .optional { padding: 0 var(--inko-spacing-4); border-radius: var(--inko-radius-md); }
+  .optionalGrid { padding-bottom: var(--inko-spacing-4); }
+  .formFoot { flex-direction: column; align-items: stretch; }
+  .formFoot :global(.inko-actions) { flex-direction: column-reverse; align-items: stretch; }
+  .preview { flex-basis: 100%; max-width: 240px; }
+}

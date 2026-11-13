@@ -1,0 +1,213 @@
+/*
+ * Página /design-system — só o que é específico da vitrine.
+ * Os componentes demonstrados usam as classes globais de inko-ui.css.
+ */
+
+/* ---------- Estrutura: índice + seções ---------- */
+
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--inko-spacing-6); min-width: 0; }
+.sections { display: flex; flex-direction: column; gap: var(--inko-spacing-12); min-width: 0; }
+
+.toc { min-width: 0; }
+.toc ol { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; overflow-x: auto; }
+.toc a {
+  display: flex; align-items: center; gap: var(--inko-spacing-2); min-height: 44px; padding: 0 var(--inko-spacing-3);
+  border-radius: var(--inko-radius-sm); color: var(--inko-text-secondary); font: 500 13px/20px var(--inko-font-body);
+  text-decoration: none; white-space: nowrap; outline-offset: -2px;
+  transition: background-color var(--inko-duration-hover) var(--inko-easing-out), color var(--inko-duration-hover) var(--inko-easing-out);
+}
+.toc a:hover { background: var(--inko-background-subtle); color: var(--inko-text-primary); }
+.toc a span { font: 600 11px/16px var(--inko-font-body); letter-spacing: 0.06em; color: var(--inko-brand-seal); font-variant-numeric: tabular-nums; }
+
+.group { display: flex; flex-direction: column; gap: var(--inko-spacing-5); min-width: 0; scroll-margin-top: 84px; }
+.groupHead h2 { margin: 4px 0 0; font: 600 24px/32px var(--inko-font-display); letter-spacing: -0.01em; }
+.groupHead p { margin: 6px 0 0; max-width: 720px; font: 400 16px/26px var(--inko-font-body); color: var(--inko-neutral-brown); }
+.groupHead code, .block code, .prose code { font: 500 12px/18px ui-monospace, 'SFMono-Regular', Consolas, monospace; color: var(--inko-neutral-brown); overflow-wrap: anywhere; }
+
+.grid2, .grid3, .grid4 { display: grid; gap: var(--inko-spacing-4); min-width: 0; }
+.grid2 { grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); }
+.grid3 { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.grid4 { grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); }
+
+.block h3, .concept h3, .family h3 { margin: 0; font: 700 16px/24px var(--inko-font-display); }
+.blockHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px var(--inko-spacing-3); }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--inko-spacing-3); }
+.scroll { max-width: 100%; overflow-x: auto; }
+.prose { margin: 0; font: 400 14px/22px var(--inko-font-body); color: var(--inko-text-secondary); }
+.prose strong { color: var(--inko-text-primary); }
+
+.frame { border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-md); overflow: hidden; }
+.frame:global(.inko-table-wrap) { overflow-x: auto; }
+.frame tbody th { border-top: 1px solid var(--inko-background-subtle); }
+.frame .tokenName { font: 600 13px/20px var(--inko-font-body); letter-spacing: 0; text-transform: none; color: var(--inko-text-primary); }
+.tokenValue { display: inline-flex; align-items: center; gap: var(--inko-spacing-2); }
+.mapTable { min-width: 860px; }
+.mapTable td, .frame .mapTable .tokenName { white-space: normal; vertical-align: top; padding-top: 10px; padding-bottom: 10px; }
+
+/* ---------- 00 · Marca ---------- */
+
+.cover { position: relative; display: flex; align-items: center; min-height: 280px; padding: var(--inko-spacing-8); border: 2px solid var(--inko-brand-ink); border-radius: var(--inko-radius-xl); background: var(--inko-background-default); overflow: hidden; }
+.coverEnso { position: absolute; right: -40px; bottom: -60px; opacity: 0.9; }
+.coverText { position: relative; display: flex; flex-direction: column; gap: var(--inko-spacing-3); max-width: 520px; }
+.coverText p { margin: 0; font: 400 16px/26px var(--inko-font-body); color: var(--inko-neutral-brown); }
+.coverLogo { width: 220px; max-width: 100%; height: auto; margin-left: -8px; }
+
+.concept { gap: var(--inko-spacing-2); }
+.concept p, .family p { margin: 0; font: 400 13px/20px var(--inko-font-body); color: var(--inko-text-secondary); }
+.conceptNumber { font: 800 28px/36px var(--inko-font-display); color: var(--inko-brand-seal); font-variant-numeric: tabular-nums; }
+
+.logoTile, .minSizes figure, .motionDemo { margin: 0; }
+.logoTile { display: flex; flex-direction: column; gap: var(--inko-spacing-2); }
+.logoTile figcaption, .minSizes figcaption, .motionDemo figcaption { font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+.logoTile figcaption strong { color: var(--inko-text-primary); }
+.logoSurface { display: flex; align-items: center; justify-content: center; min-height: 180px; padding: var(--inko-spacing-6); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-md); }
+.logoSurface img { width: 180px; max-width: 100%; height: auto; }
+.logoPaper { background: var(--inko-background-default); }
+.logoInk { background: var(--inko-surface-inverse); border-color: var(--inko-surface-inverse); }
+.logoMono { background: var(--inko-surface-elevated); }
+
+.clearSpace { align-self: center; padding: var(--inko-spacing-6); border: 1px dashed var(--inko-brand-seal); border-radius: var(--inko-radius-xs); background: var(--inko-background-default); }
+.clearSpace img { display: block; width: 150px; max-width: 100%; height: auto; }
+.minSizes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--inko-spacing-6); }
+.minSizes figure { display: flex; flex-direction: column; gap: var(--inko-spacing-2); }
+.logo120 { width: 120px; height: auto; }
+.logo88 { width: 88px; height: auto; }
+.dontList, .rules { display: flex; flex-direction: column; gap: var(--inko-spacing-2); margin: 0; padding: 0; list-style: none; font: 400 13px/20px var(--inko-font-body); }
+.dontList li, .rules li { display: flex; align-items: flex-start; gap: var(--inko-spacing-2); }
+.dontList li > svg, .rules li > svg { margin-top: 2px; }
+.dontList li > svg { color: var(--inko-status-danger-fg); }
+.rules li > svg { color: var(--inko-status-success-fg); }
+
+/* ---------- 01 · Cores & tokens ---------- */
+
+.chip { display: block; flex: none; width: 100%; height: 40px; border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-sm); }
+.chipLarge { height: 112px; border-radius: var(--inko-radius-md); }
+.chipMedium { height: 64px; }
+.chipSmall { width: 20px; height: 20px; border-radius: var(--inko-radius-xs); }
+.swatch { display: flex; flex-direction: column; gap: var(--inko-spacing-3); min-width: 0; }
+.swatchBody { display: flex; flex-direction: column; gap: 2px; font: 400 13px/20px var(--inko-font-body); }
+.swatchBody strong { font: 700 15px/22px var(--inko-font-display); }
+.semanticGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: var(--inko-spacing-4); }
+.semantic { display: flex; flex-direction: column; align-items: flex-start; gap: var(--inko-spacing-2); min-width: 0; }
+.semantic strong { font: 600 14px/20px var(--inko-font-body); }
+.semanticChips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 100%; }
+.semanticHex { font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+.badgeDisabled { border: 1px solid var(--inko-status-disabled-border); background: var(--inko-status-disabled-bg); color: var(--inko-status-disabled-fg); }
+
+/* ---------- 01 · Tipografia ---------- */
+
+.family { gap: var(--inko-spacing-2); }
+.familySample { font-size: 56px; line-height: 64px; font-weight: 700; }
+.typeScale { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.typeScale li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; padding: var(--inko-spacing-3) 0; border-top: 1px solid var(--inko-background-subtle); }
+.typeScale li:first-child { border-top: 0; padding-top: 0; }
+.typeScale p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.typeMeta { display: flex; flex-wrap: wrap; gap: 2px var(--inko-spacing-3); font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); font-variant-numeric: tabular-nums; }
+.jpSample { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--inko-spacing-2); margin: 0; }
+.jpSample strong { font: 700 20px/28px var(--inko-font-display); }
+.jpSample span { font-size: 18px; line-height: 28px; font-weight: 500; }
+.jpSample small { font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+
+/* ---------- 01 · Espaço, grid, radius, sombra e motion ---------- */
+
+.spacing { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font: 400 12px/18px var(--inko-font-body); }
+.spacing li { display: grid; grid-template-columns: 92px 24px minmax(0, 1fr); align-items: center; gap: var(--inko-spacing-2); }
+.spacing li > span:first-of-type { color: var(--inko-text-secondary); text-align: right; }
+.spacingBar { display: block; height: 14px; border-radius: 2px; background: var(--inko-brand-seal); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); gap: var(--inko-spacing-5) var(--inko-spacing-4); margin: 0; padding: 0; list-style: none; }
+.tilesWide { grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); }
+.tiles li { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+.radiusBox { display: block; width: 72px; height: 72px; border: 1.5px solid var(--inko-brand-ink); background: var(--inko-background-subtle); }
+.shadowBox { display: block; width: 100%; height: 72px; margin-bottom: var(--inko-spacing-2); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-md); background: var(--inko-surface-elevated); }
+
+.breakpoint { display: flex; flex-direction: column; gap: 4px; min-width: 0; font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+.breakpoint strong { font: 600 13px/20px var(--inko-font-body); color: var(--inko-text-primary); }
+.columns { display: grid; gap: 3px; height: 56px; margin-bottom: 4px; padding: 6px; border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-sm); background: var(--inko-background-default); }
+.columns span { background: var(--inko-neutral-sand); border-radius: 2px; }
+
+.motionTokens { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: var(--inko-spacing-2) var(--inko-spacing-5); margin: 0; font: 400 12px/18px var(--inko-font-body); font-variant-numeric: tabular-nums; }
+.motionTokens div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px var(--inko-spacing-2); padding-bottom: 6px; border-bottom: 1px solid var(--inko-background-subtle); }
+.motionTokens dd { margin: 0; color: var(--inko-text-secondary); }
+.motionDemo { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: var(--inko-spacing-3); min-height: 170px; padding: var(--inko-spacing-4); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-md); background: var(--inko-background-default); text-align: center; overflow: hidden; }
+.motionDemo svg { max-width: 100%; margin: auto 0; }
+.motionPanel { width: 108px; height: 82px; margin: auto 0; border: 3px solid var(--inko-brand-ink); background-color: var(--inko-surface-default); background-image: radial-gradient(var(--inko-brand-ink) 1px, transparent 1.3px); background-size: 5px 5px; }
+
+/* ---------- 01 · Elementos gráficos & ícones ---------- */
+
+.tiles :global(.inko-enso) { max-width: 100%; height: auto; }
+.watermark { opacity: 0.07; }
+.brushes { display: flex; flex-direction: column; gap: var(--inko-spacing-3); margin: 0; padding: 0; list-style: none; font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+.brushes li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--inko-spacing-2) var(--inko-spacing-3); }
+.brushes img { width: auto; max-width: 160px; height: auto; max-height: 56px; }
+.washi { position: relative; display: flex; align-items: flex-end; min-height: 140px; padding: var(--inko-spacing-4); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-md); background: var(--inko-background-default); overflow: hidden; }
+.washi span { position: relative; font: 600 12px/18px var(--inko-font-body); color: var(--inko-neutral-brown); }
+.halftone { display: block; width: 100%; height: 72px; border: 1.5px solid var(--inko-brand-ink); border-radius: var(--inko-radius-xs); background-color: var(--inko-brand-paper); background-repeat: repeat; }
+.seigaiha:global(.inko-seigaiha) { width: 100%; height: 80px; border-radius: var(--inko-radius-sm); overflow: hidden; }
+.motif { display: flex; align-items: center; justify-content: center; width: 100%; height: 80px; }
+.motif img { width: auto; height: 64px; }
+.frames { position: relative; display: block; width: 100%; height: 80px; }
+.frameRays, .frameDots { position: absolute; display: block; border: 3px solid var(--inko-brand-ink); box-shadow: var(--inko-shadow-panel); }
+.frameRays { left: 6px; top: 6px; width: 78px; height: 58px; transform: rotate(-5deg); background: repeating-conic-gradient(from 0deg at 30% 80%, var(--inko-brand-ink) 0 1deg, var(--inko-brand-paper) 1deg 7deg); }
+.frameDots { left: 74px; top: 22px; width: 52px; height: 48px; transform: rotate(4deg); background-color: var(--inko-brand-paper); background-image: radial-gradient(var(--inko-brand-ink) 1.1px, transparent 1.4px); background-size: 5px 5px; }
+
+.iconGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(132px, 100%), 1fr)); gap: var(--inko-spacing-2); margin: 0; padding: 0; list-style: none; }
+.iconGrid li { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; padding: var(--inko-spacing-3) var(--inko-spacing-2); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-sm); text-align: center; font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
+.iconGrid li > svg { color: var(--inko-text-primary); margin-bottom: 2px; }
+
+/* ---------- 02 · Buttons & Forms ---------- */
+
+.matrix { min-width: 900px; border-collapse: collapse; }
+.matrix th { padding: 0 var(--inko-spacing-4) var(--inko-spacing-2) 0; text-align: left; font: 600 11px/16px var(--inko-font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--inko-neutral-brown); white-space: nowrap; }
+.matrix td { padding: var(--inko-spacing-2) var(--inko-spacing-4) var(--inko-spacing-2) 0; }
+.matrix tbody th { padding-bottom: 0; }
+
+/* Estados estáticos da matriz: repetem os valores de :hover/:active de inko-ui.css sobre o botão real. */
+.simFocus { outline: 2px solid var(--inko-focus-ring); outline-offset: 2px; }
+.simPressed { transform: translateY(1px); }
+.simHover:global(.inko-button--primary) { background: var(--inko-action-primary-hover); }
+.simPressed:global(.inko-button--primary) { background: var(--inko-action-primary-pressed); }
+.simHover:global(.inko-button--secondary) { background: #FBEFEC; border-color: var(--inko-action-primary-hover); color: var(--inko-action-primary-hover); }
+.simPressed:global(.inko-button--secondary) { background: #F6E1DC; border-color: var(--inko-action-primary-pressed); color: var(--inko-action-primary-pressed); }
+.simHover:global(.inko-button--outline), .simHover:global(.inko-button--ghost) { background: var(--inko-background-subtle); }
+.simPressed:global(.inko-button--outline), .simPressed:global(.inko-button--ghost) { background: var(--inko-neutral-sand); }
+.simHover:global(.inko-button--danger) { background: #7F1625; }
+.simPressed:global(.inko-button--danger) { background: #66111D; }
+.simFieldFocus :global(.inko-input) { border-color: var(--inko-brand-ink); background: var(--inko-surface-elevated); box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.12); }
+
+.choiceGroup { display: flex; flex-direction: column; gap: 2px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.choiceGroup legend { margin-bottom: 6px; padding: 0; font: 600 13px/18px var(--inko-font-body); }
+.check { display: inline-flex; align-items: center; gap: 10px; min-height: 32px; font: 400 14px/20px var(--inko-font-body); cursor: pointer; }
+.check input, .checkbox { flex: none; width: 18px; height: 18px; margin: 0; accent-color: var(--inko-action-primary); cursor: pointer; }
+.checkbox { display: block; }
+.check:has(input:disabled) { color: var(--inko-text-disabled); cursor: not-allowed; }
+.check input:disabled { cursor: not-allowed; }
+
+/* ---------- 02 · Componentes INKO · 07 · Diretrizes ---------- */
+
+.compactBanner { width: 100%; max-width: 420px; }
+.code { margin: 0; padding: var(--inko-spacing-4); border-radius: var(--inko-radius-md); background: var(--inko-surface-inverse); overflow-x: auto; }
+.block .code code { font: 400 13px/22px ui-monospace, 'SFMono-Regular', Consolas, monospace; color: var(--inko-text-inverse); overflow-wrap: normal; white-space: pre; }
+
+/* ---------- Responsividade ---------- */
+
+@media (max-width: 767px) {
+  .sections { gap: var(--inko-spacing-10); }
+  .cover { min-height: 0; padding: var(--inko-spacing-5); border-radius: var(--inko-radius-lg); }
+  .coverEnso { opacity: 0.18; }
+  .check { min-height: 44px; }
+  .spacing li { grid-template-columns: 84px 20px minmax(0, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .groupHead h2 { font: 600 28px/36px var(--inko-font-display); }
+  .typeScale li { grid-template-columns: 220px minmax(0, 1fr); align-items: center; gap: var(--inko-spacing-5); }
+  .typeMeta { flex-direction: column; }
+}
+
+@media (min-width: 1200px) {
+  .layout { grid-template-columns: 184px minmax(0, 1fr); align-items: start; }
+  .toc { position: sticky; top: 92px; }
+  .toc ol { flex-direction: column; gap: 2px; overflow-x: visible; }
+  .toc a { min-height: 36px; white-space: normal; }
+}

@@ -18,14 +18,14 @@ test('diagnostic UI remains available at its own route', () => {
 
 test('domain navigation links are defined and demonstration data is identified', () => {
   assert.match(dashboard, /href="\/emprestimos"/);
-  assert.match(dashboard, /DemoNotice/);
+  assert.match(dashboard, /DemoTag|DemoNotice/);
   assert.match(dashboard, /href="\/motion-lab"/);
   assert.match(dashboard, /href="\/system\/status"/);
 });
 
 test('dashboard consumes original INKO assets and design tokens', () => {
   assert.match(readFileSync(new URL('../components/app-shell.tsx', import.meta.url), 'utf8'), /inko-logo-inverse\.png/);
-  assert.match(dashboard, /enso-seal\.svg/);
+  assert.match(dashboard, /EditorialBanner|Enso/);
   assert.match(stylesheet, /var\(--inko-background-default\)/);
   assert.match(stylesheet, /prefers-reduced-motion:reduce/);
 });

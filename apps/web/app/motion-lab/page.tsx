@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'INKO | Motion Lab',
+  title: 'Motion Lab',
   description: 'Demonstrações dos motions originais do Claude Design.',
 };
 
@@ -10,7 +10,7 @@ const brushPath = 'M8 12C60 5 150 3 230 6c30 1 52 0 66 5-6 7 2 15-3 22-38 9-120 
 
 export default function MotionLab() {
   return (
-    <main style={{ background: 'var(--inko-background-default)', minHeight: '100vh', padding: 'clamp(24px, 5vw, 80px)', color: 'var(--inko-text-primary)' }}>
+    <main className="inko-legacy-page" style={{ background: 'var(--inko-background-default)', minHeight: '100vh', padding: 'clamp(24px, 5vw, 80px)', color: 'var(--inko-text-primary)' }}>
       <div className="eyebrow">INKO / DESIGN SOURCE · MOTION LAB</div>
       <h1 style={{ maxWidth: 960 }}>Tinta em movimento.</h1>
       <p className="description">Padrões extraídos de Foundations-Layout.dc.html, Prototype-Dashboard.dc.html e Components-Core.dc.html. Os três primeiros reproduzem um ciclo de 2,4 segundos.</p>

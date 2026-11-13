@@ -1,0 +1,46 @@
+/* Registrar devolução — lista de empréstimos ativos + painel de conferência. */
+
+.layout { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--inko-spacing-6); }
+
+.list { display: flex; flex: 1 1 380px; flex-direction: column; gap: var(--inko-spacing-3); min-width: 0; }
+.search { flex: none; }
+.search :global(.inko-input) { height: 44px; background: var(--inko-surface-default); }
+.count { font: 500 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); font-variant-numeric: tabular-nums; }
+
+.panel { display: flex; flex: 1 1 420px; flex-direction: column; min-width: 0; padding: var(--inko-spacing-6); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-lg); background: var(--inko-surface-default); scroll-margin-top: 76px; }
+.panel h2 { margin: 0; font: 600 20px/28px var(--inko-font-display); }
+.panel h2:focus { outline: none; }
+
+.none { display: flex; flex-direction: column; align-items: center; gap: var(--inko-spacing-2); padding: var(--inko-spacing-10) 0; color: var(--inko-text-secondary); text-align: center; font: 400 14px/22px var(--inko-font-body); }
+.none h2 { font: 700 16px/24px var(--inko-font-display); color: var(--inko-text-primary); }
+
+.form { display: flex; flex-direction: column; gap: 18px; }
+.plain { font-weight: 500; }
+.date :global(.inko-control) { max-width: 220px; }
+.date :global(.inko-input) { height: 44px; background: var(--inko-surface-elevated); font-variant-numeric: tabular-nums; }
+
+.fine { display: flex; align-items: center; justify-content: space-between; gap: var(--inko-spacing-3); padding: 14px 16px; border: 1px solid; border-radius: var(--inko-radius-md); }
+.fineLate { background: var(--inko-status-danger-bg); border-color: var(--inko-status-danger-border); color: #7A1524; }
+.fineOk { background: var(--inko-status-success-bg); border-color: var(--inko-status-success-border); color: #1F4D38; }
+.fineText { display: flex; flex-direction: column; font: 500 13px/20px var(--inko-font-body); }
+.fineText small { font: 400 12px/18px var(--inko-font-body); opacity: 0.85; }
+.fine strong { font: 800 24px/32px var(--inko-font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.done { display: flex; flex-direction: column; gap: var(--inko-spacing-4); }
+.doneHead { display: flex; align-items: center; gap: var(--inko-spacing-3); }
+.doneHead h2 { font-weight: 700; }
+.doneHead span { font: 400 13px/20px var(--inko-font-body); color: var(--inko-text-secondary); font-variant-numeric: tabular-nums; }
+.doneHead .doneIcon { display: flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--inko-status-success-bg); color: var(--inko-status-success-fg); }
+.transition { display: flex; flex-wrap: wrap; align-items: center; gap: var(--inko-spacing-3); padding: var(--inko-spacing-4); border: 1px dashed var(--inko-border-strong); border-radius: var(--inko-radius-md); }
+.transition strong { flex: 1 1 160px; font: 600 14px/20px var(--inko-font-body); }
+.struck { text-decoration: line-through; }
+.doneFine { font: 500 13px/20px var(--inko-font-body); font-variant-numeric: tabular-nums; }
+.action { height: 44px; }
+
+@media (max-width: 767px) {
+  .layout { gap: var(--inko-spacing-4); }
+  .list, .panel { flex-basis: 100%; }
+  .panel { padding: var(--inko-spacing-4); border-radius: var(--inko-radius-md); }
+  .date :global(.inko-control) { max-width: none; }
+  .none { padding: var(--inko-spacing-6) 0; }
+}
