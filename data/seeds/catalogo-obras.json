@@ -1,0 +1,1153 @@
+{
+  "versao": 1,
+  "descricao": "Catálogo curado de obras reais do INKO. Título, autoria, categoria e volume alimentam o serviço de Catálogo; gêneros, sinopse e franquia são metadados editoriais exibidos pela interface. Sinopses são textos originais. Nenhuma capa é redistribuída: a interface usa composições gráficas próprias.",
+  "generos": [
+    "Ação e aventura",
+    "Fantasia",
+    "Ficção científica",
+    "Mistério e suspense",
+    "Drama",
+    "Romance",
+    "Super-heróis",
+    "Horror",
+    "Slice of life"
+  ],
+  "obras": [
+    {
+      "id": "INK-0001",
+      "titulo": "One Piece",
+      "tituloOriginal": "ONE PIECE",
+      "autorOuCriador": "Eiichiro Oda",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "One Piece",
+      "generos": [
+        "Ação e aventura",
+        "Fantasia"
+      ],
+      "sinopseCurta": "Monkey D. Luffy parte para o mar com o sonho de encontrar o tesouro lendário e se tornar o Rei dos Piratas.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL8215661W",
+        "tituloEncontrado": "ONE PIECE 1",
+        "autoresEncontrados": [
+          "尾田栄一郎"
+        ],
+        "verificadoEm": "2026-11-17",
+        "observacao": "Autoria registrada em escrita japonesa: 尾田栄一郎 = Eiichiro Oda"
+      }
+    },
+    {
+      "id": "INK-0002",
+      "titulo": "Naruto",
+      "tituloOriginal": "NARUTO -ナルト-",
+      "autorOuCriador": "Masashi Kishimoto",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Naruto",
+      "generos": [
+        "Ação e aventura",
+        "Fantasia"
+      ],
+      "sinopseCurta": "Um jovem ninja rejeitado pela própria vila treina para ser reconhecido e chegar ao posto de Hokage.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL13268171W",
+        "tituloEncontrado": "Naruto 33",
+        "autoresEncontrados": [
+          "Masashi Kishimoto"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0003",
+      "titulo": "Batman: Year One",
+      "autorOuCriador": "Frank Miller e David Mazzucchelli",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "franquia": "Batman",
+      "generos": [
+        "Super-heróis",
+        "Mistério e suspense"
+      ],
+      "sinopseCurta": "O primeiro ano de Bruce Wayne como vigilante e de James Gordon como policial honesto numa Gotham corrupta.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL21130612W",
+        "tituloEncontrado": "Absolute Batman Year One",
+        "autoresEncontrados": [
+          "Frank Miller",
+          "David Mazzucchelli"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0004",
+      "titulo": "Dragon Ball",
+      "tituloOriginal": "ドラゴンボール",
+      "autorOuCriador": "Akira Toriyama",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Dragon Ball",
+      "generos": [
+        "Ação e aventura",
+        "Fantasia"
+      ],
+      "sinopseCurta": "Goku, um garoto de cauda e força descomunal, se junta a Bulma na busca pelas sete esferas do dragão.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL5753031W",
+        "tituloEncontrado": "Dragon Ball",
+        "autoresEncontrados": [
+          "鳥山 明 [Akira Toriyama]"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0005",
+      "titulo": "Berserk",
+      "tituloOriginal": "ベルセルク",
+      "autorOuCriador": "Kentaro Miura",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Berserk",
+      "generos": [
+        "Fantasia",
+        "Horror",
+        "Drama"
+      ],
+      "sinopseCurta": "Guts, um mercenário marcado, enfrenta demônios num mundo medieval sombrio enquanto persegue o passado que o condenou.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL8988597W",
+        "tituloEncontrado": "ベルセルク 1",
+        "autoresEncontrados": [
+          "三浦建太郎"
+        ],
+        "verificadoEm": "2026-11-17",
+        "observacao": "Autoria registrada em escrita japonesa: 三浦建太郎 = Kentaro Miura"
+      }
+    },
+    {
+      "id": "INK-0006",
+      "titulo": "Maus",
+      "autorOuCriador": "Art Spiegelman",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Drama"
+      ],
+      "sinopseCurta": "O autor reconstrói a experiência do pai como sobrevivente do Holocausto, retratando judeus como ratos e nazistas como gatos.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL36901652W",
+        "tituloEncontrado": "Maus",
+        "autoresEncontrados": [
+          "Art Spiegelman"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0007",
+      "titulo": "Kingdom Come",
+      "autorOuCriador": "Mark Waid e Alex Ross",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "generos": [
+        "Super-heróis",
+        "Drama"
+      ],
+      "sinopseCurta": "Num futuro próximo, os heróis clássicos da DC voltam da aposentadoria para conter uma nova geração sem limites.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL1646670W",
+        "tituloEncontrado": "Kingdom Come",
+        "autoresEncontrados": [
+          "Mark Waid"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0008",
+      "titulo": "Death Note",
+      "tituloOriginal": "DEATH NOTE",
+      "autorOuCriador": "Tsugumi Ohba e Takeshi Obata",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Death Note",
+      "generos": [
+        "Mistério e suspense",
+        "Drama"
+      ],
+      "sinopseCurta": "Um estudante encontra um caderno capaz de matar qualquer pessoa cujo nome seja escrito nele e passa a ser caçado por um detetive genial.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL9769938W",
+        "tituloEncontrado": "DEATH NOTE アナザーノ",
+        "autoresEncontrados": [
+          "西尾維新",
+          "Tsugumi Ohba",
+          "Takeshi Obata"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0009",
+      "titulo": "Fullmetal Alchemist",
+      "tituloOriginal": "鋼の錬金術師",
+      "autorOuCriador": "Hiromu Arakawa",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Fullmetal Alchemist",
+      "generos": [
+        "Fantasia",
+        "Ação e aventura",
+        "Drama"
+      ],
+      "sinopseCurta": "Os irmãos Elric pagam caro por uma transmutação proibida e partem em busca da Pedra Filosofal para recuperar o que perderam.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL8756258W",
+        "tituloEncontrado": "鋼の錬金術師 1",
+        "autoresEncontrados": [
+          "荒川弘"
+        ],
+        "verificadoEm": "2026-11-17",
+        "observacao": "Autoria registrada em escrita japonesa: 荒川弘 = Hiromu Arakawa"
+      }
+    },
+    {
+      "id": "INK-0010",
+      "titulo": "Saga",
+      "autorOuCriador": "Brian K. Vaughan e Fiona Staples",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Ficção científica",
+        "Fantasia",
+        "Romance"
+      ],
+      "sinopseCurta": "Dois soldados de lados opostos de uma guerra interplanetária fogem com a filha recém-nascida.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL16799356W",
+        "tituloEncontrado": "Saga",
+        "autoresEncontrados": [
+          "Brian K. Vaughan"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0011",
+      "titulo": "Attack on Titan",
+      "tituloOriginal": "進撃の巨人",
+      "autorOuCriador": "Hajime Isayama",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Attack on Titan",
+      "generos": [
+        "Ação e aventura",
+        "Horror",
+        "Mistério e suspense"
+      ],
+      "sinopseCurta": "A humanidade vive cercada por muralhas para se proteger de titãs devoradores, até que uma delas é rompida.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL19357261W",
+        "tituloEncontrado": "Attack on Titan 18",
+        "autoresEncontrados": [
+          "諫山創",
+          "Hajime Isayama"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0012",
+      "titulo": "Jujutsu Kaisen",
+      "tituloOriginal": "呪術廻戦",
+      "autorOuCriador": "Gege Akutami",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Jujutsu Kaisen",
+      "generos": [
+        "Ação e aventura",
+        "Horror",
+        "Fantasia"
+      ],
+      "sinopseCurta": "Yuji Itadori engole um objeto amaldiçoado e passa a abrigar um espírito poderoso, entrando no mundo dos feiticeiros jujutsu.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL37587927W",
+        "tituloEncontrado": "Jujutsu Kaisen",
+        "autoresEncontrados": [
+          "Gege Akutami"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0013",
+      "titulo": "Bleach",
+      "tituloOriginal": "BLEACH",
+      "autorOuCriador": "Tite Kubo",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Bleach",
+      "generos": [
+        "Ação e aventura",
+        "Fantasia"
+      ],
+      "sinopseCurta": "Ichigo Kurosaki, que sempre enxergou espíritos, recebe os poderes de uma Shinigami e passa a proteger vivos e mortos.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL17688505W",
+        "tituloEncontrado": "Bleach",
+        "autoresEncontrados": [
+          "Tite Kubo"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0014",
+      "titulo": "Hunter × Hunter",
+      "tituloOriginal": "HUNTER×HUNTER",
+      "autorOuCriador": "Yoshihiro Togashi",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Hunter × Hunter",
+      "generos": [
+        "Ação e aventura",
+        "Fantasia"
+      ],
+      "sinopseCurta": "Gon Freecss enfrenta o exame Hunter para seguir os passos do pai que o deixou ainda criança.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL8215055W",
+        "tituloEncontrado": "HUNTER×HUNTER 1",
+        "autoresEncontrados": [
+          "冨樫義博"
+        ],
+        "verificadoEm": "2026-11-17",
+        "observacao": "Autoria registrada em escrita japonesa: 冨樫義博 = Yoshihiro Togashi"
+      }
+    },
+    {
+      "id": "INK-0015",
+      "titulo": "Vagabond",
+      "tituloOriginal": "バガボンド",
+      "autorOuCriador": "Takehiko Inoue",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Ação e aventura",
+        "Drama"
+      ],
+      "sinopseCurta": "Uma releitura da juventude de Miyamoto Musashi, o espadachim que busca sentido na força em meio ao Japão feudal.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL8783807W",
+        "tituloEncontrado": "Vagabond, Vol. 6",
+        "autoresEncontrados": [
+          "井上雄彦 (Takehiko Inoue)"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0016",
+      "titulo": "Vinland Saga",
+      "tituloOriginal": "ヴィンランド・サガ",
+      "autorOuCriador": "Makoto Yukimura",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Vinland Saga",
+      "generos": [
+        "Ação e aventura",
+        "Drama"
+      ],
+      "sinopseCurta": "Thorfinn cresce entre guerreiros vikings movido pela vingança, até questionar o que significa ser verdadeiramente forte.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL32780475W",
+        "tituloEncontrado": "Vinland Saga, Tome 8",
+        "autoresEncontrados": [
+          "幸村誠 (Makoto Yukimura)",
+          "Xavière Daumarie"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0017",
+      "titulo": "Monster",
+      "tituloOriginal": "MONSTER",
+      "autorOuCriador": "Naoki Urasawa",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Monster",
+      "generos": [
+        "Mistério e suspense",
+        "Drama"
+      ],
+      "sinopseCurta": "Um neurocirurgião salva a vida de um menino e, anos depois, descobre que ajudou a criar um assassino.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL19623418W",
+        "tituloEncontrado": "Monster",
+        "autoresEncontrados": [
+          "Naoki Urasawa"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0018",
+      "titulo": "Chainsaw Man",
+      "tituloOriginal": "チェンソーマン",
+      "autorOuCriador": "Tatsuki Fujimoto",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Chainsaw Man",
+      "generos": [
+        "Ação e aventura",
+        "Horror"
+      ],
+      "sinopseCurta": "Denji, afundado em dívidas, se funde ao seu demônio-motosserra e vira caçador de demônios a serviço do governo.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL21902633W",
+        "tituloEncontrado": "Chainsaw Man, Vol. 2",
+        "autoresEncontrados": [
+          "Tatsuki Fujimoto"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0019",
+      "titulo": "Demon Slayer: Kimetsu no Yaiba",
+      "tituloOriginal": "鬼滅の刃",
+      "autorOuCriador": "Koyoharu Gotouge",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Demon Slayer",
+      "generos": [
+        "Ação e aventura",
+        "Fantasia"
+      ],
+      "sinopseCurta": "Tanjiro entra para a organização de caçadores de onis para salvar a irmã, transformada em oni.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL46025183W",
+        "tituloEncontrado": "Demon slayer",
+        "autoresEncontrados": [
+          "Koyoharu Gotouge",
+          "Raquel Saraiva"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0020",
+      "titulo": "Spy × Family",
+      "tituloOriginal": "SPY×FAMILY",
+      "autorOuCriador": "Tatsuya Endo",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Spy × Family",
+      "generos": [
+        "Ação e aventura",
+        "Slice of life"
+      ],
+      "sinopseCurta": "Um espião monta uma família de fachada sem saber que a esposa é assassina e a filha adotiva lê mentes.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL28774007W",
+        "tituloEncontrado": "Spy x Family 1",
+        "autoresEncontrados": [
+          "Tatsuya Endo"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0021",
+      "titulo": "Frieren: Beyond Journey's End",
+      "tituloOriginal": "葬送のフリーレン",
+      "autorOuCriador": "Kanehito Yamada e Tsukasa Abe",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Frieren",
+      "generos": [
+        "Fantasia",
+        "Drama",
+        "Slice of life"
+      ],
+      "sinopseCurta": "Depois de derrotar o Rei Demônio, uma maga elfa revisita os lugares da antiga jornada e aprende a valorizar o tempo humano.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL24468510W",
+        "tituloEncontrado": "葬送のフリーレン 1",
+        "autoresEncontrados": [
+          "山田鐘人",
+          "アベツカサ"
+        ],
+        "verificadoEm": "2026-11-17",
+        "observacao": "Autoria registrada em escrita japonesa: 山田鐘人 = Kanehito Yamada; アベツカサ = Tsukasa Abe"
+      }
+    },
+    {
+      "id": "INK-0022",
+      "titulo": "JoJo's Bizarre Adventure",
+      "tituloOriginal": "ジョジョの奇妙な冒険",
+      "autorOuCriador": "Hirohiko Araki",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "JoJo's Bizarre Adventure",
+      "generos": [
+        "Ação e aventura",
+        "Fantasia"
+      ],
+      "sinopseCurta": "A rivalidade entre Jonathan Joestar e Dio Brando inicia uma saga familiar que atravessa gerações.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL9769859W",
+        "tituloEncontrado": "ジョジョの奇妙な冒険 20",
+        "autoresEncontrados": [
+          "荒木飛呂彦"
+        ],
+        "verificadoEm": "2026-11-17",
+        "observacao": "Autoria registrada em escrita japonesa: 荒木飛呂彦 = Hirohiko Araki"
+      }
+    },
+    {
+      "id": "INK-0023",
+      "titulo": "Dandadan",
+      "tituloOriginal": "ダンダダン",
+      "autorOuCriador": "Yukinobu Tatsu",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Ação e aventura",
+        "Ficção científica",
+        "Horror"
+      ],
+      "sinopseCurta": "Uma garota que acredita em fantasmas e um garoto que acredita em alienígenas descobrem que os dois estavam certos.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL45733225W",
+        "tituloEncontrado": "DANDADAN T21",
+        "autoresEncontrados": [
+          "Yukinobu Tatsu"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0024",
+      "titulo": "Tokyo Ghoul",
+      "tituloOriginal": "東京喰種トーキョーグール",
+      "autorOuCriador": "Sui Ishida",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Horror",
+        "Drama",
+        "Ação e aventura"
+      ],
+      "sinopseCurta": "Após um encontro quase fatal, o universitário Ken Kaneki se torna meio ghoul e passa a viver entre dois mundos.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL37814176W",
+        "tituloEncontrado": "Tokyo Ghoul",
+        "autoresEncontrados": [
+          "Sui Ishida"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0025",
+      "titulo": "My Hero Academia",
+      "tituloOriginal": "僕のヒーローアカデミア",
+      "autorOuCriador": "Kohei Horikoshi",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Ação e aventura",
+        "Super-heróis"
+      ],
+      "sinopseCurta": "Num mundo em que quase todos têm superpoderes, Izuku Midoriya nasce sem nenhum e ainda assim sonha em ser herói.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL22394284W",
+        "tituloEncontrado": "My Hero Academia",
+        "autoresEncontrados": [
+          "Kohei Horikoshi"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0026",
+      "titulo": "Slam Dunk",
+      "tituloOriginal": "SLAM DUNK",
+      "autorOuCriador": "Takehiko Inoue",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Drama",
+        "Slice of life"
+      ],
+      "sinopseCurta": "Hanamichi Sakuragi entra para o time de basquete do colégio para impressionar uma garota e descobre uma paixão pelo esporte.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL8783725W",
+        "tituloEncontrado": "Slam Dunk, Vol. 1",
+        "autoresEncontrados": [
+          "井上雄彦 (Takehiko Inoue)"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0027",
+      "titulo": "Haikyu!!",
+      "tituloOriginal": "ハイキュー!!",
+      "autorOuCriador": "Haruichi Furudate",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Drama",
+        "Slice of life"
+      ],
+      "sinopseCurta": "Shoyo Hinata, baixinho e determinado, forma uma dupla improvável com um levantador genial no vôlei colegial.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL19667559W",
+        "tituloEncontrado": "ハイキュー!! 1",
+        "autoresEncontrados": [
+          "古舘春一"
+        ],
+        "verificadoEm": "2026-11-17",
+        "observacao": "Autoria registrada em escrita japonesa: 古舘春一 = Haruichi Furudate"
+      }
+    },
+    {
+      "id": "INK-0028",
+      "titulo": "Sakamoto Days",
+      "tituloOriginal": "SAKAMOTO DAYS",
+      "autorOuCriador": "Yuto Suzuki",
+      "categoria": "Mangá",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Ação e aventura",
+        "Slice of life"
+      ],
+      "sinopseCurta": "O maior assassino do submundo se aposenta, abre uma loja de conveniência e precisa proteger a nova vida tranquila.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL44969277W",
+        "tituloEncontrado": "Sakamoto Days, Vol. 20",
+        "autoresEncontrados": [
+          "Yuto Suzuki"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0029",
+      "titulo": "Batman: The Long Halloween",
+      "autorOuCriador": "Jeph Loeb e Tim Sale",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "franquia": "Batman",
+      "generos": [
+        "Super-heróis",
+        "Mistério e suspense"
+      ],
+      "sinopseCurta": "Durante um ano, um assassino ataca em cada feriado de Gotham, e Batman, Gordon e Harvey Dent tentam detê-lo.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL25612131W",
+        "tituloEncontrado": "Batman : the Long Halloween",
+        "autoresEncontrados": [
+          "Jeph Loeb",
+          "Tim Sale"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0030",
+      "titulo": "All-Star Superman",
+      "autorOuCriador": "Grant Morrison e Frank Quitely",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "franquia": "Superman",
+      "generos": [
+        "Super-heróis",
+        "Ficção científica"
+      ],
+      "sinopseCurta": "Condenado por excesso de radiação solar, Superman decide como passar o que pode ser seu último ano.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL15023038W",
+        "tituloEncontrado": "All-star Superman",
+        "autoresEncontrados": [
+          "Grant Morrison",
+          "Frank Quietly"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0031",
+      "titulo": "The Sandman",
+      "autorOuCriador": "Neil Gaiman, Sam Kieth e Mike Dringenberg",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Vol. 1 · Preludes & Nocturnes",
+      "franquia": "The Sandman",
+      "generos": [
+        "Fantasia",
+        "Horror"
+      ],
+      "sinopseCurta": "Sonho, um dos Perpétuos, escapa de décadas de cativeiro e sai em busca dos objetos que lhe foram roubados.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL26210318W",
+        "tituloEncontrado": "The Sandman",
+        "autoresEncontrados": [
+          "Neil Gaiman",
+          "Dirk Maggs"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0032",
+      "titulo": "Wonder Woman: The Hiketeia",
+      "autorOuCriador": "Greg Rucka e J. G. Jones",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição única",
+      "franquia": "Wonder Woman",
+      "generos": [
+        "Super-heróis",
+        "Drama"
+      ],
+      "sinopseCurta": "Obrigada por um antigo juramento a proteger uma jovem fugitiva, Diana entra em conflito com o Batman.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL14864702W",
+        "tituloEncontrado": "Wonder Woman",
+        "autoresEncontrados": [
+          "Greg Rucka"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0033",
+      "titulo": "Spider-Man: Blue",
+      "autorOuCriador": "Jeph Loeb e Tim Sale",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "franquia": "Spider-Man",
+      "generos": [
+        "Super-heróis",
+        "Romance",
+        "Drama"
+      ],
+      "sinopseCurta": "Peter Parker grava lembranças de Gwen Stacy e revisita o início do namoro com ela.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL26300036W",
+        "tituloEncontrado": "Spider-Man : Blue Black and White Premiere HC",
+        "autoresEncontrados": [
+          "Jeph Loeb",
+          "Tim Sale"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0034",
+      "titulo": "Marvels",
+      "autorOuCriador": "Kurt Busiek e Alex Ross",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "generos": [
+        "Super-heróis",
+        "Drama"
+      ],
+      "sinopseCurta": "Um fotógrafo comum acompanha, ao longo de décadas, o surgimento dos heróis da Marvel visto do chão.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL15528W",
+        "tituloEncontrado": "Marvels",
+        "autoresEncontrados": [
+          "Kurt Busiek"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0035",
+      "titulo": "Civil War",
+      "autorOuCriador": "Mark Millar e Steve McNiven",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "generos": [
+        "Super-heróis",
+        "Drama"
+      ],
+      "sinopseCurta": "Uma lei de registro de super-humanos divide os heróis da Marvel em dois lados liderados por Homem de Ferro e Capitão América.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL5749615W",
+        "tituloEncontrado": "Civil War",
+        "autoresEncontrados": [
+          "Mark Millar"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0036",
+      "titulo": "The Infinity Gauntlet",
+      "autorOuCriador": "Jim Starlin, George Pérez e Ron Lim",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "generos": [
+        "Super-heróis",
+        "Ficção científica"
+      ],
+      "sinopseCurta": "Thanos reúne as Joias do Infinito e os heróis do universo Marvel tentam deter um poder absoluto.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL3038479W",
+        "tituloEncontrado": "The infinity gauntlet",
+        "autoresEncontrados": [
+          "Jim Starlin"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0037",
+      "titulo": "X-Men: Days of Future Past",
+      "autorOuCriador": "Chris Claremont e John Byrne",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Edição encadernada",
+      "franquia": "X-Men",
+      "generos": [
+        "Super-heróis",
+        "Ficção científica"
+      ],
+      "sinopseCurta": "Num futuro em que mutantes são caçados, a consciência de Kitty Pryde volta no tempo para impedir um assassinato.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL21255333W",
+        "tituloEncontrado": "Days of Future Past",
+        "autoresEncontrados": [
+          "Chris Claremont",
+          "John Byrne"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0038",
+      "titulo": "Invincible",
+      "autorOuCriador": "Robert Kirkman e Cory Walker",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Super-heróis",
+        "Ação e aventura"
+      ],
+      "sinopseCurta": "Mark Grayson, filho do herói mais poderoso da Terra, finalmente desenvolve seus poderes e descobre o peso do legado.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL17517052W",
+        "tituloEncontrado": "Invincible, Compendium One",
+        "autoresEncontrados": [
+          "Robert Kirkman",
+          "Ryan Ottley"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0039",
+      "titulo": "The Walking Dead",
+      "autorOuCriador": "Robert Kirkman e Tony Moore",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Horror",
+        "Drama"
+      ],
+      "sinopseCurta": "O policial Rick Grimes acorda de um coma num mundo tomado por mortos-vivos e procura a família.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL17722004W",
+        "tituloEncontrado": "The walking dead",
+        "autoresEncontrados": [
+          "Robert Kirkman",
+          "Jay R. Bonansinga"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0040",
+      "titulo": "Spawn",
+      "autorOuCriador": "Todd McFarlane",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Super-heróis",
+        "Horror"
+      ],
+      "sinopseCurta": "Um agente assassinado faz um pacto com uma entidade infernal e volta à Terra como um soldado do inferno.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL3998154W",
+        "tituloEncontrado": "Spawn",
+        "autoresEncontrados": [
+          "Todd McFarlane",
+          "Greg Capullo"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0041",
+      "titulo": "Hellboy: Seed of Destruction",
+      "autorOuCriador": "Mike Mignola e John Byrne",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Vol. 1",
+      "franquia": "Hellboy",
+      "generos": [
+        "Horror",
+        "Fantasia",
+        "Ação e aventura"
+      ],
+      "sinopseCurta": "Hellboy, invocado ainda criança, investiga como agente paranormal a morte do pai adotivo e a própria origem.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL21089062W",
+        "tituloEncontrado": "Hellboy - Seed of Destruction",
+        "autoresEncontrados": [
+          "Mike Mignola"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0042",
+      "titulo": "The Umbrella Academy",
+      "autorOuCriador": "Gerard Way e Gabriel Bá",
+      "categoria": "HQ",
+      "volumeOuEdicao": "Vol. 1 · Apocalypse Suite",
+      "generos": [
+        "Super-heróis",
+        "Ficção científica"
+      ],
+      "sinopseCurta": "Irmãos adotivos com poderes se reencontram após a morte do pai e precisam impedir o fim do mundo.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL17303667W",
+        "tituloEncontrado": "The Umbrella Academy",
+        "autoresEncontrados": [
+          "Gerard Way"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0043",
+      "titulo": "Watchmen",
+      "autorOuCriador": "Alan Moore e Dave Gibbons",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Edição completa",
+      "generos": [
+        "Super-heróis",
+        "Mistério e suspense",
+        "Drama"
+      ],
+      "sinopseCurta": "O assassinato de um ex-herói leva vigilantes aposentados a uma conspiração em plena Guerra Fria.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL2897798W",
+        "tituloEncontrado": "Watchmen",
+        "autoresEncontrados": [
+          "Alan Moore",
+          "Dave Gibbons",
+          "John Higgins",
+          "DC Comics"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0044",
+      "titulo": "Persepolis",
+      "autorOuCriador": "Marjane Satrapi",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Edição completa",
+      "generos": [
+        "Drama",
+        "Slice of life"
+      ],
+      "sinopseCurta": "A autora narra a infância e a juventude no Irã durante a Revolução Islâmica e a guerra com o Iraque.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL29359749W",
+        "tituloEncontrado": "Persepolis I and II",
+        "autoresEncontrados": [
+          "Marjane Satrapi"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0045",
+      "titulo": "Scott Pilgrim",
+      "autorOuCriador": "Bryan Lee O'Malley",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Romance",
+        "Ação e aventura",
+        "Slice of life"
+      ],
+      "sinopseCurta": "Para namorar Ramona Flowers, Scott Pilgrim precisa derrotar, um a um, os sete ex-namorados malignos dela.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL17436407W",
+        "tituloEncontrado": "Scott Pilgrim",
+        "autoresEncontrados": [
+          "Bryan Lee O'Malley"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0046",
+      "titulo": "V for Vendetta",
+      "autorOuCriador": "Alan Moore e David Lloyd",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Edição completa",
+      "generos": [
+        "Ficção científica",
+        "Drama"
+      ],
+      "sinopseCurta": "Numa Inglaterra totalitária, um anarquista mascarado chamado V trava uma guerra pessoal contra o regime.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL2897797W",
+        "tituloEncontrado": "V for Vendetta",
+        "autoresEncontrados": [
+          "Alan Moore",
+          "David Lloyd"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0047",
+      "titulo": "Blankets",
+      "autorOuCriador": "Craig Thompson",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Edição única",
+      "generos": [
+        "Romance",
+        "Drama"
+      ],
+      "sinopseCurta": "Memórias do primeiro amor e da criação religiosa do autor, num inverno do interior dos Estados Unidos.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL5754211W",
+        "tituloEncontrado": "Blankets",
+        "autoresEncontrados": [
+          "Craig Thompson"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0048",
+      "titulo": "Daytripper",
+      "autorOuCriador": "Fábio Moon e Gabriel Bá",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Edição completa",
+      "generos": [
+        "Drama",
+        "Slice of life"
+      ],
+      "sinopseCurta": "Os momentos decisivos da vida de Brás de Oliva Domingos, um escritor de obituários de São Paulo.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL16096270W",
+        "tituloEncontrado": "Daytripper",
+        "autoresEncontrados": [
+          "Gabriel Bá and Fabio Moon"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0049",
+      "titulo": "Heartstopper",
+      "autorOuCriador": "Alice Oseman",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Romance",
+        "Slice of life"
+      ],
+      "sinopseCurta": "Charlie e Nick se conhecem na escola e uma amizade improvável vira algo maior.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL28959223W",
+        "tituloEncontrado": "Heartstopper, Volume Five",
+        "autoresEncontrados": [
+          "Alice Oseman"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "INK-0050",
+      "titulo": "Bone",
+      "autorOuCriador": "Jeff Smith",
+      "categoria": "Graphic novel",
+      "volumeOuEdicao": "Vol. 1",
+      "generos": [
+        "Fantasia",
+        "Ação e aventura"
+      ],
+      "sinopseCurta": "Três primos Bone, expulsos da cidade natal, se perdem num vale misterioso habitado por dragões e criaturas ratoides.",
+      "referencia": {
+        "fonte": "Open Library",
+        "url": "https://openlibrary.org/works/OL708284W",
+        "tituloEncontrado": "Bone",
+        "autoresEncontrados": [
+          "Jeff Smith"
+        ],
+        "verificadoEm": "2026-11-17"
+      }
+    }
+  ]
+}

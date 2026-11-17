@@ -1,0 +1,199 @@
+{
+  "versao": 1,
+  "descricao": "Adaptações em anime ligadas a mangás do catálogo. São referências editoriais: não são exemplares físicos e não podem ser emprestadas. Metadados conferidos no AniList (uso não comercial, consulta pontual na curadoria).",
+  "adaptacoes": [
+    {
+      "id": "ANI-01",
+      "titulo": "ONE PIECE",
+      "tituloRomaji": "ONE PIECE",
+      "mangaId": "INK-0001",
+      "estudios": [
+        "Toei Animation"
+      ],
+      "anoEstreia": 1999,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/21",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-02",
+      "titulo": "Naruto",
+      "tituloRomaji": "NARUTO",
+      "mangaId": "INK-0002",
+      "estudios": [
+        "Studio Pierrot"
+      ],
+      "anoEstreia": 2002,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/20",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-03",
+      "titulo": "Dragon Ball",
+      "tituloRomaji": "Dragon Ball",
+      "mangaId": "INK-0004",
+      "estudios": [
+        "Toei Animation"
+      ],
+      "anoEstreia": 1986,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/223",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-04",
+      "titulo": "Death Note",
+      "tituloRomaji": "DEATH NOTE",
+      "mangaId": "INK-0008",
+      "estudios": [
+        "Madhouse"
+      ],
+      "anoEstreia": 2006,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/1535",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-05",
+      "titulo": "Fullmetal Alchemist: Brotherhood",
+      "tituloRomaji": "Hagane no Renkinjutsushi: FULLMETAL ALCHEMIST",
+      "mangaId": "INK-0009",
+      "estudios": [
+        "Bones"
+      ],
+      "anoEstreia": 2009,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/5114",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-06",
+      "titulo": "Attack on Titan",
+      "tituloRomaji": "Shingeki no Kyojin",
+      "mangaId": "INK-0011",
+      "estudios": [
+        "Wit Studio"
+      ],
+      "anoEstreia": 2013,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/16498",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-07",
+      "titulo": "Hunter x Hunter (2011)",
+      "tituloRomaji": "HUNTER×HUNTER (2011)",
+      "mangaId": "INK-0014",
+      "estudios": [
+        "Madhouse"
+      ],
+      "anoEstreia": 2011,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/11061",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-08",
+      "titulo": "JUJUTSU KAISEN",
+      "tituloRomaji": "Jujutsu Kaisen",
+      "mangaId": "INK-0012",
+      "estudios": [
+        "MAPPA"
+      ],
+      "anoEstreia": 2020,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/113415",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-09",
+      "titulo": "Demon Slayer: Kimetsu no Yaiba",
+      "tituloRomaji": "Kimetsu no Yaiba",
+      "mangaId": "INK-0019",
+      "estudios": [
+        "ufotable"
+      ],
+      "anoEstreia": 2019,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/101922",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-10",
+      "titulo": "SPY x FAMILY",
+      "tituloRomaji": "SPY×FAMILY",
+      "mangaId": "INK-0020",
+      "estudios": [
+        "CloverWorks",
+        "Wit Studio"
+      ],
+      "anoEstreia": 2022,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/140960",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-11",
+      "titulo": "Frieren: Beyond Journey’s End",
+      "tituloRomaji": "Sousou no Frieren",
+      "mangaId": "INK-0021",
+      "estudios": [
+        "Madhouse"
+      ],
+      "anoEstreia": 2023,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/154587",
+        "verificadoEm": "2026-11-17"
+      }
+    },
+    {
+      "id": "ANI-12",
+      "titulo": "Chainsaw Man",
+      "tituloRomaji": "Chainsaw Man",
+      "mangaId": "INK-0018",
+      "estudios": [
+        "MAPPA"
+      ],
+      "anoEstreia": 2022,
+      "formato": "Série de TV",
+      "referencia": {
+        "fonte": "AniList",
+        "url": "https://anilist.co/anime/127230",
+        "verificadoEm": "2026-11-17"
+      }
+    }
+  ]
+}

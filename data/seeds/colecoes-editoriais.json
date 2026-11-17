@@ -1,0 +1,175 @@
+{
+  "versao": 1,
+  "descricao": "Curadoria editorial do INKO. Coleções e campanhas apenas referenciam obras do catálogo por ID; não duplicam registros nem indicam patrocínio ou parceria com detentores de direitos.",
+  "campanhas": [
+    {
+      "id": "shonen",
+      "rotulo": "O legado dos shonen",
+      "titulo": "Heróis, rivalidades e aventuras sem limites.",
+      "texto": "As séries que definiram o mangá de ação para gerações de leitores.",
+      "cta": "Explorar mangás",
+      "filtro": {
+        "categoria": "Mangá"
+      },
+      "obras": [
+        "INK-0002",
+        "INK-0001",
+        "INK-0004",
+        "INK-0013",
+        "INK-0014"
+      ],
+      "tom": "seal"
+    },
+    {
+      "id": "desafiam",
+      "rotulo": "Histórias que desafiam",
+      "titulo": "Algumas histórias não saem da cabeça.",
+      "texto": "Narrativas densas sobre culpa, violência e escolhas impossíveis.",
+      "cta": "Descobrir a coleção",
+      "filtro": {
+        "colecao": "sombrias"
+      },
+      "obras": [
+        "INK-0005",
+        "INK-0017",
+        "INK-0016",
+        "INK-0015",
+        "INK-0008"
+      ],
+      "tom": "ink"
+    },
+    {
+      "id": "quadrinhos",
+      "rotulo": "O universo dos quadrinhos",
+      "titulo": "Lendas não vivem apenas nas telas.",
+      "texto": "Os arcos que deram forma aos maiores ícones da DC e da Marvel.",
+      "cta": "Explorar HQs",
+      "filtro": {
+        "categoria": "HQ"
+      },
+      "obras": [
+        "INK-0003",
+        "INK-0030",
+        "INK-0033",
+        "INK-0037",
+        "INK-0032"
+      ],
+      "tom": "paper"
+    },
+    {
+      "id": "novos-mundos",
+      "rotulo": "Novos mundos",
+      "titulo": "Seu próximo universo favorito está esperando.",
+      "texto": "Séries recentes que conquistaram leitores dentro e fora do Japão.",
+      "cta": "Conhecer os destaques",
+      "filtro": {
+        "colecao": "manga-anime"
+      },
+      "obras": [
+        "INK-0021",
+        "INK-0018",
+        "INK-0023",
+        "INK-0012",
+        "INK-0020"
+      ],
+      "tom": "graphite"
+    }
+  ],
+  "colecoes": [
+    {
+      "id": "classicos",
+      "titulo": "Os grandes clássicos dos mangás",
+      "descricao": "Do primeiro volume à última página.",
+      "obras": [
+        "INK-0001",
+        "INK-0002",
+        "INK-0004",
+        "INK-0026",
+        "INK-0022",
+        "INK-0008",
+        "INK-0009"
+      ]
+    },
+    {
+      "id": "marvel-dc",
+      "titulo": "Lendas da Marvel e DC",
+      "descricao": "Arcos essenciais de super-heróis.",
+      "obras": [
+        "INK-0003",
+        "INK-0029",
+        "INK-0030",
+        "INK-0007",
+        "INK-0034",
+        "INK-0033",
+        "INK-0035",
+        "INK-0036",
+        "INK-0037",
+        "INK-0032"
+      ]
+    },
+    {
+      "id": "fantasia",
+      "titulo": "Fantasia e aventura",
+      "descricao": "Jornadas, magia e mundos inteiros por explorar.",
+      "obras": [
+        "INK-0021",
+        "INK-0009",
+        "INK-0014",
+        "INK-0001",
+        "INK-0050",
+        "INK-0031",
+        "INK-0019"
+      ]
+    },
+    {
+      "id": "sombrias",
+      "titulo": "Histórias sombrias",
+      "descricao": "Horror, tragédia e mistério para ler de luz acesa.",
+      "obras": [
+        "INK-0005",
+        "INK-0017",
+        "INK-0024",
+        "INK-0018",
+        "INK-0041",
+        "INK-0039",
+        "INK-0008",
+        "INK-0016",
+        "INK-0015"
+      ]
+    },
+    {
+      "id": "manga-anime",
+      "titulo": "Do mangá ao anime",
+      "descricao": "Leia a obra que deu origem às adaptações.",
+      "obras": [
+        "INK-0001",
+        "INK-0002",
+        "INK-0004",
+        "INK-0008",
+        "INK-0009",
+        "INK-0011",
+        "INK-0014",
+        "INK-0012",
+        "INK-0019",
+        "INK-0020",
+        "INK-0021",
+        "INK-0018"
+      ]
+    },
+    {
+      "id": "graphic-novels",
+      "titulo": "Graphic novels essenciais",
+      "descricao": "Histórias completas que mudaram o que os quadrinhos podem ser.",
+      "obras": [
+        "INK-0006",
+        "INK-0044",
+        "INK-0043",
+        "INK-0046",
+        "INK-0047",
+        "INK-0048",
+        "INK-0045",
+        "INK-0049"
+      ]
+    }
+  ]
+}
