@@ -16,7 +16,8 @@ import hashlib
 import http.cookiejar
 import json
 import os
-import random
+import re
+import secrets
 import struct
 import subprocess
 import sys
@@ -159,7 +160,7 @@ def warm_up(timeout=120):
 
 
 def auth_checks():
-    noise = {"X-Forwarded-For": f"198.51.100.{random.randint(1, 254)}"}
+    noise = {"X-Forwarded-For": f"198.51.100.{secrets.randbelow(254) + 1}"}
     status, headers, raw = call(ANON, "POST", "/api/auth/session", {"email": EMAIL, "senha": PASSWORD + "-errada"}, noise)
     step("AUTH-02 senha incorreta → 401 genérico", status == 401 and payload(raw).get("code") == "INVALID_CREDENTIALS", f"{status} {raw[:120]}")
     step("AUTH-02 sem cookie de sessão após falha", not any(cookie.value for cookie in ANON_JAR))
@@ -295,14 +296,16 @@ def media_checks(opener):
     status, _, _ = call(ANON, "GET", f"/api/media/livros/{SCRATCH_BOOK}")
     step("MEDIA-06 capa removida deixa de ser servida", status == 404, f"{status}")
     with open(STATE_FILE, "w", encoding="utf-8") as handle:
-        json.dump({"book": DURABLE_BOOK, "sha256": meta.get("sha256")}, handle)
+        json.dump({"sha256": meta.get("sha256")}, handle)
 
 
 def after_restart_checks():
     with open(STATE_FILE, encoding="utf-8") as handle:
-        state = json.load(handle)
-    status, headers, raw = call(ANON, "GET", f"/api/media/livros/{state['book']}")
-    step("MEDIA-04 capa persiste após restart", status == 200 and hashlib.sha256(raw).hexdigest() == state["sha256"], f"{status} {headers.get('ETag')}")
+        expected = str(json.load(handle).get("sha256", ""))
+    if not re.fullmatch(r"[0-9a-f]{64}", expected):
+        raise SystemExit(f"Estado inválido em {STATE_FILE}; rode o E2E sem --after-restart antes.")
+    status, headers, raw = call(ANON, "GET", f"/api/media/livros/{DURABLE_BOOK}")
+    step("MEDIA-04 capa persiste após restart", status == 200 and hashlib.sha256(raw).hexdigest() == expected, f"{status} {headers.get('ETag')}")
     jar, opener, status, _, _ = sign_in()
     step("MEDIA-04 login funciona após restart", status == 200, f"{status}")
     deadline = time.monotonic() + 60
