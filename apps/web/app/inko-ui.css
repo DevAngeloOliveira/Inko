@@ -225,6 +225,10 @@
 .inko-cover--xs { width: 28px; border-radius: 2px; }
 .inko-cover span { position: absolute; display: block; }
 .inko-cover-title { left: 0; right: 0; bottom: 0; padding: 10px; color: var(--inko-brand-paper); font: 800 14px/1.1 var(--inko-font-display); text-transform: uppercase; }
+.inko-cover-image { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; background: var(--inko-background-subtle); }
+.inko-cover-upload { display: grid; gap: var(--inko-spacing-2); margin-top: var(--inko-spacing-3); }
+.inko-cover-upload input[type="file"] { font: 400 14px/20px var(--inko-font-body); max-width: 100%; }
+.inko-cover-upload-preview { width: 96px; aspect-ratio: 2 / 3; object-fit: cover; border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-xs); }
 .inko-cover--empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--inko-spacing-2); background: var(--inko-background-subtle); color: var(--inko-neutral-brown); font: 500 12px/18px var(--inko-font-body); }
 .inko-cover--empty span { position: static; }
 

@@ -4,9 +4,15 @@ import br.com.inko.catalogo.api.ApiException;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public record Livro(String id, String titulo, String autor, String categoria, String volume, String editora, String tituloOriginal) {
+public record Livro(String id, String titulo, String autor, String categoria, String volume, String editora, String tituloOriginal,
+        String capaVersao) {
     public static final Set<String> CATEGORIAS = Set.of("Mangá", "HQ", "Graphic novel");
     private static final Pattern IDENTIFICADOR = Pattern.compile("INK-\\d{4}");
+    private static final Pattern VERSAO_CAPA = Pattern.compile("[0-9a-f]{16}");
+
+    public Livro(String id, String titulo, String autor, String categoria, String volume, String editora, String tituloOriginal) {
+        this(id, titulo, autor, categoria, volume, editora, tituloOriginal, null);
+    }
 
     public Livro {
         id = obrigatorio(id, "id", "Informe o identificador.").toUpperCase();
@@ -22,6 +28,11 @@ public record Livro(String id, String titulo, String autor, String categoria, St
         volume = limitado(opcional(volume), "volume", 40);
         editora = limitado(opcional(editora), "editora", 120);
         tituloOriginal = limitado(opcional(tituloOriginal), "tituloOriginal", 160);
+        capaVersao = capaVersao != null && VERSAO_CAPA.matcher(capaVersao).matches() ? capaVersao : null;
+    }
+
+    public Livro semCapa() {
+        return new Livro(id, titulo, autor, categoria, volume, editora, tituloOriginal);
     }
 
     public boolean pertenceA(String outraCategoria) {

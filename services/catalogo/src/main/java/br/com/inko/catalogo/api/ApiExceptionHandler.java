@@ -9,6 +9,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -27,6 +30,16 @@ public class ApiExceptionHandler {
             }
         }
         return problem(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "Requisição malformada.", null);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> uploadGrandeDemais(MaxUploadSizeExceededException exception) {
+        return problem(HttpStatus.CONTENT_TOO_LARGE, "PAYLOAD_TOO_LARGE", "A capa excede o limite de 2 MiB.", "arquivo");
+    }
+
+    @ExceptionHandler({MissingServletRequestPartException.class, MultipartException.class})
+    public ResponseEntity<Map<String, Object>> multipartInvalido(Exception exception) {
+        return problem(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "Envie o arquivo na parte multipart 'arquivo'.", "arquivo");
     }
 
     static ResponseEntity<Map<String, Object>> problem(HttpStatus status, String code, String detail, String field) {

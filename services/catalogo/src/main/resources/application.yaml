@@ -9,8 +9,16 @@ spring:
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration,classpath:db/seed}
     baseline-on-migrate: true
     baseline-version: 0
+    out-of-order: true
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2200KB
 server:
   port: ${SERVER_PORT:8081}
+inko:
+  media:
+    root: ${INKO_MEDIA_ROOT:/var/lib/inko/covers}
 management:
   endpoints:
     web:

@@ -13,7 +13,8 @@ public class CatalogoService {
         this.repository = repository;
     }
 
-    public Livro cadastrar(Livro livro) {
+    public Livro cadastrar(Livro informado) {
+        Livro livro = informado.semCapa();
         if (repository.buscar(livro.id()).isPresent()) {
             throw duplicado(livro.id());
         }
