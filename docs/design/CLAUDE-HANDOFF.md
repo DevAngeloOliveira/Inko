@@ -12,7 +12,7 @@ A primeira exportação (17 pranchas, 09/11/2026) foi substituída por esta.
 | `Components-Data` | `components/inko-patterns.tsx`, `components/inko-interactions.tsx` | Tabela, paginação, badges, statistic, skeleton, tabs, alert, toast, modal, vazios e erro |
 | `Components-Domain` | `components/inko-kit.tsx`, `components/inko-patterns.tsx` | MangaCard, capas fictícias, CollectionCard, LoanCard, FineSummary, ciclo de circulação, EditorialBanner |
 | `Prototype-Dashboard`, `Desktop-Dashboard`, `Mobile-Dashboard`, `Mobile-Nav` | `components/app-shell.tsx`, `components/dashboard.tsx`, `app/page.tsx` | Shell (sidebar 248 / rail 72 / drawer), busca global, notificações, menu do usuário, dashboard |
-| `Desktop-Login`, `Mobile-Login` | `app/login/` | Login com sessão mockada |
+| `Desktop-Login`, `Mobile-Login` | `app/login/` | Login com sessão demonstrativa local |
 | `Desktop-Acervo`, `Mobile-Acervo` | `app/acervo/` | Filtros na URL, cards/tabela, paginação |
 | `Desktop-Obra` | `app/acervo/[id]/` | Detalhes, circulação, histórico, exclusão |
 | `Desktop-Cadastro` | `app/acervo/novo/` | Cadastro com validação e prévia |
@@ -27,29 +27,26 @@ Os `.dc.html` usam `DCLogic`, `sc-if`, `sc-for`, `{{ }}` e `/_blob/`: são refer
 não código a copiar. A implementação é React idiomático com CSS sobre tokens (ADR-002). Tailwind e shadcn/ui,
 sugeridos na prancha de handoff, continuam fora das dependências.
 
-## Camada mock
+## Camada de dados
 
-Enquanto os microsserviços não expõem contratos, toda leitura e escrita passa por `apps/web/lib/mock-api.ts`:
+Toda leitura e escrita das telas operacionais passa por `apps/web/lib/library-api.ts`, que chama `/api/v1/*` na própria origem.
+O BFF `app/api/v1/[...path]/route.ts` repassa ao Gateway (`GATEWAY_INTERNAL_URL`), que encaminha aos serviços Java e ao PostgreSQL.
 
-- `useLibrary()` devolve o estado reativo (obras, usuários, empréstimos, sessão).
-- `signIn`, `createWork`, `deleteWork`, `createUser`, `createLoan`, `returnLoan` são assíncronas, simulam latência
-  e lançam `MockApiError` nas regras de negócio (identificador duplicado, obra indisponível, datas inválidas).
-- O estado nasce de `lib/demo.ts` e é persistido em `sessionStorage`: vale para a aba e some ao fechá-la.
-  "Restaurar dados demo", no menu do usuário, volta à semente. Nada trafega pela rede.
-- "Hoje" é fixo em `DEMO_REFERENCE_DATE` (09/11/2026) para que prazos e multas coincidam com o design.
-- Disponibilidade de obra e situação de usuário são derivadas dos empréstimos; não há campo duplicado.
-
-Para integrar o backend, substitua o corpo dessas funções por chamadas ao gateway mantendo as assinaturas.
+- `useLibrary()` devolve o estado reativo (obras, usuários, empréstimos, sessão), carregado dos serviços.
+- `createWork`, `createUser`, `createLoan` e `returnLoan` gravam no backend e lançam `ApiError` com o campo da interface.
+- Falha de rede ou de serviço aparece como erro na tela; não há fallback para dados simulados.
+- `DEMO_REFERENCE_DATE` (09/11/2026) continua sendo o "hoje" da demonstração e é enviado explicitamente nas datas de empréstimo e devolução.
+- `lib/demo.ts` mantém tipos, regras puras de apresentação e a amostra usada só por `/design-system` e `/landing`.
 
 ## Limites explicitados
 
 - **Autenticação é demonstrativa.** Qualquer e-mail válido com senha de 6+ caracteres abre uma sessão local; não há
   credencial fixa, verificação de identidade nem autorização. A guarda de rota é só do lado do cliente.
-- **Multas**: a regra (R$ 2,00/dia, somente empréstimos ativos atrasados) é espelhada no cliente para a demonstração;
-  o cálculo oficial será do serviço Java.
-- Capas são composições CSS fictícias; envio de capa, e-mails de lembrete e recuperação de senha são apenas visuais.
+- **Multas**: o relatório vem do serviço Java de Relatórios; a tela de devolução só mostra uma pré-visualização com a mesma regra.
+- Capas são composições CSS ilustrativas; envio de capa, e-mails de lembrete e recuperação de senha são apenas visuais.
+- Exclusão de obras não está no contrato do Catálogo nesta versão.
 - Tema escuro está reservado nos tokens e não foi implementado.
-- Sem testes E2E nem comparação visual pixel a pixel automatizados.
+- Sem comparação visual pixel a pixel automatizada.
 
 ## Validação
 

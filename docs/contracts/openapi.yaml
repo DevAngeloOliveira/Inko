@@ -1,0 +1,222 @@
+openapi: 3.1.0
+info:
+  title: INKO — API de biblioteca
+  version: 1.0.0
+  description: Contratos de negócio expostos pelo Gateway INKO. Erros seguem application/problem+json.
+servers:
+  - url: http://localhost:8000
+paths:
+  /api/v1/livros:
+    get:
+      summary: Listar livros (RF-02, RF-03)
+      parameters:
+        - { name: categoria, in: query, schema: { $ref: '#/components/schemas/Categoria' } }
+        - { name: q, in: query, schema: { type: string, maxLength: 120 } }
+      responses:
+        '200': { description: Acervo, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Livro' } } } } }
+    post:
+      summary: Cadastrar livro (RF-01)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Livro' } } } }
+      responses:
+        '201': { description: Criado, content: { application/json: { schema: { $ref: '#/components/schemas/Livro' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /api/v1/livros/{id}:
+    get:
+      summary: Consultar livro (RF-02)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Livro, content: { application/json: { schema: { $ref: '#/components/schemas/Livro' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+  /api/v1/livros/{id}/disponibilidade:
+    get:
+      summary: Verificar disponibilidade (RF-06)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Disponibilidade, content: { application/json: { schema: { $ref: '#/components/schemas/Disponibilidade' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /api/v1/usuarios:
+    get:
+      summary: Listar usuários (RF-05)
+      parameters: [{ name: q, in: query, schema: { type: string, maxLength: 120 } }]
+      responses:
+        '200': { description: Usuários, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Usuario' } } } } }
+    post:
+      summary: Cadastrar usuário (RF-04)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NovoUsuario' } } } }
+      responses:
+        '201': { description: Criado, content: { application/json: { schema: { $ref: '#/components/schemas/Usuario' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /api/v1/usuarios/{id}:
+    get:
+      summary: Consultar usuário (RF-05)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Usuário, content: { application/json: { schema: { $ref: '#/components/schemas/Usuario' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+  /api/v1/emprestimos:
+    get:
+      summary: Listar empréstimos, incluindo histórico (RF-08, RF-21)
+      parameters:
+        - { name: usuarioId, in: query, schema: { type: string } }
+        - { name: livroId, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Empréstimos, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Emprestimo' } } } } }
+    post:
+      summary: Registrar empréstimo (RF-07)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NovoEmprestimo' } } } }
+      responses:
+        '201': { description: Criado, content: { application/json: { schema: { $ref: '#/components/schemas/Emprestimo' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /api/v1/emprestimos/ativos:
+    get:
+      summary: Empréstimos ativos (RF-10)
+      responses:
+        '200': { description: Ativos, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Emprestimo' } } } } }
+  /api/v1/emprestimos/atrasados:
+    get:
+      summary: Empréstimos ativos atrasados (RF-11)
+      parameters: [{ $ref: '#/components/parameters/ReferenceDate' }]
+      responses:
+        '200': { description: Atrasados, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Emprestimo' } } } } }
+  /api/v1/emprestimos/{id}:
+    get:
+      summary: Consultar empréstimo (RF-08)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      responses:
+        '200': { description: Empréstimo, content: { application/json: { schema: { $ref: '#/components/schemas/Emprestimo' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+  /api/v1/emprestimos/{id}/devolucao:
+    post:
+      summary: Registrar devolução (RF-09)
+      parameters: [{ $ref: '#/components/parameters/Id' }]
+      requestBody:
+        required: false
+        content: { application/json: { schema: { type: object, properties: { dataDevolucao: { type: string, format: date } } } } }
+      responses:
+        '200': { description: Devolvido, content: { application/json: { schema: { $ref: '#/components/schemas/Emprestimo' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /api/v1/relatorios/multas:
+    get:
+      summary: Relatório de multas de empréstimos ativos atrasados (RF-12, RF-13, RF-18)
+      parameters: [{ $ref: '#/components/parameters/ReferenceDate' }]
+      responses:
+        '200': { description: Relatório, content: { application/json: { schema: { $ref: '#/components/schemas/RelatorioMultas' } } } }
+        '503': { $ref: '#/components/responses/Problem' }
+  /api/v1/relatorios/estatisticas:
+    get:
+      summary: Estatísticas funcionais (RF-14 a RF-18)
+      parameters: [{ $ref: '#/components/parameters/ReferenceDate' }]
+      responses:
+        '200': { description: Estatísticas, content: { application/json: { schema: { $ref: '#/components/schemas/Estatisticas' } } } }
+        '503': { $ref: '#/components/responses/Problem' }
+components:
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9-]{1,32}$' } }
+    ReferenceDate: { name: referenceDate, in: query, schema: { type: string, format: date }, example: '2026-11-09' }
+  responses:
+    Problem:
+      description: Erro estruturado
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+  schemas:
+    Categoria: { type: string, enum: ['Mangá', 'HQ', 'Graphic novel'] }
+    Livro:
+      type: object
+      required: [id, titulo, autor, categoria]
+      properties:
+        id: { type: string, pattern: '^INK-[0-9]{4}$' }
+        titulo: { type: string, maxLength: 160 }
+        autor: { type: string, maxLength: 120 }
+        categoria: { $ref: '#/components/schemas/Categoria' }
+        volume: { type: [string, 'null'], maxLength: 40 }
+        editora: { type: [string, 'null'], maxLength: 120 }
+        tituloOriginal: { type: [string, 'null'], maxLength: 160 }
+    NovoUsuario:
+      type: object
+      required: [nome, matricula]
+      properties:
+        nome: { type: string, minLength: 3, maxLength: 120 }
+        matricula: { type: string, pattern: '^[A-Za-z0-9.-]{3,20}$' }
+        email: { type: [string, 'null'], format: email }
+    Usuario:
+      allOf:
+        - $ref: '#/components/schemas/NovoUsuario'
+        - type: object
+          properties:
+            id: { type: string, pattern: '^USR-[0-9]{4,}$' }
+            cadastradoEm: { type: string, format: date }
+    NovoEmprestimo:
+      type: object
+      required: [livroId, usuarioId]
+      properties:
+        livroId: { type: string }
+        usuarioId: { type: string }
+        dataEmprestimo: { type: string, format: date, description: 'Padrão: data atual' }
+        dataPrevista: { type: string, format: date, description: 'Padrão: dataEmprestimo + 14 dias; entre 1 e 60 dias' }
+    Emprestimo:
+      type: object
+      properties:
+        id: { type: string }
+        livroId: { type: string }
+        usuarioId: { type: string }
+        dataEmprestimo: { type: string, format: date }
+        dataPrevista: { type: string, format: date }
+        dataDevolucao: { type: [string, 'null'], format: date }
+    Disponibilidade:
+      type: object
+      properties:
+        livroId: { type: string }
+        disponivel: { type: boolean }
+        emprestimoId: { type: [string, 'null'] }
+        usuarioId: { type: [string, 'null'] }
+        dataPrevista: { type: [string, 'null'], format: date }
+    RelatorioMultas:
+      type: object
+      properties:
+        referenceDate: { type: string, format: date }
+        valorDiario: { type: number, example: 2.00 }
+        quantidade: { type: integer }
+        totalDiasAtraso: { type: integer }
+        total: { type: number }
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              emprestimoId: { type: string }
+              livroId: { type: string }
+              titulo: { type: string }
+              usuarioId: { type: string }
+              nomeUsuario: { type: string }
+              dataPrevista: { type: string, format: date }
+              diasAtraso: { type: integer }
+              valor: { type: number }
+    Estatisticas:
+      type: object
+      properties:
+        referenceDate: { type: string, format: date }
+        totalLivros: { type: integer }
+        totalUsuarios: { type: integer }
+        totalEmprestimos: { type: integer }
+        emprestimosAtivos: { type: integer }
+        emprestimosAtrasados: { type: integer }
+        totalMultas: { type: number }
+        livrosPorCategoria: { type: object, additionalProperties: { type: integer } }
+        emprestimosPorUsuario:
+          type: array
+          items: { type: object, properties: { usuarioId: { type: string }, nome: { type: string }, total: { type: integer } } }
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        code: { type: string }
+        detail: { type: string }
+        field: { type: string }
