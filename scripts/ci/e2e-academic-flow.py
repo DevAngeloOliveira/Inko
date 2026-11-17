@@ -1,6 +1,10 @@
 """Fluxo acadêmico obrigatório do INKO contra o Gateway real (Compose + PostgreSQL).
 
-Uso: python scripts/ci/e2e-academic-flow.py [URL_DO_GATEWAY]
+Uso: python scripts/ci/e2e-academic-flow.py [URL_DO_GATEWAY] [--warmup]
+
+Antes das verificações, aquece cada serviço Java com leituras e requisições inválidas
+(respostas 4xx, sem gravar nada): a primeira chamada de uma JVM recém-iniciada pode
+passar do prazo de 2 s do Gateway. Com --warmup, só aquece e encerra.
 """
 import json
 import sys
@@ -10,7 +14,17 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
 
-BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000").rstrip("/")
+ARGS = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
+BASE = (ARGS[0] if ARGS else "http://127.0.0.1:8000").rstrip("/")
+WARMUP = [
+    ("GET", "/api/v1/livros", None), ("GET", "/api/v1/usuarios", None), ("GET", "/api/v1/emprestimos", None),
+    ("GET", "/api/v1/emprestimos/ativos", None), ("GET", "/api/v1/livros/INK-0001/disponibilidade", None),
+    ("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-09", None),
+    ("GET", "/api/v1/relatorios/estatisticas?referenceDate=2026-11-09", None),
+    ("POST", "/api/v1/livros", {"id": "INVALIDO"}), ("POST", "/api/v1/usuarios", {"nome": ""}),
+    ("POST", "/api/v1/emprestimos", {"livroId": "INK-0000", "usuarioId": "USR-0000"}),
+    ("POST", "/api/v1/emprestimos/EMP-0/devolucao", {}),
+]
 REFERENCIA = "2026-11-09"
 STEPS = []
 
@@ -39,6 +53,22 @@ def step(name, condition, detail=""):
         raise SystemExit(1)
 
 
+def warm_up(timeout=90):
+    deadline = time.monotonic() + timeout
+    for method, path, body in WARMUP:
+        while True:
+            try:
+                status, _ = call(method, path, body)
+            except OSError:
+                status = 0
+            if 0 < status < 500:
+                break
+            if time.monotonic() > deadline:
+                raise SystemExit(f"Serviços não responderam a tempo: {method} {path} → {status}")
+            time.sleep(1)
+    print(f"Serviços aquecidos ({len(WARMUP)} rotas).")
+
+
 def free_book_id():
     for number in range(9000, 10000):
         candidate = f"INK-{number}"
@@ -48,6 +78,9 @@ def free_book_id():
 
 
 def main():
+    warm_up()
+    if "--warmup" in sys.argv:
+        return
     suffix = str(int(time.time()))[-6:]
     book_id = free_book_id()
 
