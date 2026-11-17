@@ -21,6 +21,11 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<Map<String, Object>> malformed(Exception exception) {
+        for (Throwable causa = exception; causa != null; causa = causa.getCause()) {
+            if (causa instanceof ApiException dominio) {
+                return handle(dominio);
+            }
+        }
         return problem(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", "Requisição malformada.", null);
     }
 

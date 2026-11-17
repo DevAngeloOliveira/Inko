@@ -1,0 +1,122 @@
+"""Fluxo acadêmico obrigatório do INKO contra o Gateway real (Compose + PostgreSQL).
+
+Uso: python scripts/ci/e2e-academic-flow.py [URL_DO_GATEWAY]
+"""
+import json
+import sys
+import time
+import urllib.error
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+
+BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000").rstrip("/")
+REFERENCIA = "2026-11-09"
+STEPS = []
+
+
+def call(method, path, body=None):
+    data = json.dumps(body).encode() if body is not None else None
+    request = urllib.request.Request(BASE + path, data=data, method=method)
+    if data is not None:
+        request.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(request, timeout=5) as response:
+            return response.status, json.loads(response.read() or b"null")
+    except urllib.error.HTTPError as error:
+        payload = error.read()
+        return error.code, json.loads(payload) if payload else None
+
+
+def step(name, condition, detail=""):
+    STEPS.append((name, condition))
+    print(("PASS " if condition else "FAIL ") + name + (f" — {detail}" if detail and not condition else ""))
+    if not condition:
+        raise SystemExit(1)
+
+
+def free_book_id():
+    for number in range(9000, 10000):
+        candidate = f"INK-{number}"
+        if call("GET", f"/api/v1/livros/{candidate}")[0] == 404:
+            return candidate
+    raise SystemExit("Sem identificador livre para o teste")
+
+
+def main():
+    suffix = str(int(time.time()))[-6:]
+    book_id = free_book_id()
+
+    status, book = call("POST", "/api/v1/livros", {
+        "id": book_id, "titulo": "Fluxo Integrado", "autor": "Equipe INKO", "categoria": "Mangá", "volume": "Vol. 1",
+    })
+    step("RF-01 cadastrar livro (201)", status == 201 and book["id"] == book_id, f"{status} {book}")
+    step("RF-01 identificador duplicado (409)", call("POST", "/api/v1/livros", book)[0] == 409)
+    status, problem = call("POST", "/api/v1/livros", {"id": "INK-1", "titulo": "x", "autor": "y", "categoria": "HQ"})
+    step("RF-01 identificador inválido (422)", status == 422 and problem["field"] == "id", f"{status} {problem}")
+    step("RF-02 consultar livro por id (200)", call("GET", f"/api/v1/livros/{book_id}") == (200, book))
+    step("RF-02 livro inexistente (404)", call("GET", "/api/v1/livros/INK-0000")[0] == 404)
+    status, mangas = call("GET", "/api/v1/livros?categoria=Mang%C3%A1")
+    step("RF-03 filtrar por categoria", status == 200 and mangas and all(item["categoria"] == "Mangá" for item in mangas))
+
+    status, reader = call("POST", "/api/v1/usuarios", {"nome": "Leitora Integrada", "matricula": f"E2E{suffix}", "email": f"e2e{suffix}@exemplo.com"})
+    step("RF-04 cadastrar usuário (201)", status == 201 and reader["id"].startswith("USR-"), f"{status} {reader}")
+    status, other = call("POST", "/api/v1/usuarios", {"nome": "Leitor Concorrente", "matricula": f"E2F{suffix}"})
+    step("RF-04 segundo usuário (201)", status == 201, f"{status} {other}")
+    step("RF-04 matrícula duplicada (409)", call("POST", "/api/v1/usuarios", {"nome": "Repetido", "matricula": f"E2E{suffix}"})[0] == 409)
+    step("RF-05 consultar usuário (200)", call("GET", f"/api/v1/usuarios/{reader['id']}") == (200, reader))
+    step("RF-05 usuário inexistente (404)", call("GET", "/api/v1/usuarios/USR-9999999")[0] == 404)
+
+    status, availability = call("GET", f"/api/v1/livros/{book_id}/disponibilidade")
+    step("RF-06 livro novo disponível", status == 200 and availability["disponivel"] is True, f"{availability}")
+
+    loan_body = {"livroId": book_id, "dataEmprestimo": REFERENCIA, "dataPrevista": "2026-11-23"}
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda user: call("POST", "/api/v1/emprestimos", {**loan_body, "usuarioId": user}),
+                                (reader["id"], other["id"])))
+    statuses = sorted(status for status, _ in results)
+    step("Caso B concorrência: um 201 e um 409", statuses == [201, 409], f"{results}")
+    loan = next(payload for status, payload in results if status == 201)
+
+    status, availability = call("GET", f"/api/v1/livros/{book_id}/disponibilidade")
+    step("RF-06 livro indisponível após empréstimo", availability["disponivel"] is False and availability["emprestimoId"] == loan["id"])
+    status, problem = call("POST", "/api/v1/emprestimos", {**loan_body, "usuarioId": reader["id"]})
+    step("RF-07 segundo empréstimo do mesmo livro (409)", status == 409 and problem["code"] == "BOOK_UNAVAILABLE", f"{status} {problem}")
+    step("RF-07 livro inexistente (422)", call("POST", "/api/v1/emprestimos", {**loan_body, "livroId": "INK-0000", "usuarioId": reader["id"]})[0] == 422)
+    step("RF-07 prazo inválido (422)", call("POST", "/api/v1/emprestimos", {**loan_body, "dataPrevista": REFERENCIA, "usuarioId": reader["id"]})[0] == 422)
+    step("RF-08 consultar empréstimo (200)", call("GET", f"/api/v1/emprestimos/{loan['id']}") == (200, loan))
+    status, active = call("GET", "/api/v1/emprestimos/ativos")
+    step("RF-10 empréstimo aparece entre os ativos", any(item["id"] == loan["id"] for item in active))
+    status, late = call("GET", "/api/v1/emprestimos/atrasados?referenceDate=2026-11-24")
+    step("RF-11 atrasado após o vencimento", any(item["id"] == loan["id"] for item in late))
+    status, late = call("GET", "/api/v1/emprestimos/atrasados?referenceDate=2026-11-23")
+    step("RF-11 sem atraso no dia do vencimento", all(item["id"] != loan["id"] for item in late))
+
+    status, report_before = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
+    item = next((row for row in report_before["itens"] if row["emprestimoId"] == loan["id"]), None)
+    step("RF-12/13 multa de 3 dias = R$ 6,00 no relatório", item is not None and item["diasAtraso"] == 3 and item["valor"] == 6.0, f"{item}")
+
+    status, returned = call("POST", f"/api/v1/emprestimos/{loan['id']}/devolucao", {"dataDevolucao": "2026-11-20"})
+    step("RF-09 registrar devolução (200)", status == 200 and returned["dataDevolucao"] == "2026-11-20", f"{status} {returned}")
+    step("Caso D devolução repetida (409)", call("POST", f"/api/v1/emprestimos/{loan['id']}/devolucao", {"dataDevolucao": "2026-11-21"})[0] == 409)
+    step("Caso D histórico preservado", call("GET", f"/api/v1/emprestimos/{loan['id']}")[1]["dataDevolucao"] == "2026-11-20")
+    status, availability = call("GET", f"/api/v1/livros/{book_id}/disponibilidade")
+    step("Caso C disponibilidade restaurada", availability["disponivel"] is True)
+    status, second = call("POST", "/api/v1/emprestimos", {**loan_body, "dataEmprestimo": "2026-11-20", "dataPrevista": "2026-12-04", "usuarioId": other["id"]})
+    step("Caso C outro usuário pode emprestar", status == 201, f"{status} {second}")
+
+    status, history = call("GET", f"/api/v1/emprestimos?usuarioId={reader['id']}")
+    step("RF-08/RF-21 histórico do usuário", [row["id"] for row in history] == [loan["id"]])
+    status, report_after = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
+    step("RF-13 devolvido sai do relatório", all(row["emprestimoId"] != loan["id"] for row in report_after["itens"]))
+    status, fines = call("GET", f"/api/v1/relatorios/multas?referenceDate={REFERENCIA}")
+    step("RF-18 total consistente com itens", round(sum(row["valor"] for row in fines["itens"]), 2) == fines["total"])
+    status, stats = call("GET", f"/api/v1/relatorios/estatisticas?referenceDate={REFERENCIA}")
+    step("RF-14..17 estatísticas", status == 200 and stats["totalMultas"] == fines["total"]
+         and stats["emprestimosAtrasados"] == fines["quantidade"] and sum(stats["livrosPorCategoria"].values()) == stats["totalLivros"])
+    step("Gateway recusa parâmetro não permitido (400)", call("GET", "/api/v1/livros?destino=x")[0] == 400)
+
+    print(f"\n{len(STEPS)} verificações aprovadas contra {BASE}.")
+
+
+if __name__ == "__main__":
+    main()

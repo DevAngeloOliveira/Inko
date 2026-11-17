@@ -6,11 +6,11 @@ from fastapi import FastAPI, Request
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.responses import JSONResponse, Response
 
-from .config import GatewaySettings, RoutePolicy
+from .config import BUSINESS_ROUTES, GatewaySettings, RoutePolicy, RouteTable
 from .http import GatewayHTTP, RequestProblem
 from .resilience import CircuitBreaker, RateLimiter
 from .telemetry import GatewayMetrics
-from .upstream import UpstreamPayloadError, make_client, ping, refresh_snapshot, schedule_snapshots
+from .upstream import UpstreamPayloadError, forward, make_client, refresh_snapshot, schedule_snapshots
 
 
 class Runtime:
@@ -82,7 +82,7 @@ class Runtime:
         outcome = "neutral"
         with self.metrics.upstream_inflight.labels(service, "business").track_inprogress():
             try:
-                response = await ping(
+                response = await forward(
                     self.clients[service], request, self.settings, request.state.work_cutoff, begin_attempt,
                 )
                 if response.status_code >= 500:
@@ -120,11 +120,11 @@ class Runtime:
                 self.metrics.upstream_duration.labels(service, "business").observe(max(0.0, clock() - now))
 
 
-def make_ping_endpoint(service):
-    async def forward_ping(request: Request):
+def make_endpoint(service):
+    async def forward_request(request: Request):
         return await request.app.state.runtime.execute(request, service)
 
-    return forward_ping
+    return forward_request
 
 
 def create_app(settings=None, *, clock=None, transport_factory=None):
@@ -188,12 +188,19 @@ def create_app(settings=None, *, clock=None, transport_factory=None):
             "/docs": "docs", "/docs/oauth2-redirect": "docs_redirect",
             "/redoc": "redoc", "/openapi.json": "openapi",
         })
-    routes = {path: RoutePolicy(route_id, path) for path, route_id in controls.items()}
+    routes = [RoutePolicy(route_id, path) for path, route_id in controls.items()]
     for policy in settings.services:
         path = f"/api/v1/{policy.name}/ping"
-        routes[path] = RoutePolicy(f"{policy.name}_ping", path, policy.name)
-        application.add_api_route(path, make_ping_endpoint(policy.name), methods=["GET"], name=routes[path].id)
-    application.add_middleware(GatewayHTTP, routes=routes)
+        route = RoutePolicy(f"{policy.name}_ping", path, policy.name, upstream="/api/v1/ping")
+        routes.append(route)
+        application.add_api_route(path, make_endpoint(policy.name), methods=["GET"], name=route.id)
+    for route in BUSINESS_ROUTES:
+        routes.append(route)
+        application.add_api_route(
+            route.path, make_endpoint(route.service), methods=list(route.methods), name=route.id,
+            include_in_schema=False,
+        )
+    application.add_middleware(GatewayHTTP, routes=RouteTable(routes))
     return application
 
 

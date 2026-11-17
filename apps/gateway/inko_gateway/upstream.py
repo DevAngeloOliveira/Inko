@@ -80,8 +80,14 @@ class BufferedResponse(Response):
         await send({"type": "http.response.body", "body": b""})
 
 
-async def ping(client, request, settings, deadline, begin_attempt):
+async def forward(client, request, settings, deadline, begin_attempt):
+    policy = request.state.route
+    path = policy.upstream or request.scope["path"]
+    query = request.state.upstream_query
+    body = request.state.upstream_body
     request_headers = {b"x-request-id": request.state.gateway_id.encode("ascii")}
+    if body:
+        request_headers[b"content-type"] = b"application/json"
     hop_headers = {
         item.strip().lower()
         for value in request.headers.getlist("connection")
@@ -102,7 +108,10 @@ async def ping(client, request, settings, deadline, begin_attempt):
         read=min(remaining, settings.read_timeout),
     )
     begin_attempt()
-    async with client.stream("GET", "/api/v1/ping", headers=request_headers, timeout=timeout) as upstream:
+    target = path + ("?" + query.decode("ascii") if query else "")
+    async with client.stream(
+        request.scope["method"], target, headers=request_headers, content=body or None, timeout=timeout,
+    ) as upstream:
         status = upstream.status_code
         if not (200 <= status < 300 or 400 <= status < 600):
             raise UpstreamPayloadError("status")
