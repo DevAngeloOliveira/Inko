@@ -186,7 +186,7 @@ def auth_checks():
 
     status, _, raw = call(ANON, "GET", "/api/v1/emprestimos")
     step("AUTH-06 anônimo em /api/v1/emprestimos → 401", status == 401 and payload(raw).get("code") == "UNAUTHENTICATED", f"{status}")
-    for path in ("/api/v1/usuarios", "/api/v1/relatorios/multas?referenceDate=2026-11-09", "/api/v1/emprestimos/ativos"):
+    for path in ("/api/v1/usuarios", "/api/v1/relatorios/multas?referenceDate=2026-11-09", "/api/v1/emprestimos/ativos", "/api/v1/livros/INK-0001/disponibilidade"):
         status, _, _ = call(ANON, "GET", path)
         step(f"AUTH-06 anônimo em {path.split('?')[0]} → 401", status == 401, f"{status}")
     status, _, _ = call(ANON, "POST", "/api/v1/livros", {"id": "INK-9999"})

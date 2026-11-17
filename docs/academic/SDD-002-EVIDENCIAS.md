@@ -10,10 +10,10 @@ A conta de operador foi criada pelo bootstrap. As variáveis `INKO_BOOTSTRAP_ADM
 
 | Verificação | Comando | Resultado |
 |---|---|---|
-| Unitários Java | `mvn -B -ntp verify` em cada serviço | Usuários 29, Catálogo 27, Circulação 9, Relatórios 10, todos sem falhas |
+| Unitários Java | `mvn -B -ntp verify` em cada serviço | Usuários 32, Catálogo 27, Circulação 9, Relatórios 10, todos sem falhas |
 | Gateway (REG-02) | `uv run pytest` em `apps/gateway` | 32 aprovados; o Gateway não foi alterado |
-| Web | `tsc --noEmit`, `node --test tests/*.test.mjs`, `next build` | typecheck OK, 55/55 testes, build OK |
-| Aceitação SDD-002 | `python scripts/ci/e2e-mvp-auth-media.py http://127.0.0.1:13000` | 48/48 verificações, repetidas depois da última mudança no limitador de login |
+| Web | `tsc --noEmit`, `node --test tests/*.test.mjs`, `next build` | typecheck OK, 56/56 testes, build OK |
+| Aceitação SDD-002 | `python scripts/ci/e2e-mvp-auth-media.py http://127.0.0.1:13000` | 49/49 verificações, repetidas depois da última mudança no limitador de login e da revisão do PR #14 |
 | MEDIA-04 (restart parcial) | `docker compose restart catalogo web` + `--after-restart` | 3/3 |
 | MEDIA-04 (stack inteira) | `docker compose stop` + `up -d` (sem `-v`) + `--after-restart` | 3/3 |
 | REG-01 pelo BFF autenticado | `e2e-academic-flow.py http://127.0.0.1:13000` com `INKO_E2E_*` | 32/32 |
@@ -29,7 +29,7 @@ A conta de operador foi criada pelo bootstrap. As variáveis `INKO_BOOTSTRAP_ADM
 | AUTH-03 | Login → 200 com `Set-Cookie` `HttpOnly; SameSite=Lax`. O JSON não contém token. `sessoes_operador` tem o SHA-256 do token e não tem o token em claro. No navegador, `document.cookie` vem vazio e não há sessão em `sessionStorage`/`localStorage`. |
 | AUTH-04 | `GET /api/auth/session` com o cookie → 200. Navegação com recarga completa manteve a sessão. Sessão com `expira_em` no passado → 401. |
 | AUTH-05 | Logout → 204, `Max-Age=0` e `revogado_em` preenchido. Replay do token antigo → 401. Na UI, "Sair" leva a `/login` e a API responde 401. |
-| AUTH-06 | Anônimo em `emprestimos`, `emprestimos/ativos`, `usuarios` e `relatorios` → 401; POST `livros` → 401. O catálogo e `/api/public/disponibilidade` (só IDs) seguem públicos. A regra de papel (403) está coberta em `auth-bff.test.mjs`. |
+| AUTH-06 | Anônimo em `emprestimos`, `emprestimos/ativos`, `usuarios`, `relatorios` e `livros/{id}/disponibilidade` (que traz leitor e empréstimo) → 401; POST `livros` → 401. O catálogo e `/api/public/disponibilidade` (só IDs) seguem públicos. A regra de papel (403) está coberta em `auth-bff.test.mjs`. |
 | AUTH-07 | `Origin` cruzada em POST, logout e upload → 403. A sexta falha seguida no mesmo e-mail → 429 com `Retry-After`. |
 | MEDIA-01 | JPEG enviado → 200; `capas_livros` guarda o MIME e o SHA-256; o livro passa a ter `capaVersao`. |
 | MEDIA-02 | GET devolve `image/jpeg` com assinatura `FFD8FF`, `ETag` igual ao SHA-256 dos bytes e `nosniff`. `If-None-Match` → 304. |
@@ -57,7 +57,7 @@ Executado no painel de navegador do app, em `http://127.0.0.1:13000`:
 
 - **Gateway exposto:** a porta 8000 continua publicada em `127.0.0.1` e não exige credencial. Quem acessa o Gateway direto contorna a autorização do BFF. Para expor externamente, remova essa porta e valide a sessão também no Gateway e nos serviços (fase P1 do SDD-002).
 - **Rate limit por IP contornável:** o limite por IP usa o `X-Forwarded-For` que o Next recebe, e o cliente pode forjar esse valor quando não há proxy confiável na frente. O limite por e-mail (5 falhas em 15 min) continua valendo. Os contadores ficam em memória por instância e se perdem no restart.
-- **Teto do limitador:** o mapa de contadores guarda até 100 mil chaves (`INKO_LOGIN_MAX_KEYS`). Com o mapa cheio, o limitador descarta só chaves de IP não bloqueadas e chaves de e-mail sem falhas na janela atual. A varredura em busca de chaves descartáveis olha no máximo 256 entradas por requisição. Um e-mail com falhas recentes nunca é descartado, então inundar o mapa não zera o contador de uma conta. A contrapartida é de disponibilidade: se alguém forjar cerca de 100 mil e-mails distintos em 15 minutos, logins de e-mails novos recebem 429 até a janela expirar. Contadores compartilhados e persistentes (Redis ou PostgreSQL) ficam para a fase P1.
+- **Teto do limitador:** o mapa de contadores guarda até 100 mil chaves (`INKO_LOGIN_MAX_KEYS`). Com o mapa cheio, o limitador descarta só chaves de IP não bloqueadas e chaves de e-mail sem falhas na janela atual. E-mails e IPs ficam em filas separadas, e os IPs são examinados primeiro. A varredura olha no máximo 256 entradas por requisição. Um e-mail com falhas recentes nunca é descartado, então inundar o mapa não zera o contador de uma conta. A contrapartida é de disponibilidade: se alguém forjar cerca de 100 mil e-mails distintos em 15 minutos, logins de e-mails novos recebem 429 até a janela expirar. Contadores compartilhados e persistentes (Redis ou PostgreSQL) ficam para a fase P1.
 - **Partida a frio:** a primeira chamada logo após reiniciar um serviço Java pode responder 503/504. Os scripts E2E aquecem os serviços antes de verificar.
 - **Volume não é backup:** o volume `catalogo_media` e o PostgreSQL precisam de backup juntos (veja o README).
 - **Sessões antigas:** sessões expiradas ou revogadas não são apagadas. A limpeza periódica fica para a fase P1.
