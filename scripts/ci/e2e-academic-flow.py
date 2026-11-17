@@ -76,10 +76,12 @@ def main():
     statuses = sorted(status for status, _ in results)
     step("Caso B concorrência: um 201 e um 409", statuses == [201, 409], f"{results}")
     loan = next(payload for status, payload in results if status == 201)
+    winner = loan["usuarioId"]
+    loser = other["id"] if winner == reader["id"] else reader["id"]
 
     status, availability = call("GET", f"/api/v1/livros/{book_id}/disponibilidade")
     step("RF-06 livro indisponível após empréstimo", availability["disponivel"] is False and availability["emprestimoId"] == loan["id"])
-    status, problem = call("POST", "/api/v1/emprestimos", {**loan_body, "usuarioId": reader["id"]})
+    status, problem = call("POST", "/api/v1/emprestimos", {**loan_body, "usuarioId": loser})
     step("RF-07 segundo empréstimo do mesmo livro (409)", status == 409 and problem["code"] == "BOOK_UNAVAILABLE", f"{status} {problem}")
     step("RF-07 livro inexistente (422)", call("POST", "/api/v1/emprestimos", {**loan_body, "livroId": "INK-0000", "usuarioId": reader["id"]})[0] == 422)
     step("RF-07 prazo inválido (422)", call("POST", "/api/v1/emprestimos", {**loan_body, "dataPrevista": REFERENCIA, "usuarioId": reader["id"]})[0] == 422)
@@ -101,10 +103,10 @@ def main():
     step("Caso D histórico preservado", call("GET", f"/api/v1/emprestimos/{loan['id']}")[1]["dataDevolucao"] == "2026-11-20")
     status, availability = call("GET", f"/api/v1/livros/{book_id}/disponibilidade")
     step("Caso C disponibilidade restaurada", availability["disponivel"] is True)
-    status, second = call("POST", "/api/v1/emprestimos", {**loan_body, "dataEmprestimo": "2026-11-20", "dataPrevista": "2026-12-04", "usuarioId": other["id"]})
+    status, second = call("POST", "/api/v1/emprestimos", {**loan_body, "dataEmprestimo": "2026-11-20", "dataPrevista": "2026-12-04", "usuarioId": loser})
     step("Caso C outro usuário pode emprestar", status == 201, f"{status} {second}")
 
-    status, history = call("GET", f"/api/v1/emprestimos?usuarioId={reader['id']}")
+    status, history = call("GET", f"/api/v1/emprestimos?usuarioId={winner}")
     step("RF-08/RF-21 histórico do usuário", [row["id"] for row in history] == [loan["id"]])
     status, report_after = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
     step("RF-13 devolvido sai do relatório", all(row["emprestimoId"] != loan["id"] for row in report_after["itens"]))
