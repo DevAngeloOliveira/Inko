@@ -191,4 +191,35 @@ class LoginRateLimiterTest {
         relogio.avancar(JANELA);
         limiter.reservar("b@inko.test", "ip-2");
     }
+
+    @Test
+    void ipBloqueadoNaoEDescartadoPelaInundacao() {
+        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 100, 2, JANELA, 4);
+        limiter.reservar("a@inko.test", "ip-mau");
+        limiter.reservar("b@inko.test", "ip-mau");
+
+        for (int indice = 0; indice < 20; indice++) {
+            try {
+                limiter.reservar("c" + indice + "@inko.test", "ip-f" + indice);
+            } catch (LimiteExcedidoException cheio) {
+                assertEquals("TOO_MANY_ATTEMPTS", cheio.code());
+            }
+        }
+
+        assertThrows(LimiteExcedidoException.class, () -> limiter.reservar("a@inko.test", "ip-mau"));
+    }
+
+    @Test
+    void varreduraDoMapaCheioTemLimitePorRequisicao() {
+        int limite = LoginRateLimiter.MAX_VARREDURA * 2;
+        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 100, limite, JANELA, limite);
+        for (int indice = 0; indice < limite - 1; indice++) {
+            limiter.reservar("e" + indice + "@inko.test", "ip-fixo");
+        }
+        int chaves = limiter.quantidadeChaves();
+        assertEquals(limite, chaves);
+
+        assertThrows(LimiteExcedidoException.class, () -> limiter.reservar("novo@inko.test", "ip-novo"));
+        assertEquals(chaves, limiter.quantidadeChaves());
+    }
 }

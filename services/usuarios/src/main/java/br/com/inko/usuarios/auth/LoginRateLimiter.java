@@ -13,6 +13,7 @@ import java.util.Optional;
 
 public class LoginRateLimiter {
     static final int LIMITE_CHAVES_PADRAO = 100_000;
+    static final int MAX_VARREDURA = 256;
     private static final String PREFIXO_EMAIL = "email:";
     private static final String PREFIXO_IP = "ip:";
     private static final String CODIGO = "TOO_MANY_ATTEMPTS";
@@ -78,19 +79,23 @@ public class LoginRateLimiter {
     private void garantirCapacidade(String chaveEmail, String chaveIp, Instant agora) {
         int novas = (tentativas.containsKey(chaveEmail) ? 0 : 1) + (tentativas.containsKey(chaveIp) ? 0 : 1);
         Iterator<Map.Entry<String, Deque<Instant>>> entradas = tentativas.entrySet().iterator();
-        while (tentativas.size() + novas > limiteChaves && entradas.hasNext()) {
+        int visitadas = 0;
+        while (tentativas.size() + novas > limiteChaves && entradas.hasNext() && visitadas < MAX_VARREDURA) {
+            visitadas++;
             Map.Entry<String, Deque<Instant>> entrada = entradas.next();
             String chave = entrada.getKey();
-            if (chave.equals(chaveEmail) || chave.equals(chaveIp)) {
-                continue;
-            }
-            if (chave.startsWith(PREFIXO_IP) || descartarExpiradas(entrada.getValue(), agora).isEmpty()) {
+            if (!chave.equals(chaveEmail) && !chave.equals(chaveIp) && descartavel(chave, entrada.getValue(), agora)) {
                 entradas.remove();
             }
         }
         if (tentativas.size() + novas > limiteChaves) {
             throw new LimiteExcedidoException(CODIGO, MENSAGEM, janela);
         }
+    }
+
+    private boolean descartavel(String chave, Deque<Instant> registros, Instant agora) {
+        int vivas = descartarExpiradas(registros, agora).size();
+        return chave.startsWith(PREFIXO_IP) ? vivas < maxFalhasIp : vivas == 0;
     }
 
     private void registrar(String chave, int maximo, Instant agora) {
