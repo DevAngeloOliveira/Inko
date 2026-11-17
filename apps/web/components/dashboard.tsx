@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { DEMO_REFERENCE_DATE, activeLateLoans, daysBetween, formatDate, type Loan, type Work } from '../lib/demo';
-import { setRemindersSent, useLibrary } from '../lib/mock-api';
+import { setRemindersSent, useLibrary } from '../lib/library-api';
 import { AppShell } from './app-shell';
 import styles from './dashboard.module.css';
 import { Icon, type IconName } from './icon';
@@ -161,7 +161,7 @@ export function Dashboard() {
       <h2>Visão geral</h2>
       <div className={styles.overviewTools}>
         <InkoButton variant="ghost" size="sm" leftIcon="atualizar" loading={loading} onClick={reload}>Atualizar</InkoButton>
-        <DemoTag/>
+        <DemoTag>Referência 09/11/2026</DemoTag>
       </div>
     </div>
 
@@ -217,14 +217,14 @@ export function Dashboard() {
       </div>
     </div>
 
-    <DemoNotice>Indicadores, movimentações e multas são calculados sobre dados fictícios guardados neste navegador; os lembretes não enviam e-mails.</DemoNotice>
+    <DemoNotice>Indicadores e movimentações vêm dos serviços INKO (PostgreSQL), com data de referência fixa em 09/11/2026 para a demonstração. Os lembretes não enviam e-mails.</DemoNotice>
 
     <footer className={styles.footer}>
       <p className={styles.signature}>
         <Image src="/inko/svg/elementos/enso-seal.svg" alt="" width={28} height={28}/>
         <span>Cada volume, no seu lugar.</span>
       </p>
-      <span className="inko-caption">INKO · DADOS DEMONSTRATIVOS</span>
+      <span className="inko-caption">INKO · DEMONSTRAÇÃO ACADÊMICA LOCAL</span>
       <nav aria-label="Recursos do projeto">
         <Link href="/design-system">Design System</Link>
         <Link href="/motion-lab">Motion Lab</Link>

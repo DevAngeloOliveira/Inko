@@ -106,7 +106,7 @@ export function FineSummary({ rows, reference, href, limit = 2 }: Readonly<{ row
       {top.map(row => <li key={row.id}><span>{row.days} {row.days === 1 ? 'dia' : 'dias'} · {row.work}</span><span>{formatBRL(row.fineCents)}</span></li>)}
       {rest.length > 0 && <li className="inko-fine-summary-rest"><span>+ {rest.length} {rest.length === 1 ? 'empréstimo' : 'empréstimos'}</span><span>{formatBRL(rest.reduce((sum, row) => sum + row.fineCents, 0))}</span></li>}
     </ul>}
-    <small>Apenas empréstimos ativos e atrasados · dados demonstrativos</small>
+    <small>Apenas empréstimos ativos e atrasados · R$ 2,00 por dia</small>
     {href && <Link href={href} className="inko-fine-summary-link">Abrir relatório<Icon name="seta" size={16}/></Link>}
   </article>;
 }

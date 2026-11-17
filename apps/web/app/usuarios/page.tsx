@@ -5,13 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { AppShell } from '../../components/app-shell';
 import { Icon } from '../../components/icon';
 import { useToast } from '../../components/inko-interactions';
-import { Avatar, DemoTag, Enso, InkoBadge, InkoButton, InkoEmpty, InkoInput, InkoLinkButton, InkoSearch, InkoStatus, PageHeading } from '../../components/inko-kit';
+import { Avatar, Enso, InkoBadge, InkoButton, InkoEmpty, InkoInput, InkoLinkButton, InkoSearch, InkoStatus, PageHeading } from '../../components/inko-kit';
 import { InkoAlert } from '../../components/inko-patterns';
 import {
   DEMO_REFERENCE_DATE, daysOverdue, fineInCents, formatBRL, formatDate, loanStatus, normalize,
   type LibraryUser, type Loan,
 } from '../../lib/demo';
-import { MockApiError, createUser, useLibrary } from '../../lib/mock-api';
+import { ApiError, createUser, useLibrary } from '../../lib/library-api';
 import { isValidEmailAddress } from '../../lib/validation';
 import styles from './usuarios.module.css';
 
@@ -22,7 +22,9 @@ interface UserRow {
   fineCents: number;
 }
 
-type FormErrors = Partial<Record<'name' | 'email', string>>;
+type FormErrors = Partial<Record<'name' | 'registration' | 'email', string>>;
+
+const FIELD_INPUTS = { name: 'novo-usuario-nome', registration: 'novo-usuario-matricula', email: 'novo-usuario-email' } as const;
 
 /** Situação do usuário, derivada dos empréstimos ativos (não há campo persistido). */
 function summarize(user: LibraryUser, loans: readonly Loan[]): UserRow {
@@ -45,22 +47,20 @@ function historyDates(loan: Loan): string {
   return `${formatDate(loan.start)} → prazo ${formatDate(loan.due)}`;
 }
 
-function nextUserId(users: readonly LibraryUser[]): string {
-  const highest = users.reduce((max, user) => Math.max(max, Number(user.id.slice(4)) || 0), 0);
-  return `USR-${String(highest + 1).padStart(4, '0')}`;
-}
-
 function countLabel(found: number, total: number, searching: boolean): string {
   if (!searching) return `${total} ${total === 1 ? 'usuário' : 'usuários'}`;
   return `${found} de ${total} ${total === 1 ? 'usuário' : 'usuários'}`;
 }
 
-function validate(name: string, email: string, users: readonly LibraryUser[]): FormErrors {
+function validate(name: string, registration: string, email: string, users: readonly LibraryUser[]): FormErrors {
   const errors: FormErrors = {};
   if (name.trim().length < 3) errors.name = 'Informe o nome completo.';
+  const matricula = registration.trim().toUpperCase();
+  if (!/^[A-Z0-9.-]{3,20}$/.test(matricula)) errors.registration = 'Informe a matrícula (3 a 20 letras, números, ponto ou hífen).';
+  else if (users.some(user => user.registration === matricula)) errors.registration = 'Esta matrícula já está cadastrada.';
   const normalized = email.trim().toLowerCase();
-  if (!isValidEmailAddress(normalized)) errors.email = 'Informe um e-mail válido.';
-  else if (users.some(user => user.email.toLowerCase() === normalized)) errors.email = 'Já existe um usuário com este e-mail.';
+  if (normalized && !isValidEmailAddress(normalized)) errors.email = 'Informe um e-mail válido.';
+  else if (normalized && users.some(user => user.email.toLowerCase() === normalized)) errors.email = 'Já existe um usuário com este e-mail.';
   return errors;
 }
 
@@ -83,7 +83,7 @@ function UserDetail({ row, loans }: Readonly<{ row: UserRow; loans: readonly Loa
     <div className={styles.detailHead}>
       <Enso size={150} tone="ink" className={styles.detailEnso}/>
       <Avatar name={user.name} size={56}/>
-      <div className={styles.detailTitle}><h2 id="usuario-detalhe">{user.name}</h2><span>{user.id} · {user.email}</span></div>
+      <div className={styles.detailTitle}><h2 id="usuario-detalhe">{user.name}</h2><span>{user.id} · Matrícula {user.registration}{user.email ? ` · ${user.email}` : ''}</span></div>
     </div>
     <div className={styles.detailBody}>
       <div className="inko-actions">
@@ -110,6 +110,7 @@ function UserDetail({ row, loans }: Readonly<{ row: UserRow; loans: readonly Loa
 
 function UserForm({ users, onCancel, onCreated }: Readonly<{ users: readonly LibraryUser[]; onCancel: () => void; onCreated: (user: LibraryUser) => void }>) {
   const [name, setName] = useState('');
+  const [registration, setRegistration] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [failure, setFailure] = useState('');
@@ -117,19 +118,20 @@ function UserForm({ users, onCancel, onCreated }: Readonly<{ users: readonly Lib
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const found = validate(name, email, users);
+    const found = validate(name, registration, email, users);
     setErrors(found);
     setFailure('');
-    if (found.name || found.email) {
-      document.getElementById(found.name ? 'novo-usuario-nome' : 'novo-usuario-email')?.focus();
+    const firstInvalid = (['name', 'registration', 'email'] as const).find(field => found[field]);
+    if (firstInvalid) {
+      document.getElementById(FIELD_INPUTS[firstInvalid])?.focus();
       return;
     }
     setSaving(true);
     try {
-      onCreated(await createUser({ name, email }));
+      onCreated(await createUser({ name, registration, email }));
     } catch (error) {
       setSaving(false);
-      if (error instanceof MockApiError && (error.field === 'name' || error.field === 'email')) {
+      if (error instanceof ApiError && (error.field === 'name' || error.field === 'registration' || error.field === 'email')) {
         setErrors({ [error.field]: error.message });
         return;
       }
@@ -144,8 +146,9 @@ function UserForm({ users, onCancel, onCreated }: Readonly<{ users: readonly Lib
     </div>
     <form className="inko-form inko-form--lg" onSubmit={submit} noValidate>
       <InkoInput id="novo-usuario-nome" label="Nome completo" required autoComplete="off" autoFocus value={name} error={errors.name} onChange={event => setName(event.target.value)}/>
-      <InkoInput id="novo-usuario-email" label="E-mail" type="email" required autoComplete="off" value={email} error={errors.email} help="Usado para lembretes de prazo." onChange={event => setEmail(event.target.value)}/>
-      <InkoInput id="novo-usuario-id" label="Identificador" disabled readOnly value={`${nextUserId(users)} (gerado)`}/>
+      <InkoInput id="novo-usuario-matricula" label="Matrícula" required autoComplete="off" value={registration} error={errors.registration} help="Única por usuário, conforme o cadastro acadêmico." onChange={event => setRegistration(event.target.value)}/>
+      <InkoInput id="novo-usuario-email" label="E-mail (opcional)" type="email" autoComplete="off" value={email} error={errors.email} help="Contato complementar para lembretes de prazo." onChange={event => setEmail(event.target.value)}/>
+      <InkoInput id="novo-usuario-id" label="Identificador" disabled readOnly value="Gerado pelo serviço de Usuários"/>
       {failure && <InkoAlert tone="danger">{failure}</InkoAlert>}
       <output className="sr-only">{saving ? 'Cadastrando usuário…' : ''}</output>
       <div className="inko-actions inko-actions--end">
@@ -167,7 +170,7 @@ function UsersContent() {
 
   const rows = useMemo(() => users.map(user => summarize(user, loans)), [users, loans]);
   const term = normalize(query.trim());
-  const filtered = rows.filter(row => !term || normalize(`${row.user.name} ${row.user.email} ${row.user.id}`).includes(term));
+  const filtered = rows.filter(row => !term || normalize(`${row.user.name} ${row.user.registration} ${row.user.email} ${row.user.id}`).includes(term));
   // A URL (?u=USR-ID) é a fonte da seleção: a busca global do shell navega para cá.
   const current = rows.find(row => row.user.id === params.get('u')) ?? rows[0];
 
@@ -197,7 +200,7 @@ function UsersContent() {
   }
 
   return <>
-    <PageHeading title="Usuários" description={<>{users.length} {users.length === 1 ? 'leitor' : 'leitores'} · <DemoTag>dados demonstrativos</DemoTag></>} action={<InkoButton leftIcon="mais" onClick={startCreate}>Novo usuário</InkoButton>}/>
+    <PageHeading title="Usuários" description={<>{users.length} {users.length === 1 ? 'leitor' : 'leitores'} · dados do serviço de Usuários</>} action={<InkoButton leftIcon="mais" onClick={startCreate}>Novo usuário</InkoButton>}/>
     <div className={styles.layout}>
       <section className={styles.list} aria-label="Lista de usuários">
         <div className={styles.listSearch}>
@@ -213,7 +216,7 @@ function UsersContent() {
                 return <tr key={row.user.id} aria-selected={on}>
                   <td><button type="button" className={styles.pick} aria-pressed={on} onClick={() => select(row.user.id)}>
                     <Avatar name={row.user.name} size={32}/>
-                    <span className={styles.pickText}><strong>{row.user.name}</strong><span>{row.user.email}</span></span>
+                    <span className={styles.pickText}><strong>{row.user.name}</strong><span>Matrícula {row.user.registration}</span></span>
                   </button></td>
                   <td className="inko-muted">{row.user.id}</td>
                   <td className={`inko-table-end ${styles.active}`}>{row.active}</td>
@@ -228,7 +231,7 @@ function UsersContent() {
             const on = !creating && row.user.id === current?.user.id;
             return <li key={row.user.id}><button type="button" className={styles.card} aria-pressed={on} onClick={() => select(row.user.id)}>
               <Avatar name={row.user.name} size={40}/>
-              <span className={styles.pickText}><strong>{row.user.name}</strong><span>{row.user.email}</span><span>{row.user.id} · {row.active} {row.active === 1 ? 'ativo' : 'ativos'}</span></span>
+              <span className={styles.pickText}><strong>{row.user.name}</strong><span>Matrícula {row.user.registration}</span><span>{row.user.id} · {row.active} {row.active === 1 ? 'ativo' : 'ativos'}</span></span>
               <UserSituation late={row.late}/>
             </button></li>;
           })}

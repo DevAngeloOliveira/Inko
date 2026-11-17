@@ -501,7 +501,7 @@ a.inko-stat:hover { border-color: var(--inko-brand-ink); box-shadow: var(--inko-
 .inko-user-button:hover, .inko-user-button[aria-expanded='true'] { background: var(--inko-background-subtle); }
 .inko-user-button-text { display: flex; flex-direction: column; align-items: flex-start; font: 600 13px/18px var(--inko-font-body); }
 .inko-user-button-text small { font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary); }
-.inko-app-content { display: flex; flex-direction: column; gap: var(--inko-spacing-6); width: 100%; max-width: 1280px; padding: 28px var(--inko-spacing-8) var(--inko-spacing-10); }
+.inko-app-content { display: flex; flex-direction: column; gap: var(--inko-spacing-6); width: 100%; max-width: none; padding: 28px var(--inko-spacing-8) var(--inko-spacing-10); }
 .inko-app-loading { display: flex; align-items: center; justify-content: center; min-height: 40vh; color: var(--inko-text-secondary); }
 
 .inko-drawer { width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; }

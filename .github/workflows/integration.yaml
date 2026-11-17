@@ -39,6 +39,10 @@ jobs:
         run: docker compose up --detach --build --wait --wait-timeout 600
       - name: Validate HTTP routes, backends and static assets
         run: bash scripts/ci/smoke-compose.sh
+      - name: Run the academic library workflow against PostgreSQL
+        run: |
+          python3 scripts/ci/e2e-academic-flow.py http://127.0.0.1:8000
+          python3 scripts/ci/e2e-academic-flow.py http://127.0.0.1:3000
       - name: Print container diagnostics on failure
         if: failure()
         run: |

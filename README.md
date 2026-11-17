@@ -1,138 +1,147 @@
-# INKO — Monorepo Starter (Sprint 00)
+# INKO — Sistema de Biblioteca de Mangás e HQs
 
-Biblioteca especializada em mangás, HQs e graphic novels. Arquitetura poliglota Next.js + FastAPI + Spring Boot + PostgreSQL.
+Projeto final da disciplina de Paradigmas de Linguagens de Programação: gestão de acervo, leitores, empréstimos, devoluções e multas de uma
+biblioteca de mangás, HQs e graphic novels, combinando **orientação a objetos** e **programação funcional** em Java.
 
-## Design System INKO — Integração do Claude
+Arquitetura poliglota: Next.js 16 (interface) → FastAPI (API Gateway) → quatro serviços Spring Boot 4 / Java 21 → PostgreSQL 17 com um banco por serviço.
 
-O pacote inclui `packages/design-tokens/inko.tokens.json` como fonte de verdade, CSS gerado em `apps/web/app/inko-tokens.css`, motions acessíveis em `apps/web/app/inko-motion.css` e compatibilidade de nomes com o Figma.
+## Escopo acadêmico
 
-```bash
-pnpm tokens:build
-pnpm tokens:check
-pnpm tokens:test
-```
+- Classes de domínio `Livro`, `Usuario`, `Emprestimo` e `Biblioteca`, modeladas como records imutáveis.
+- RF-01 a RF-18: cadastro e consulta de livros e usuários, empréstimo, devolução, atrasos, multas (R$ 2,00/dia) e estatísticas.
+- Funções puras, imutabilidade e Streams com `filter`, `map` e `reduce`, incluindo a mesma operação em versão imperativa e funcional (PF-01).
+- Persistência real, concorrência tratada no banco e testes unitários e integrados.
 
-Documentação: `packages/design-tokens/README.md` e `docs/architecture/ADR-002-design-tokens.md`. Os logos, SVGs e motions originais estão versionados; os componentes React de domínio serão implementados nas próximas sprints.
+Documentação para a apresentação em [`docs/academic`](docs/academic): [rastreabilidade](docs/academic/REQUIREMENTS-TRACEABILITY.md),
+[programação funcional](docs/academic/FUNCTIONAL-PROGRAMMING.md), [arquitetura e UML](docs/academic/ARCHITECTURE-OVERVIEW.md),
+[roteiro da demonstração](docs/academic/DEMO-SCRIPT.md) e [perguntas e respostas](docs/academic/PRESENTATION-QA.md).
+Contratos REST: [`docs/contracts`](docs/contracts/README.md) e [`openapi.yaml`](docs/contracts/openapi.yaml).
 
-## Estado do projeto
+## Microsserviços
 
-Este pacote implementa **apenas o setup inicial**: builds, configuração, endpoints diagnósticos, Docker Compose, bancos isolados, Dashboard de demonstração visual e testes de sanidade. Ainda não implementa cadastro de livros, circulação, multas ou regras de negócio. Os logos e SVGs originais já foram incorporados, e o Design System completo segue em implementação incremental a partir do Figma.
+| Serviço | Responsabilidade | Banco |
+| --- | --- | --- |
+| `apps/web` | Interface Next.js com o Design System INKO e BFF `/api/v1/*` | — |
+| `apps/gateway` | Rotas explícitas, rate limit, admissão, slots (12/12/8/6), deadline de 2 s, circuit breaker (SDD-001) | — |
+| `services/catalogo` | `Livro`: cadastro, consulta, filtro por categoria | `inko_catalogo` |
+| `services/usuarios` | `Usuario`: cadastro com matrícula única, consulta | `inko_usuarios` |
+| `services/circulacao` | `Emprestimo`: empréstimo, devolução, disponibilidade, ativos e atrasados | `inko_circulacao` |
+| `services/relatorios` | `Biblioteca`: multas e estatísticas com funções puras | — (consome os demais por HTTP) |
+
+Migrações Flyway versionadas em cada serviço (`src/main/resources/db/migration`) e seed determinístico idempotente em `db/seed`.
+
+## Funcionalidades concluídas
+
+- Cadastro e consulta de livros com identificador `INK-0000` único e filtro por categoria.
+- Cadastro e consulta de usuários com matrícula única e e-mail complementar.
+- Empréstimo com validação de livro e usuário, prazo padrão de 14 dias e bloqueio de empréstimo duplo (409), inclusive sob concorrência.
+- Devolução atômica, recusa de devolução repetida e histórico preservado.
+- Relatório de multas e estatísticas calculados pelo serviço Java, com data de referência configurável na tela.
+- Exportação CSV do relatório; histórico de empréstimos por usuário.
+
+## Limitações conhecidas
+
+- **Login demonstrativo**: qualquer e-mail válido com senha de 6+ caracteres abre uma sessão só no navegador. Não há autenticação nem autorização (RF-25). Execute apenas localmente.
+- "Enviar lembretes" é simulação identificada; não há envio de e-mail (RF-27).
+- Exclusão de obras não faz parte do contrato desta versão; o botão informa isso.
+- Capas são ilustrações CSS; o envio de capa é apenas visual.
+- Catálogo público (RF-20), filtros históricos (RF-24) e auditoria (RF-26) estão pendentes.
+- SonarCloud: o Quality Gate da `main` estava em ERROR (confiabilidade C e segurança B em código novo). As três ocorrências de confiabilidade foram corrigidas em `249cca0`, mas ainda falta uma nova análise. A de segurança (`python:S5332`, origem `http://` de loopback em `scripts/ops/measure-gateway.py`) precisa de revisão no próprio SonarCloud.
+- A primeira chamada a um serviço Java logo após subir os contêineres pode exceder o prazo de 2 s do Gateway (aquecimento da JVM); a seguinte responde normalmente.
+- Durante os testes, o frontend em modo `next dev` recarregou em ciclo uma vez e o problema não se repetiu; para a demonstração, prefira o frontend do Docker (ou `next build && next start`).
 
 ## Requisitos
 
 - Docker Engine / Docker Desktop com Compose v2
 - Docker executando containers Linux (no Windows, usar WSL2)
-- Para desenvolvimento fora de containers: Node.js 24 LTS, pnpm 10.15, Java 21, Maven 3.9, Python 3.13
+- Para desenvolvimento fora de containers: Node.js 24 LTS, pnpm 10.15, Java 21, Maven 3.9, Python 3.13 e uv
 
 ## Execução integrada
 
-Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-# Edite os valores de senha no arquivo .env antes de iniciar
- docker compose up --build -d
- docker compose ps
-```
-
-Linux/macOS:
-
 ```bash
-cp .env.example .env
-# Edite as senhas em .env
- docker compose up --build -d
- docker compose ps
+cp .env.example .env          # Windows PowerShell: Copy-Item .env.example .env
+docker compose up --build -d --wait
+docker compose ps
 ```
 
 Acesse:
 
-- Frontend: http://localhost:3000
-- Gateway e OpenAPI: http://localhost:8000/docs
-- Health Gateway: http://localhost:8000/health
+- Frontend: http://localhost:3000 (login demonstrativo: qualquer e-mail válido e senha com 6+ caracteres)
+- Gateway e OpenAPI: http://localhost:8000/docs (os contratos de negócio estão em `docs/contracts/openapi.yaml`)
 - Status dos serviços: http://localhost:8000/api/v1/system/status
-- Teste de proxy: http://localhost:8000/api/v1/catalogo/ping
+- Exemplo de contrato: http://localhost:8000/api/v1/relatorios/multas?referenceDate=2026-11-09
 - PostgreSQL local: 127.0.0.1:5432 (não exposto para outras máquinas)
 
-Portas dos microsserviços Java ficam restritas à rede interna do Docker.
+As portas dos microsserviços Java ficam restritas à rede interna do Docker. Portas do host configuráveis por `WEB_PORT`, `GATEWAY_PORT` e `POSTGRES_PORT`.
 
-Parar sem apagar dados:
+Parar sem apagar dados: `docker compose down`. Apagar também o volume do PostgreSQL (perda de todos os dados, inclusive cadastros feitos na apresentação): `docker compose down -v`.
 
-```bash
-docker compose down
-```
+A criação dos bancos e usuários ocorre **somente quando o volume do PostgreSQL é criado pela primeira vez**. As tabelas e o seed são aplicados pelo Flyway na inicialização dos serviços, de forma idempotente.
 
-Apagar também o volume PostgreSQL (perda de todos os dados):
+## Testes
 
 ```bash
-docker compose down -v
+mvn -B -ntp -f services/catalogo/pom.xml test
+mvn -B -ntp -f services/usuarios/pom.xml test
+mvn -B -ntp -f services/circulacao/pom.xml test
+mvn -B -ntp -f services/relatorios/pom.xml test
+
+cd apps/gateway
+uv sync --locked --extra test --no-build --no-install-project
+.venv/bin/python -m pytest -q        # Windows: .venv\Scripts\python -m pytest -q
+cd ../..
+
+pnpm install --frozen-lockfile
+pnpm --filter @inko/web typecheck
+pnpm --filter @inko/web test
+pnpm --filter @inko/web build
+pnpm tokens:check
+
+# Com o Compose em execução:
+bash scripts/ci/smoke-compose.sh
+python scripts/ci/e2e-academic-flow.py http://127.0.0.1:8000
 ```
 
-A inicialização dos bancos ocorre **somente quando o volume do PostgreSQL é criado pela primeira vez**. Alterar credenciais posteriormente exige migração manual ou reinicialização do volume em ambiente de desenvolvimento.
+`e2e-academic-flow.py` executa o fluxo obrigatório contra o PostgreSQL real: cadastro de livro e usuário, disponibilidade, empréstimo,
+duas requisições simultâneas (um 201 e um 409), devolução, devolução repetida, histórico e relatórios com data de referência fixa.
+
+## Evidências de programação funcional
+
+| Conceito | Onde |
+| --- | --- |
+| Funções puras | `services/relatorios/.../biblioteca/FuncoesBiblioteca.java`, `services/catalogo/.../livro/CatalogoFuncoes.java`, `services/circulacao/.../emprestimo/CirculacaoFuncoes.java` |
+| `filter → map → reduce` | `gerarRelatorioMultas` + `totalizarMultas` |
+| Segundo `reduce` | `somarDiasDeAtraso`, `contarEmprestimosAtivos` |
+| Imperativo × funcional | `calcularTotalDeMultasImperativo` × `calcularTotalDeMultas` (teste de equivalência) |
+| Imutabilidade | records, `List.copyOf` em `Biblioteca`, testes de entrada inalterada |
 
 ## Organização
 
 ```text
-inko-monorepo-starter/
-├── apps/
-│   ├── web/                 Next.js 16 + TypeScript
-│   └── gateway/             FastAPI + httpx
-├── services/
-│   ├── catalogo/            Spring Boot 4 + JDBC
-│   ├── usuarios/            Spring Boot 4 + JDBC
-│   ├── circulacao/          Spring Boot 4 + JDBC
-│   └── relatorios/          Spring Boot 4, sem DB próprio
-├── packages/design-tokens/  Tokens do Claude com aliases do Figma
-├── infra/
-│   ├── docker/
-│   └── postgres/init/
-├── docs/architecture/
-├── docs/contracts/
-├── .github/workflows/
-├── compose.yaml
-├── pnpm-workspace.yaml
-└── package.json
+apps/web/                 Next.js 16 + TypeScript (Design System INKO, BFF)
+apps/gateway/             FastAPI + httpx (SDD-001)
+services/{catalogo,usuarios,circulacao,relatorios}/   Spring Boot 4 + Java 21
+packages/design-tokens/   Tokens do Design System
+infra/                    Docker, PostgreSQL, observabilidade, Caddy, Ansible
+docs/                     academic, architecture, contracts, design, devops
+scripts/ci/               smoke do Compose e fluxo acadêmico integrado
 ```
 
-## Testes locais
+## Design System
 
-```bash
-python -m pip install -e './apps/gateway[test]'
-python -m pytest -q apps/gateway/tests
-
-cd services/catalogo
-mvn test
-
-cd ../..
-npm install -g pnpm@10.15.0
-pnpm install
-pnpm --filter @inko/web test
-pnpm --filter @inko/web typecheck
-```
-
-Testes Maven devem ser repetidos em cada um dos quatro serviços. O GitHub Actions configura uma matrix para executar os quatro.
+Fonte de verdade em `packages/design-tokens/inko.tokens.json`, CSS gerado em `apps/web/app/inko-tokens.css` (`pnpm tokens:build` / `pnpm tokens:check`),
+motions em `apps/web/app/inko-motion.css`. Documentação viva em `/design-system`; handoff em `docs/design/CLAUDE-HANDOFF.md`.
 
 ## Padrões de arquitetura
 
-- Frontend comunica-se com o Gateway; domínio reside nos microsserviços Java.
-- Bancos separados na mesma instância PostgreSQL: inko_catalogo, inko_usuarios, inko_circulacao.
-- Gateway usa nomes de serviços da rede Compose: catalogo, usuarios, circulacao, relatorios.
-- Relatórios receberá dados via API e aplicará funções puras, imutabilidade, map/filter/reduce.
-- Código-fonte sem comentários, conforme enunciado da disciplina.
-- `Biblioteca`, `Livro`, `Usuario` e `Emprestimo` serão modeladas na implementação efetiva.
-- Não usar ORM ou tabelas compartilhadas entre serviços.
-
-## Próximos passos
-
-1. Manter `pnpm-lock.yaml` versionado e instalar dependências com `pnpm install --frozen-lockfile`.
-2. Revisar o Design System no Figma e exportar tokens/assets originais.
-3. Definir os contratos OpenAPI antes dos recursos de negócio.
-4. Criar migrations versionadas nos serviços proprietários dos dados.
-5. Implementar RF-01 a RF-18 com testes e documentação conforme o enunciado.
+- O frontend fala apenas com a própria origem; o BFF repassa ao Gateway, e o domínio reside nos serviços Java.
+- Bancos separados na mesma instância PostgreSQL, sem chaves estrangeiras entre bancos; referências por identificador validadas por HTTP.
+- Sem ORM nem tabelas compartilhadas: Spring JDBC com SQL explícito.
+- Código Java de implementação sem comentários, conforme o enunciado da disciplina.
 
 ## Cuidado
 
-As senhas de `.env.example` são **apenas exemplos para desenvolvimento local**. Trocar antes de usar. Não publicar `.env`, segredos ou credenciais reais no GitHub.
-
+As senhas de `.env.example` são **apenas exemplos para desenvolvimento local**. Não publicar `.env`, segredos ou credenciais reais no GitHub.
 
 ## Motion Lab (Claude Design source)
 
@@ -142,19 +151,11 @@ O pacote-fonte `INKO-Design-System-Figma.zip` foi auditado. A versão `v0.3` inc
 
 O monorepo utiliza pnpm 10.15.0 com `pnpm-lock.yaml` versionado. O CI e a imagem Docker do frontend devem instalar exatamente as versões resolvidas, com `--frozen-lockfile`. Novas dependências devem atualizar `package.json` e o lockfile no mesmo Pull Request.
 
-Os assets originais estão em `apps/web/public/inko`. O CSS gerado de `packages/design-tokens/inko.tokens.json` e os motions do Claude estão em `apps/web/app`. A rota `/motion-lab` permanece disponível para demonstrar os efeitos; a home visual começou a ser portada do Figma. O conteúdo demonstrativo não é dado persistido.
+Os assets originais estão em `apps/web/public/inko`. O CSS gerado de `packages/design-tokens/inko.tokens.json` e os motions do Claude estão em `apps/web/app`. A rota `/motion-lab` permanece disponível para demonstrar os efeitos.
 
-## Frontend · Sprint 00
+## Frontend
 
-A rota `/` contém o Dashboard visual inicial com o logotipo e os elementos gráficos originais do INKO. Os indicadores e movimentos apresentados são **dados fictícios** de demonstração; o fluxo de catálogo, circulação, usuários e relatórios ainda não está integrado.
-
-- `/`: Dashboard responsivo inspirado no Figma (ainda sujeito a revisão visual).
-- `/motion-lab`: demonstração dos motions originais.
-- `/system/status`: diagnóstico técnico dos microsserviços, preservado da home anterior.
-
-O frontend usa os design tokens semânticos gerados a partir de `packages/design-tokens/inko.tokens.json`. Módulos ainda não implementados são exibidos como indisponíveis e não direcionam a rotas inexistentes.
-
-O layout foi estruturado com componentes React sem compartilhar lógica de negócios entre a interface e os microsserviços. Funcionalidades dos RFs serão implementadas incrementalmente.
+As telas operacionais (`/`, `/acervo`, `/usuarios`, `/emprestimos`, `/devolucoes`, `/relatorios`) leem e gravam pelos serviços reais, via `lib/library-api.ts` e o BFF `app/api/v1/[...path]/route.ts`. As páginas `/design-system` e `/landing` usam a amostra estática de `lib/demo.ts` apenas como documentação visual. `/motion-lab` e `/system/status` são diagnósticos.
 
 
 ## Assets estáticos no Docker

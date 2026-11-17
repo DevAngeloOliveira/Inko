@@ -1,9 +1,10 @@
 /**
  * Dados e regras demonstrativas do INKO.
  *
- * Este módulo é a semente (seed) do mock: obras, usuários e empréstimos
- * fictícios extraídos das pranchas do Design System, mais as regras puras
- * de prazo e multa. O estado mutável vive em `lib/mock-api.ts`.
+ * Tipos e regras puras de prazo e multa usados pela interface, mais a amostra
+ * fictícia das pranchas do Design System. A amostra serve só às páginas de
+ * documentação (/design-system e /landing); as telas operacionais leem os dados
+ * persistidos por meio de `lib/library-api.ts`.
  */
 
 export type Availability = 'disp' | 'emp' | 'atr';
@@ -23,11 +24,16 @@ export interface Work {
   publisher?: string;
   originalTitle?: string;
   synopsis?: string;
+  /** Gêneros editoriais (não confundir com a categoria acadêmica). */
+  genres?: readonly string[];
 }
 
 export interface LibraryUser {
   id: string;
   name: string;
+  /** Matrícula acadêmica, única por usuário. */
+  registration: string;
+  /** Contato complementar; pode ficar vazio. */
   email: string;
   since: string;
 }
@@ -66,14 +72,14 @@ export const works: readonly Work[] = [
 ];
 
 export const libraryUsers: readonly LibraryUser[] = [
-  { id: 'USR-0142', name: 'Rafael Moura', email: 'rafael.moura@exemplo.com', since: '2025-03-14' },
-  { id: 'USR-0087', name: 'Beatriz Moraes', email: 'bia.moraes@exemplo.com', since: '2024-11-02' },
-  { id: 'USR-0203', name: 'Lia Sato', email: 'lia.sato@exemplo.com', since: '2025-08-21' },
-  { id: 'USR-0031', name: 'Lucas Almeida', email: 'lucas.almeida@exemplo.com', since: '2024-05-09' },
-  { id: 'USR-0110', name: 'Davi Nogueira', email: 'davi.n@exemplo.com', since: '2025-01-27' },
-  { id: 'USR-0175', name: 'Helena Vaz', email: 'helena.vaz@exemplo.com', since: '2025-06-03' },
-  { id: 'USR-0218', name: 'Paulo Ikeda', email: 'paulo.ikeda@exemplo.com', since: '2026-02-11' },
-  { id: 'USR-0226', name: 'Marina Lopes', email: 'marina.lopes@exemplo.com', since: '2026-04-30' },
+  { id: 'USR-0142', registration: '2025014', name: 'Rafael Moura', email: 'rafael.moura@exemplo.com', since: '2025-03-14' },
+  { id: 'USR-0087', registration: '2024087', name: 'Beatriz Moraes', email: 'bia.moraes@exemplo.com', since: '2024-11-02' },
+  { id: 'USR-0203', registration: '2025203', name: 'Lia Sato', email: 'lia.sato@exemplo.com', since: '2025-08-21' },
+  { id: 'USR-0031', registration: '2024031', name: 'Lucas Almeida', email: 'lucas.almeida@exemplo.com', since: '2024-05-09' },
+  { id: 'USR-0110', registration: '2025110', name: 'Davi Nogueira', email: 'davi.n@exemplo.com', since: '2025-01-27' },
+  { id: 'USR-0175', registration: '2025175', name: 'Helena Vaz', email: 'helena.vaz@exemplo.com', since: '2025-06-03' },
+  { id: 'USR-0218', registration: '2026218', name: 'Paulo Ikeda', email: 'paulo.ikeda@exemplo.com', since: '2026-02-11' },
+  { id: 'USR-0226', registration: '2026226', name: 'Marina Lopes', email: 'marina.lopes@exemplo.com', since: '2026-04-30' },
 ];
 
 export const loans: readonly Loan[] = [

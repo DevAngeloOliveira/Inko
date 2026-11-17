@@ -1,6 +1,10 @@
 """Fluxo acadêmico obrigatório do INKO contra o Gateway real (Compose + PostgreSQL).
 
-Uso: python scripts/ci/e2e-academic-flow.py [URL_DO_GATEWAY]
+Uso: python scripts/ci/e2e-academic-flow.py [URL_DO_GATEWAY] [--warmup]
+
+Antes das verificações, aquece cada serviço Java com leituras e requisições inválidas
+(respostas 4xx, sem gravar nada): a primeira chamada de uma JVM recém-iniciada pode
+passar do prazo de 2 s do Gateway. Com --warmup, só aquece e encerra.
 """
 import json
 import sys
@@ -8,8 +12,19 @@ import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
 
-BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000").rstrip("/")
+ARGS = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
+BASE = (ARGS[0] if ARGS else "http://127.0.0.1:8000").rstrip("/")
+WARMUP = [
+    ("GET", "/api/v1/livros", None), ("GET", "/api/v1/usuarios", None), ("GET", "/api/v1/emprestimos", None),
+    ("GET", "/api/v1/emprestimos/ativos", None), ("GET", "/api/v1/livros/INK-0001/disponibilidade", None),
+    ("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-09", None),
+    ("GET", "/api/v1/relatorios/estatisticas?referenceDate=2026-11-09", None),
+    ("POST", "/api/v1/livros", {"id": "INVALIDO"}), ("POST", "/api/v1/usuarios", {"nome": ""}),
+    ("POST", "/api/v1/emprestimos", {"livroId": "INK-0000", "usuarioId": "USR-0000"}),
+    ("POST", "/api/v1/emprestimos/EMP-0/devolucao", {}),
+]
 REFERENCIA = "2026-11-09"
 STEPS = []
 
@@ -27,11 +42,31 @@ def call(method, path, body=None):
         return error.code, json.loads(payload) if payload else None
 
 
+def cents(value):
+    return int(Decimal(str(value)) * 100)
+
+
 def step(name, condition, detail=""):
     STEPS.append((name, condition))
     print(("PASS " if condition else "FAIL ") + name + (f" — {detail}" if detail and not condition else ""))
     if not condition:
         raise SystemExit(1)
+
+
+def warm_up(timeout=90):
+    deadline = time.monotonic() + timeout
+    for method, path, body in WARMUP:
+        while True:
+            try:
+                status, _ = call(method, path, body)
+            except OSError:
+                status = 0
+            if 0 < status < 500:
+                break
+            if time.monotonic() > deadline:
+                raise SystemExit(f"Serviços não responderam a tempo: {method} {path} → {status}")
+            time.sleep(1)
+    print(f"Serviços aquecidos ({len(WARMUP)} rotas).")
 
 
 def free_book_id():
@@ -43,6 +78,9 @@ def free_book_id():
 
 
 def main():
+    warm_up()
+    if "--warmup" in sys.argv:
+        return
     suffix = str(int(time.time()))[-6:]
     book_id = free_book_id()
 
@@ -76,10 +114,12 @@ def main():
     statuses = sorted(status for status, _ in results)
     step("Caso B concorrência: um 201 e um 409", statuses == [201, 409], f"{results}")
     loan = next(payload for status, payload in results if status == 201)
+    winner = loan["usuarioId"]
+    loser = other["id"] if winner == reader["id"] else reader["id"]
 
     status, availability = call("GET", f"/api/v1/livros/{book_id}/disponibilidade")
     step("RF-06 livro indisponível após empréstimo", availability["disponivel"] is False and availability["emprestimoId"] == loan["id"])
-    status, problem = call("POST", "/api/v1/emprestimos", {**loan_body, "usuarioId": reader["id"]})
+    status, problem = call("POST", "/api/v1/emprestimos", {**loan_body, "usuarioId": loser})
     step("RF-07 segundo empréstimo do mesmo livro (409)", status == 409 and problem["code"] == "BOOK_UNAVAILABLE", f"{status} {problem}")
     step("RF-07 livro inexistente (422)", call("POST", "/api/v1/emprestimos", {**loan_body, "livroId": "INK-0000", "usuarioId": reader["id"]})[0] == 422)
     step("RF-07 prazo inválido (422)", call("POST", "/api/v1/emprestimos", {**loan_body, "dataPrevista": REFERENCIA, "usuarioId": reader["id"]})[0] == 422)
@@ -93,7 +133,7 @@ def main():
 
     status, report_before = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
     item = next((row for row in report_before["itens"] if row["emprestimoId"] == loan["id"]), None)
-    step("RF-12/13 multa de 3 dias = R$ 6,00 no relatório", item is not None and item["diasAtraso"] == 3 and item["valor"] == 6.0, f"{item}")
+    step("RF-12/13 multa de 3 dias = R$ 6,00 no relatório", item is not None and item["diasAtraso"] == 3 and cents(item["valor"]) == 600, f"{item}")
 
     status, returned = call("POST", f"/api/v1/emprestimos/{loan['id']}/devolucao", {"dataDevolucao": "2026-11-20"})
     step("RF-09 registrar devolução (200)", status == 200 and returned["dataDevolucao"] == "2026-11-20", f"{status} {returned}")
@@ -101,17 +141,17 @@ def main():
     step("Caso D histórico preservado", call("GET", f"/api/v1/emprestimos/{loan['id']}")[1]["dataDevolucao"] == "2026-11-20")
     status, availability = call("GET", f"/api/v1/livros/{book_id}/disponibilidade")
     step("Caso C disponibilidade restaurada", availability["disponivel"] is True)
-    status, second = call("POST", "/api/v1/emprestimos", {**loan_body, "dataEmprestimo": "2026-11-20", "dataPrevista": "2026-12-04", "usuarioId": other["id"]})
+    status, second = call("POST", "/api/v1/emprestimos", {**loan_body, "dataEmprestimo": "2026-11-20", "dataPrevista": "2026-12-04", "usuarioId": loser})
     step("Caso C outro usuário pode emprestar", status == 201, f"{status} {second}")
 
-    status, history = call("GET", f"/api/v1/emprestimos?usuarioId={reader['id']}")
+    status, history = call("GET", f"/api/v1/emprestimos?usuarioId={winner}")
     step("RF-08/RF-21 histórico do usuário", [row["id"] for row in history] == [loan["id"]])
     status, report_after = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
     step("RF-13 devolvido sai do relatório", all(row["emprestimoId"] != loan["id"] for row in report_after["itens"]))
     status, fines = call("GET", f"/api/v1/relatorios/multas?referenceDate={REFERENCIA}")
-    step("RF-18 total consistente com itens", round(sum(row["valor"] for row in fines["itens"]), 2) == fines["total"])
+    step("RF-18 total consistente com itens", sum(cents(row["valor"]) for row in fines["itens"]) == cents(fines["total"]))
     status, stats = call("GET", f"/api/v1/relatorios/estatisticas?referenceDate={REFERENCIA}")
-    step("RF-14..17 estatísticas", status == 200 and stats["totalMultas"] == fines["total"]
+    step("RF-14..17 estatísticas", status == 200 and cents(stats["totalMultas"]) == cents(fines["total"])
          and stats["emprestimosAtrasados"] == fines["quantidade"] and sum(stats["livrosPorCategoria"].values()) == stats["totalLivros"])
     step("Gateway recusa parâmetro não permitido (400)", call("GET", "/api/v1/livros?destino=x")[0] == 400)
 

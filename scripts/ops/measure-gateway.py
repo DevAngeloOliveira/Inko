@@ -365,15 +365,14 @@ async def measure(args, target):
                 stats.scheduled += 1
                 if lag > MAX_LAG:
                     stats.drops["scheduler_lag"] += 1
-                    continue
-                if len(pending) >= MAX_PENDING:
+                elif len(pending) >= MAX_PENDING:
                     stats.drops["pending_cap"] += 1
-                    continue
-                task = tasks.create_task(send_ping(service, due))
-                pending.add(task)
-                pending_peak = max(pending_peak, len(pending))
-                task.add_done_callback(pending.discard)
-                stats.sent += 1
+                else:
+                    task = tasks.create_task(send_ping(service, due))
+                    pending.add(task)
+                    pending_peak = max(pending_peak, len(pending))
+                    task.add_done_callback(pending.discard)
+                    stats.sent += 1
         await asyncio.sleep(args.cooldown)
         after = await sample(monitoring)
         try:

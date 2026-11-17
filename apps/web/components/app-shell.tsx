@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEMO_REFERENCE_DATE, activeLateLoans, availabilityOf, normalize, workLabel } from '../lib/demo';
-import { buildNotifications, markNotificationsRead, resetDemoData, signOut, useLibrary, type LibraryState, type Session } from '../lib/mock-api';
+import { buildNotifications, markNotificationsRead, refreshLibrary, signOut, useLibrary, type LibraryState, type Session } from '../lib/library-api';
 import { Icon, type IconName } from './icon';
 import { useDismiss, useToast } from './inko-interactions';
-import { Avatar, Breadcrumb, SeigaihaBand } from './inko-kit';
+import { Avatar, Breadcrumb, InkoErrorState, SeigaihaBand } from './inko-kit';
 
 interface NavigationItem {
   href: string;
@@ -135,10 +135,10 @@ function UserMenu({ session, onSignOut }: Readonly<{ session: Session; onSignOut
   const ref = useDismiss<HTMLDivElement>(open, () => setOpen(false));
   const toast = useToast();
 
-  function restore() {
-    resetDemoData();
+  async function reload() {
     setOpen(false);
-    toast({ title: 'Dados demonstrativos restaurados', text: 'Obras, usuários e empréstimos voltaram ao estado inicial.' });
+    await refreshLibrary();
+    toast({ title: 'Dados atualizados', text: 'Obras, usuários e empréstimos foram relidos dos serviços.' });
   }
 
   return <div className="inko-popover-anchor" ref={ref}>
@@ -148,7 +148,7 @@ function UserMenu({ session, onSignOut }: Readonly<{ session: Session; onSignOut
     {open && <div role="menu" className="inko-popover inko-popover--menu inko-motion-pop">
       <Link role="menuitem" href="/usuarios" className="inko-menu-item" onClick={() => setOpen(false)}><Icon name="usuario" size={16}/>Meu perfil</Link>
       <Link role="menuitem" href="/design-system" className="inko-menu-item" onClick={() => setOpen(false)}><Icon name="configuracoes" size={16}/>Design System</Link>
-      <button role="menuitem" type="button" className="inko-menu-item" onClick={restore}><Icon name="atualizar" size={16}/>Restaurar dados demo</button>
+      <button role="menuitem" type="button" className="inko-menu-item" onClick={() => void reload()}><Icon name="atualizar" size={16}/>Recarregar dados</button>
       <hr/>
       <button role="menuitem" type="button" className="inko-menu-item inko-menu-item--danger" onClick={onSignOut}><Icon name="sair" size={16}/>Sair</button>
     </div>}
@@ -197,7 +197,7 @@ export interface Crumb {
 /**
  * Moldura das telas autenticadas: sidebar (248 px ≥ 1024, rail 72 px em tablet,
  * drawer abaixo de 768), topbar com busca global ou breadcrumb, avisos e menu do usuário.
- * Sem sessão mockada, redireciona para `/login`.
+ * Sem sessão demonstrativa, redireciona para `/login`; se os serviços falharem, mostra o erro em vez de dados.
  */
 export function AppShell({ children, breadcrumb }: Readonly<{ children: ReactNode; breadcrumb?: readonly Crumb[] }>) {
   const pathname = usePathname();
@@ -229,7 +229,9 @@ export function AppShell({ children, breadcrumb }: Readonly<{ children: ReactNod
         {session && <div className="inko-app-user"><Notifications library={library}/><UserMenu session={session} onSignOut={handleSignOut}/></div>}
       </header>
       <main className="inko-app-content">
-        {session ? children : <output className="inko-app-loading" aria-label="Carregando"><Icon name="carregando" size={24} className="inko-motion-spin"/></output>}
+        {session && library.status === 'error' && <InkoErrorState title="Serviços indisponíveis" text={library.error ?? 'Não foi possível carregar os dados da biblioteca.'} onRetry={() => void refreshLibrary()}/>}
+        {session && ready && library.status !== 'error' && children}
+        {(!session || !ready) && <output className="inko-app-loading" aria-label="Carregando"><Icon name="carregando" size={24} className="inko-motion-spin"/></output>}
       </main>
     </div>
     {session && <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} pathname={pathname} lateCount={lateCount} session={session} onSignOut={handleSignOut}/>}

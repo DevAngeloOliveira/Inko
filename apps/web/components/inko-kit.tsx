@@ -156,7 +156,7 @@ export function DemoTag({ children = 'Dados demonstrativos' }: Readonly<{ childr
 }
 
 export function DemoNotice({ children }: Readonly<{ children?: ReactNode }>) {
-  return <output className="inko-demo-notice"><Icon name="info" size={18}/><span><strong>Ambiente demonstrativo. </strong>{children ?? 'Os dados são fictícios e as operações ficam apenas neste navegador, até a integração com o backend.'}</span></output>;
+  return <output className="inko-demo-notice"><Icon name="info" size={18}/><span><strong>Ambiente demonstrativo. </strong>{children ?? 'Ambiente local de demonstração acadêmica.'}</span></output>;
 }
 
 export function Avatar({ name, size = 32, tone = 'ink' }: Readonly<{ name: string; size?: number; tone?: 'ink' | 'paper' | 'sand' }>) {

@@ -1,7 +1,7 @@
 /* Novo empréstimo — stepper, cartão do passo, navegação e resumo lateral. */
 
 /* Stepper */
-.stepper { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr)); gap: var(--inko-spacing-2); margin: 0; padding: 0; list-style: none; max-width: 1080px; }
+.stepper { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr)); gap: var(--inko-spacing-2); margin: 0; padding: 0; list-style: none; }
 .step { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid transparent; border-radius: 10px; color: var(--inko-text-secondary); }
 .stepDot { display: flex; align-items: center; justify-content: center; flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--inko-background-subtle); color: var(--inko-neutral-brown); font: 700 12px/1 var(--inko-font-display); }
 .stepLabel { font: 600 13px/18px var(--inko-font-body); }
@@ -12,7 +12,7 @@
 .mobileStep { margin: 0; font: 500 12px/16px var(--inko-font-body); color: var(--inko-text-secondary); }
 
 /* Estrutura */
-.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--inko-spacing-6); align-items: start; max-width: 1080px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--inko-spacing-6); align-items: start; }
 .main { display: flex; flex-direction: column; gap: var(--inko-spacing-6); min-width: 0; }
 .card { display: flex; flex-direction: column; gap: 18px; min-height: 380px; padding: var(--inko-spacing-6); border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-lg); background: var(--inko-surface-default); }
 .card h2 { margin: 0; font: 600 20px/28px var(--inko-font-display); }

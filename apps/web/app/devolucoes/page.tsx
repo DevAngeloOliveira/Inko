@@ -7,7 +7,7 @@ import { Icon } from '../../components/icon';
 import { useToast } from '../../components/inko-interactions';
 import { InkoBadge, InkoButton, InkoEmpty, InkoInput, InkoLinkButton, InkoSearch, InkoStatus, PageHeading } from '../../components/inko-kit';
 import { DEMO_REFERENCE_DATE, daysBetween, daysOverdue, fineInCents, formatBRL, formatDate, normalize, parseBRDate, type Loan } from '../../lib/demo';
-import { MockApiError, returnLoan, useLibrary, type ReturnReceipt } from '../../lib/mock-api';
+import { ApiError, returnLoan, useLibrary, type ReturnReceipt } from '../../lib/library-api';
 import styles from './devolucoes.module.css';
 
 const BREADCRUMB = [{ label: 'Início', href: '/' }, { label: 'Registrar devolução' }] as const;
@@ -82,7 +82,7 @@ function ReturnForm({ loan, onDone }: Readonly<{ loan: Loan; onDone: (done: Done
       onDone({ receipt, previousLate: daysOverdue(loan.due, DEMO_REFERENCE_DATE) });
     } catch (failure) {
       setSaving(false);
-      setApiError(failure instanceof MockApiError ? failure.message : 'Não foi possível registrar a devolução.');
+      setApiError(failure instanceof ApiError ? failure.message : 'Não foi possível registrar a devolução.');
     }
   }
 
@@ -177,7 +177,7 @@ function ReturnsContent() {
     <div className={styles.layout}>
       <section className={styles.list} aria-label="Empréstimos ativos">
         <InkoSearch label="Buscar empréstimo ativo por obra, usuário ou código" placeholder="Obra, usuário ou código EMP-…" value={query} onChange={event => setQuery(event.target.value)} className={styles.search}/>
-        <output className={styles.count}>{countLabel(filtered.length, active.length, term !== '')} · dados demonstrativos</output>
+        <output className={styles.count}>{countLabel(filtered.length, active.length, term !== '')} · dados do serviço de Circulação</output>
         {filtered.length > 0 && <div role="radiogroup" tabIndex={-1} aria-label="Empréstimo" className="inko-choice-list" onKeyDown={onRadioKeyDown}>
           {filtered.map((loan, index) => {
             const checked = loan.id === selectedId;

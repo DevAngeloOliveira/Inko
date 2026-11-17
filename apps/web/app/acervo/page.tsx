@@ -9,7 +9,7 @@ import { useMockQuery, useToast } from '../../components/inko-interactions';
 import { InkoButton, InkoCover, InkoEmpty, InkoLinkButton, InkoSearch, InkoSegmented, InkoStatus, MangaCard, PageHeading } from '../../components/inko-kit';
 import { Pagination } from '../../components/inko-patterns';
 import { CATEGORIES, DEMO_REFERENCE_DATE, availabilityOf, normalize, workLabel, type Availability, type Category, type Work } from '../../lib/demo';
-import { useLibrary } from '../../lib/mock-api';
+import { useLibrary } from '../../lib/library-api';
 import styles from './acervo.module.css';
 
 const PAGE_SIZE = 8;
@@ -153,7 +153,7 @@ function Catalog() {
   }
 
   return <>
-    <PageHeading title="Acervo" description={`${countLabel(library.works.length)} · capas e dados demonstrativos`} action={<>
+    <PageHeading title="Acervo" description={`${countLabel(library.works.length)} · capas ilustrativas · dados do serviço de Catálogo`} action={<>
       <InkoButton variant="outline" leftIcon="download" className="inko-only-desktop" disabled={busy || rows.length === 0} onClick={handleExport}>Exportar</InkoButton>
       <InkoLinkButton href="/acervo/novo" leftIcon="mais">Cadastrar obra</InkoLinkButton>
     </>}/>
