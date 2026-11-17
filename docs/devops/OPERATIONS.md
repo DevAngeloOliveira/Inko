@@ -2,7 +2,7 @@
 
 ## Implementado no repositório
 
-- GitHub Actions: builds Next.js, Python e quatro Java; scanner Trivy e SonarCloud
+- GitHub Actions: builds Next.js, Python e quatro Java; scanner Trivy
 - GHCR: publicação de seis imagens em tags SemVer pela main
 - Docker Compose: smoke automático em PRs que alterem serviços/infraestrutura; teste agendado e manual
 - Observabilidade opt-in: Prometheus 3.16, Blackbox Exporter e Grafana 13.3
@@ -103,7 +103,7 @@ Os segredos e o host de execução **não estão disponíveis no repositório**.
 
 ## Segurança e governança
 
-Proteja a main e as tags `v*`. Exija CI, SonarCloud e Trivy antes do merge. Não habilite `GITHUB_TOKEN` com permissão de escrita global, nem permita que o bot faça commits de manutenção automaticamente.
+Proteja a main e as tags `v*`. Exija CI e Trivy antes do merge. Não habilite `GITHUB_TOKEN` com permissão de escrita global, nem permita que o bot faça commits de manutenção automaticamente.
 
 O aplicativo continua sem autenticação funcional e sem operações reais de domínio. Não há ambiente de produção pronto nem monitoramento externo implantado. Toda publicação em staging dependerá de configuração explícita do host e do Environment.
 

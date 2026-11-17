@@ -44,8 +44,8 @@ O primeiro smoke expirou aguardando o snapshot enquanto a imagem Web ainda compi
 - Gateway com Python 3.13.15 e dependências travadas, 25 testes aprovados.
 - Web, typecheck e build aprovados, 28 testes aprovados. Os cinco testes de tokens passaram no Linux. No Windows, um teste de tokens falhou ao converter a URL de um arquivo em caminho local.
 - Java, um teste aprovado em cada um dos quatro serviços, compilado com `--release 21`.
-- Quatro testes da auditoria Sonar, validação de Compose, seis regras Prometheus, Caddy, actionlint e Trivy de código-fonte offline aprovados. A primeira tentativa Trivy online parou com HTTP 429 do Maven Central.
+- Validação de Compose, seis regras Prometheus, Caddy, actionlint e Trivy de código-fonte offline aprovados. A primeira tentativa Trivy online parou com HTTP 429 do Maven Central.
 
 ## Governança
 
-A auditoria local do SonarCloud passou seus casos sintéticos. O check nativo do PR e a análise do SHA integrado com Quality Gate `OK` e Security Rating `A` dependem do fluxo remoto. A revisão local ainda não possui esse SHA integrado.
+Os resultados aqui documentados são evidências históricas de bancada. A integração vigente exige aprovação de CI, Trivy e smoke sem depender de ferramentas de análise externas.

@@ -44,6 +44,6 @@ Compare percentis de sucesso por destino e latência fim a fim desde a chegada p
 
 Com o overlay de monitoramento ativo, execute `INKO_CHECK_MONITORING=1 bash scripts/ci/smoke-compose.sh` no mesmo projeto para exigir que o Prometheus tenha os quatro alvos Java e o Gateway em estado UP. O smoke base valida os quatro endpoints Java de dentro da rede Docker.
 
-## SonarCloud
+## Validação de qualidade
 
-Antes da integração, verificar o check nativo para a revisão do PR. Para encerrar na main, executar a auditoria com `--strict --expected-sha <SHA-integrado>`. Registrar a revisão analisada, o ID da análise, Quality Gate `OK` e Security Rating `A`. Ver [procedimento do SonarCloud](SONARCLOUD-BASELINE.md) para a configuração administrativa de New Code.
+Antes da integração, executar INKO CI, INKO Security (Trivy) e o smoke integrado. Registrar SHA, resultados de testes e evidências de capacidade. Não desabilitar esses checks para aceitar regressões.

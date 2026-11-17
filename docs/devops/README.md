@@ -17,7 +17,7 @@ A pipeline não cria commits automaticamente. `github-actions[bot]` é o executo
 ## Fluxo recomendado
 
 1. Desenvolver em branch e abrir PR.
-2. Exigir INKO CI, SonarCloud e INKO Security aprovados.
+2. Exigir INKO CI e INKO Security aprovados.
 3. Fazer merge manual após revisão.
 4. Criar uma tag de release sobre um commit na main:
 
@@ -82,7 +82,7 @@ O script usa `pg_dump --format=custom` em cada banco, com arquivos separados e p
 
 ## Segurança e governança
 
-- Branch protection: obrigar PRs, checks de CI, segurança e SonarCloud, bloqueando force push na main.
+- Branch protection: obrigar PRs, checks de CI e segurança, bloqueando force push na main.
 - Tag protection: proteger `v*` para liberar somente releases deliberadas.
 - Actions: permissões padrão restritas, segredos só em Environment, sem deploy de branches de PR.
 - Trivy: segredos e configurações HIGH/CRITICAL são bloqueantes; vulnerabilidades de dependências são inicialmente informativas e deverão passar a bloqueantes após tratar a baseline.

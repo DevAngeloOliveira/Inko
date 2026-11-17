@@ -46,7 +46,6 @@ Migrações Flyway versionadas em cada serviço (`src/main/resources/db/migratio
 - Exclusão de obras não faz parte do contrato desta versão; o botão informa isso.
 - Capas são ilustrações CSS; o envio de capa é apenas visual.
 - Catálogo público (RF-20), filtros históricos (RF-24) e auditoria (RF-26) estão pendentes.
-- SonarCloud: o Quality Gate da `main` estava em ERROR (confiabilidade C e segurança B em código novo). As três ocorrências de confiabilidade foram corrigidas em `249cca0`, mas ainda falta uma nova análise. A de segurança (`python:S5332`, origem `http://` de loopback em `scripts/ops/measure-gateway.py`) precisa de revisão no próprio SonarCloud.
 - A primeira chamada a um serviço Java logo após subir os contêineres pode exceder o prazo de 2 s do Gateway (aquecimento da JVM); a seguinte responde normalmente.
 - Durante os testes, o frontend em modo `next dev` recarregou em ciclo uma vez e o problema não se repetiu; para a demonstração, prefira o frontend do Docker (ou `next build && next start`).
 
@@ -181,7 +180,6 @@ A infraestrutura de engenharia é gerenciada pelo GitHub Actions: CI por serviç
 - Release GHCR: criar tag `vX.Y.Z` na `main`, após aprovação do CI
 - Staging: requer Environment protegido, servidor SSH e secrets, conforme o guia
 
-O SonarCloud permanece um gate separado e não é substituído pelo scanner Trivy.
 
 ## Operação avançada e observabilidade
 

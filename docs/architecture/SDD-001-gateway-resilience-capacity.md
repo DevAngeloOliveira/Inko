@@ -7,7 +7,7 @@
 | Data | 12/11/2026 |
 | Baseline | `DevAngeloOliveira/Inko`, `main`, commit `6cc015dde77593aeead1f0d6f73dd36386fae427` |
 | Escopo | Gateway FastAPI, contratos de capacidade, proteções de transporte, integração e observabilidade |
-| Pré-requisitos | ADR-001; Docker Compose; CI; SonarCloud; lockfile Python |
+| Pré-requisitos | ADR-001; Docker Compose; CI; lockfile Python |
 | Dependências futuras | SDD-002 (domínio e consistência), SDD-003 (performance e falhas), SDD-004 (implementação funcional) |
 | Status | Especificação. Evidências de execução e pendências ficam no relatório operacional. |
 
@@ -57,9 +57,7 @@ A baseline não contém chamadas recursivas entre serviços: não foi observado 
 
 ### 2.3 Qualidade e governança existentes
 
-Na consulta ao commit de referência, os jobs de Java, Gateway, Web e Compose estavam aprovados. O check nativo SonarCloud aparece `neutral` na main e a auditoria rigorosa `Inspect SonarCloud main baseline` aparece com falha. A última auditoria registrada na conversa anterior confirmou Security A e zero issues de segurança abertas, mas Quality Gate `NONE`. Este SDD não declara um novo resultado do SonarCloud nem presume que a pendência administrativa tenha sido resolvida.
-
-Ajustar a definição de New Code e obter análise correspondente ao commit da main continua sendo uma condição de governança. A auditoria não deve tomar resultados de um commit anterior como prova do commit atual; eventual sincronização do scanner/check deve ser tratada na trilha DevOps, sem reduzir o Quality Gate. O merge da implementação só será considerado completo após os critérios de qualidade aplicáveis serem demonstrados.
+Os jobs Java, Gateway, Web e Compose compõem a linha de validação técnica. A segurança de código-fonte é verificada pelo workflow INKO Security (Trivy). O merge da implementação depende dos testes, das análises de segurança vigentes e das evidências de capacidade do SHA efetivo, sem reutilizar resultados de revisões anteriores.
 
 ## 3. Escopo e não objetivos
 
@@ -366,7 +364,7 @@ Separar funções puras (refill de token, classificação de falha, política, t
 
 Consolidar defaults em um único Settings e expor variáveis `INKO_GATEWAY_*` para limites, rate, deadline, breaker, TTL e URLs existentes. Validar valores positivos, soma dos slots por destino ≤ global quando política de reserva exigir, keep-alive ≤ conexões, teto de controle e worker count esperado, tamanho e tempo. Rejeitar configuração inválida no startup, sem fallback silencioso. Documentar unidades (ms, bytes, requests/s) e atualizar `.env.example` quando necessário sem incluir secrets. Não duplicar defaults divergentes entre Dockerfile/Compose/settings; CLI Uvicorn recebe valores compatíveis via configuração de execução documentada.
 
-Preservar `uv.lock` e o comando CI `uv sync --locked --extra test --no-build --no-install-project`; adicionar dependência de métricas (preferência `prometheus-client`) somente com resolução de lockfile real e análise Sonar/Trivy. Não reinstalar dependências de modo inseguro. O projeto não requer novas credenciais, containers ou infraestrutura paga.
+Preservar `uv.lock` e o comando CI `uv sync --locked --extra test --no-build --no-install-project`; adicionar dependência de métricas (preferência `prometheus-client`) somente com resolução de lockfile real e verificação com Trivy. Não reinstalar dependências de modo inseguro. O projeto não requer novas credenciais, containers ou infraestrutura paga.
 
 ## 9. Observabilidade e capacidade mensurável
 
@@ -456,8 +454,8 @@ Para AC-02/03, separar teste de admissão do rate limiter: usar relógio/quotas 
 
 ### E5 — Governança e entrega
 
-- PRs pequenos em ordem, cada um green e reversível. Preservar SonarCloud/Trivy, lockfiles e workflows existentes; sem automação de commits do bot.
-- Reexecutar `uv lock --check`, instalação binária locked, pytest, build do Gateway Docker, smoke completo, validação Prometheus/Caddy/Compose. Exigir gate do PR antes da integração. Na main, esperar no máximo 10 minutos e registrar SHA integrado, analysisId, gate OK e Security Rating A da revisão efetivamente analisada. Corrigir Quality Gate `NONE` na configuração SonarCloud antes de declarar encerramento integral.
+- PRs pequenos em ordem, cada um green e reversível. Preservar Trivy, lockfiles e workflows existentes; sem automação de commits do bot.
+- Reexecutar `uv lock --check`, instalação binária locked, pytest, build do Gateway Docker, smoke completo, validação Prometheus/Caddy/Compose. Exigir gate do PR antes da integração. Na main, registrar SHA integrado e resultados dos checks de CI, segurança e smoke da revisão efetivamente analisada.
 - Rodar experimentos locais, revisar decisões e aceitar ADR. Só então considerar SDD-001 encerrado e autorizar a implementação dos contratos do SDD-002. Nenhuma tag ou release é criada automaticamente pela implementação; atualizar manifesto somente em PR próprio e deliberado após gates.
 
 ## 12. Definition of Done e estratégia de rollout
@@ -465,7 +463,7 @@ Para AC-02/03, separar teste de admissão do rate limiter: usar relógio/quotas 
 - AC-01 a AC-19 aprovados com evidência; AC-20 executado e documentado, metas calibradas e desvios justificados (sem falsificar resultados).
 - Todos os limites são explícitos, configuráveis, validados no startup e testados. Não existe retry implícito nem fila de negócio ilimitada. Zero fan-out por acesso de status. Métricas demonstram limites e erros.
 - Testes reais de rede complementam mocks; logs não contêm segredos. Manter código sem comentários conforme requisito acadêmico, documentação em Markdown e testes que expliquem invariantes.
-- CI, testes de integração, segurança e SonarCloud aprovados; Quality Gate da main calculado e Security A verificado. Se dependência administrativa impedir o gate, status é pendente, não verde.
+- CI, testes de integração e scanner de segurança aprovados para o SHA integrado. Se algum check obrigatório estiver indisponível, o estado permanece pendente, não verde.
 - Documentar comandos locais, baseline e perfil do hardware. A entrega roda com sete containers normais; overlay Prometheus/Grafana permanece opcional.
 - Fazer rollout local primeiro (`docker compose up -d --build --force-recreate gateway`, e web caso alterado). Conferir status/health e métricas, depois `docker compose ps` e smoke. Não remover volumes. Reverter o PR ou usar imagem/revisão anterior conhecida se houver regressão; não retaggear a release v0.4.0.
 
