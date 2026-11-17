@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class LoginRateLimiter {
-    static final int LIMITE_CHAVES_PADRAO = 10_000;
+    static final int LIMITE_CHAVES_PADRAO = 100_000;
     private static final String PREFIXO_EMAIL = "email:";
     private static final String PREFIXO_IP = "ip:";
     private static final String CODIGO = "TOO_MANY_ATTEMPTS";
@@ -84,17 +84,13 @@ public class LoginRateLimiter {
             if (chave.equals(chaveEmail) || chave.equals(chaveIp)) {
                 continue;
             }
-            if (descartarExpiradas(entrada.getValue(), agora).size() < maximo(chave)) {
+            if (chave.startsWith(PREFIXO_IP) || descartarExpiradas(entrada.getValue(), agora).isEmpty()) {
                 entradas.remove();
             }
         }
         if (tentativas.size() + novas > limiteChaves) {
             throw new LimiteExcedidoException(CODIGO, MENSAGEM, janela);
         }
-    }
-
-    private int maximo(String chave) {
-        return chave.startsWith(PREFIXO_EMAIL) ? maxFalhasEmail : maxFalhasIp;
     }
 
     private void registrar(String chave, int maximo, Instant agora) {

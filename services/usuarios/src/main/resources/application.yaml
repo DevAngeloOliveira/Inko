@@ -27,6 +27,7 @@ inko:
     login:
       max-falhas-email: ${INKO_LOGIN_MAX_FAILURES_EMAIL:5}
       max-falhas-ip: ${INKO_LOGIN_MAX_FAILURES_IP:20}
+      max-chaves: ${INKO_LOGIN_MAX_KEYS:100000}
       janela: ${INKO_LOGIN_WINDOW:15m}
     bootstrap-admin:
       email: ${INKO_BOOTSTRAP_ADMIN_EMAIL:}

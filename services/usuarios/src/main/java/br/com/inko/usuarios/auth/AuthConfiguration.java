@@ -24,8 +24,9 @@ public class AuthConfiguration {
     LoginRateLimiter loginRateLimiter(Clock clock,
             @Value("${inko.auth.login.max-falhas-email:5}") int maxFalhasEmail,
             @Value("${inko.auth.login.max-falhas-ip:20}") int maxFalhasIp,
-            @Value("${inko.auth.login.janela:15m}") Duration janela) {
-        return new LoginRateLimiter(clock, maxFalhasEmail, maxFalhasIp, janela);
+            @Value("${inko.auth.login.janela:15m}") Duration janela,
+            @Value("${inko.auth.login.max-chaves:100000}") int maxChaves) {
+        return new LoginRateLimiter(clock, maxFalhasEmail, maxFalhasIp, janela, maxChaves);
     }
 
     @Bean

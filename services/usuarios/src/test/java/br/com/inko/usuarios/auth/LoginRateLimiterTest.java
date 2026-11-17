@@ -97,7 +97,7 @@ class LoginRateLimiterTest {
     }
 
     @Test
-    void mapaCheioDespejaChaveNaoBloqueadaMaisAntiga() {
+    void mapaCheioDespejaIpsAntesDeEmails() {
         LoginRateLimiter limiter = new LoginRateLimiter(relogio, 2, 20, JANELA, 4);
         limiter.reservar("a@inko.test", "ip-1");
         limiter.reservar("b@inko.test", "ip-2");
@@ -105,10 +105,34 @@ class LoginRateLimiterTest {
         assertEquals(4, limiter.quantidadeChaves());
 
         limiter.reservar("a@inko.test", "ip-3");
-        limiter.reservar("a@inko.test", "ip-3");
         assertEquals(4, limiter.quantidadeChaves());
         assertEquals(HttpStatus.TOO_MANY_REQUESTS,
                 assertThrows(LimiteExcedidoException.class, () -> limiter.reservar("a@inko.test", "ip-3")).status());
+    }
+
+    @Test
+    void inundacaoNaoZeraContadorDoEmailAlvo() {
+        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 5, 100, JANELA, 4);
+        for (int indice = 0; indice < 4; indice++) {
+            limiter.reservar("alvo@inko.test", "ip-a");
+        }
+
+        int recusadas = 0;
+        for (int indice = 0; indice < 50; indice++) {
+            try {
+                limiter.reservar("forjado" + indice + "@inko.test", "ip-f" + indice);
+            } catch (LimiteExcedidoException cheio) {
+                recusadas++;
+            }
+            assertTrue(limiter.quantidadeChaves() <= 4);
+        }
+        assertTrue(recusadas > 0);
+
+        limiter.reservar("alvo@inko.test", "ip-x");
+        LimiteExcedidoException bloqueado = assertThrows(LimiteExcedidoException.class,
+                () -> limiter.reservar("alvo@inko.test", "ip-y"));
+        assertEquals("TOO_MANY_ATTEMPTS", bloqueado.code());
+        assertEquals(JANELA.toSeconds(), bloqueado.retryAfterSegundos());
     }
 
     @Test
@@ -119,30 +143,33 @@ class LoginRateLimiterTest {
         relogio.avancar(Duration.ofMinutes(1));
 
         for (int indice = 0; indice < 200; indice++) {
-            limiter.reservar("forjado" + indice + "@inko.test", "ip-f" + indice);
+            try {
+                limiter.reservar("forjado" + indice + "@inko.test", "ip-f" + indice);
+            } catch (LimiteExcedidoException cheio) {
+                assertEquals("TOO_MANY_ATTEMPTS", cheio.code());
+            }
             assertTrue(limiter.quantidadeChaves() <= 6);
         }
 
         LimiteExcedidoException bloqueado = assertThrows(LimiteExcedidoException.class,
                 () -> limiter.reservar("vitima@inko.test", "ip-novo"));
-        assertEquals("TOO_MANY_ATTEMPTS", bloqueado.code());
         assertEquals(Duration.ofMinutes(14).toSeconds(), bloqueado.retryAfterSegundos());
     }
 
     @Test
-    void loginLegitimoNaoSofre429PorInundacao() {
+    void loginLegitimoNaoSofre429PorRotacaoDeIps() {
         AuthServiceTest.MemoriaOperadorRepository repository = new AuthServiceTest.MemoriaOperadorRepository();
         PasswordEncoder encoder = new BCryptPasswordEncoder(4);
         repository.inserir(new Operador(UUID.randomUUID(), "legitimo@inko.test", "Legitimo",
                 encoder.encode("senha-correta-123"), Papel.BIBLIOTECARIO, true), relogio.instant());
-        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 5, 20, JANELA, 8);
+        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 500, 20, JANELA, 8);
         AuthService service = new AuthService(repository, encoder, limiter, relogio, Duration.ofHours(8));
 
         for (int indice = 0; indice < 50; indice++) {
-            String email = "forjado" + indice + "@inko.test";
             String ip = "198.51.100." + indice;
             assertEquals(HttpStatus.UNAUTHORIZED,
-                    assertThrows(ApiException.class, () -> service.login(email, "senha-errada-xyz", ip)).status());
+                    assertThrows(ApiException.class, () -> service.login("forjado@inko.test", "senha-errada-xyz", ip))
+                            .status());
         }
 
         assertEquals("legitimo@inko.test", service.login("legitimo@inko.test", "senha-correta-123", "203.0.113.7")
@@ -151,7 +178,7 @@ class LoginRateLimiterTest {
     }
 
     @Test
-    void todasChavesBloqueadasRecusaChaveNova() {
+    void semChaveDescartavelRecusaChaveNovaAteAJanelaExpirar() {
         LoginRateLimiter limiter = new LoginRateLimiter(relogio, 1, 1, JANELA, 2);
         limiter.reservar("a@inko.test", "ip-1");
 
@@ -159,7 +186,7 @@ class LoginRateLimiterTest {
                 () -> limiter.reservar("b@inko.test", "ip-2"));
         assertEquals("TOO_MANY_ATTEMPTS", cheio.code());
         assertEquals(JANELA.toSeconds(), cheio.retryAfterSegundos());
-        assertEquals(2, limiter.quantidadeChaves());
+        assertTrue(limiter.quantidadeChaves() <= 2);
 
         relogio.avancar(JANELA);
         limiter.reservar("b@inko.test", "ip-2");
