@@ -12,7 +12,7 @@ import {
   DEFAULT_LOAN_DAYS, DEMO_REFERENCE_DATE, activeLoanOf, addDays, availabilityOf, daysOverdue, fineInCents, formatBRL, formatDate,
   normalize, workLabel, type LibraryUser, type Loan, type Work,
 } from '../../lib/demo';
-import { MockApiError, createLoan, useLibrary } from '../../lib/mock-api';
+import { ApiError, createLoan, useLibrary } from '../../lib/library-api';
 import styles from './emprestimos.module.css';
 
 const STEP_LABELS = ['Usuário', 'Obra', 'Disponibilidade', 'Datas', 'Confirmar', 'Resultado'] as const;
@@ -266,10 +266,10 @@ function LoanWizard() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível registrar o empréstimo.';
       // Conflito de concorrência: a obra foi emprestada enquanto o fluxo estava aberto.
-      if (error instanceof MockApiError && error.field === 'workId') {
+      if (error instanceof ApiError && error.field === 'workId') {
         setAlert({ step: 2, message });
         router.replace(href({ step: 2 }), { scroll: false });
-      } else if (error instanceof MockApiError && error.field === 'userId') {
+      } else if (error instanceof ApiError && error.field === 'userId') {
         setAlert({ step: 1, message });
         router.replace(href({ step: 1 }), { scroll: false });
       } else {

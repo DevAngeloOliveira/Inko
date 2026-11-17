@@ -1,16 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AppShell } from '../../components/app-shell';
 import { Icon } from '../../components/icon';
 import { useToast } from '../../components/inko-interactions';
-import { InkoButton, InkoEmpty, InkoInput, InkoLinkButton, PageHeading, Section } from '../../components/inko-kit';
+import { InkoButton, InkoEmpty, InkoErrorState, InkoInput, InkoLinkButton, PageHeading, Section } from '../../components/inko-kit';
 import { FineSummary, InkoAlert, InkoSkeleton, InkoStatisticSkeleton, LoanCard } from '../../components/inko-patterns';
-import { CATEGORIES, DEMO_REFERENCE_DATE, activeLateLoans, formatBRL, formatDate, parseBRDate, totalFineCents } from '../../lib/demo';
-import { useLibrary } from '../../lib/mock-api';
+import { CATEGORIES, DEMO_REFERENCE_DATE, formatBRL, formatDate, parseBRDate, type Loan } from '../../lib/demo';
+import { fetchFineReport, fetchStatistics, useLibrary, type FineReport, type LibraryStatistics } from '../../lib/library-api';
 import styles from './relatorios.module.css';
 
-/** Primeiro empréstimo da base demonstrativa: antes disso não há o que calcular. */
+/** Primeiro empréstimo do seed: antes disso não há o que calcular. */
 const MIN_REFERENCE = '2026-10-06';
 
 const QUICK_DATES = [
@@ -19,7 +19,19 @@ const QUICK_DATES = [
   { value: '2026-11-30', label: '30/11' },
 ] as const;
 
-type LateLoan = ReturnType<typeof activeLateLoans>[number];
+/** Linha do relatório do serviço Java, no formato que a tabela e o LoanCard usam. */
+type LateLoan = Loan & { days: number; fineCents: number };
+
+interface ReportData { report: FineReport; stats: LibraryStatistics }
+
+function toRows(report: FineReport, loans: readonly Loan[]): LateLoan[] {
+  const byId = new Map(loans.map(loan => [loan.id, loan]));
+  return report.itens.map(item => ({
+    id: item.emprestimoId, workId: item.livroId, userId: item.usuarioId, work: item.titulo, user: item.nomeUsuario,
+    start: byId.get(item.emprestimoId)?.start ?? item.dataPrevista, due: item.dataPrevista, returnedAt: null,
+    days: item.diasAtraso, fineCents: Math.round(item.valor * 100),
+  }));
+}
 type SortKey = 'id' | 'work' | 'user' | 'due' | 'days' | 'fineCents';
 type SortDirection = 'asc' | 'desc';
 interface SortState { key: SortKey; direction: SortDirection }
@@ -113,10 +125,25 @@ export default function ReportsPage() {
   const parsed = parseBRDate(referenceText);
   const reference = parsed !== null && parsed >= MIN_REFERENCE ? parsed : null;
 
-  const late = useMemo(() => (reference ? activeLateLoans(library.loans, reference) : []), [library.loans, reference]);
+  const [data, setData] = useState<ReportData | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!reference) return undefined;
+    let current = true;
+    setFailure(null);
+    Promise.all([fetchFineReport(reference), fetchStatistics(reference)])
+      .then(([report, stats]) => { if (current) setData({ report, stats }); })
+      .catch((error: unknown) => { if (current) setFailure(error instanceof Error ? error.message : 'Falha ao gerar o relatório.'); });
+    return () => { current = false; };
+  }, [reference, attempt, library.loans]);
+
+  const loading = reference !== null && failure === null && (data === null || data.report.referenceDate !== reference);
+  const late = useMemo(() => (data && reference ? toRows(data.report, library.loans) : []), [data, reference, library.loans]);
   const rows = useMemo(() => sortRows(late, sort), [late, sort]);
-  const totalCents = reference ? totalFineCents(library.loans, reference) : 0;
-  const totalDays = late.reduce((sum, loan) => sum + loan.days, 0);
+  const totalCents = data ? Math.round(data.report.total * 100) : 0;
+  const totalDays = data?.report.totalDiasAtraso ?? 0;
   const worst = late[0];
 
   const byUser = useMemo(() => {
@@ -128,11 +155,12 @@ export default function ReportsPage() {
       .map(([name, count]) => ({ name, count, width: (count / max) * 100 }));
   }, [late]);
 
+  const totalWorks = data?.stats.totalLivros ?? 0;
   const byCategory = useMemo(() => CATEGORIES.map(category => {
-    const count = library.works.filter(work => work.category === category).length;
-    const share = library.works.length > 0 ? (count / library.works.length) * 100 : 0;
+    const count = data?.stats.livrosPorCategoria[category] ?? 0;
+    const share = totalWorks > 0 ? (count / totalWorks) * 100 : 0;
     return { category, count, share };
-  }), [library.works]);
+  }), [data, totalWorks]);
 
   function exportCsv() {
     if (!reference || rows.length === 0) {
@@ -140,14 +168,14 @@ export default function ReportsPage() {
       return;
     }
     downloadCsv(buildCsv(rows, reference, totalCents), `inko-multas-${reference}.csv`);
-    toast({ title: 'CSV exportado', text: `${plural(rows.length, 'empréstimo', 'empréstimos')} · referência ${formatDate(reference)}. Arquivo gerado neste navegador.` });
+    toast({ title: 'CSV exportado', text: `${plural(rows.length, 'empréstimo', 'empréstimos')} · referência ${formatDate(reference)}. Arquivo gerado a partir do relatório do serviço Java.` });
   }
 
   return <AppShell>
     <PageHeading
       title="Relatório de multas"
-      description={<>Somente empréstimos <strong>ativos e atrasados</strong> na data de referência · devolvidos não entram · dados demonstrativos</>}
-      action={<InkoButton variant="outline" leftIcon="download" onClick={exportCsv} disabled={!library.ready}>Exportar CSV</InkoButton>}
+      description={<>Somente empréstimos <strong>ativos e atrasados</strong> na data de referência · devolvidos não entram · calculado pelo serviço de Relatórios</>}
+      action={<InkoButton variant="outline" leftIcon="download" onClick={exportCsv} disabled={loading || data === null}>Exportar CSV</InkoButton>}
     />
 
     <section className={styles.reference} aria-label="Data de referência do relatório">
@@ -163,12 +191,14 @@ export default function ReportsPage() {
       </fieldset>
     </section>
 
-    {!library.ready && <>
+    {failure && <InkoErrorState title="Relatório indisponível" text={failure} onRetry={() => setAttempt(value => value + 1)}/>}
+
+    {!failure && loading && <>
       <div className="inko-grid-stats"><InkoStatisticSkeleton/><InkoStatisticSkeleton/><InkoStatisticSkeleton/></div>
       <Section><InkoSkeleton lines={4}/></Section>
     </>}
 
-    {library.ready && <>
+    {!failure && !loading && data && <>
       <div className="inko-grid-stats">
         <article className={`${styles.kpi} ${styles.kpiDark}`}><span className="inko-caption">Valor total</span><strong>{formatBRL(totalCents)}</strong><small>{plural(totalDays, 'dia', 'dias')} × R$ 2,00</small></article>
         <article className={`${styles.kpi} ${styles.kpiDanger}`}><span className="inko-caption">Empréstimos atrasados</span><strong>{late.length}</strong><small>ativos com prazo vencido</small></article>
@@ -177,7 +207,7 @@ export default function ReportsPage() {
 
       <InkoAlert tone="info" title="Como este relatório é calculado">
         Entram apenas empréstimos ativos com prazo vencido na data de referência; ao registrar a devolução, o empréstimo sai do relatório.
-        Os valores são calculados neste navegador sobre dados fictícios — o cálculo oficial será do serviço de relatórios.
+        O serviço Java de Relatórios aplica o pipeline filter → map → reduce sobre os empréstimos persistidos (R$ 2,00 por dia).
       </InkoAlert>
 
       <Section flush id="fines" title="Empréstimos ativos atrasados · multa individual">
@@ -241,7 +271,7 @@ export default function ReportsPage() {
               <span className={styles.track} aria-hidden="true"><span className={styles.bar} style={{ width: `${item.share}%` }}/></span>
             </li>)}
           </ul>
-          <span className={styles.note}>Total {library.works.length.toLocaleString('pt-BR')} obras · inclui emprestadas</span>
+          <span className={styles.note}>Total {totalWorks.toLocaleString('pt-BR')} obras · inclui emprestadas</span>
         </Section>
 
         {reference && <FineSummary rows={late} reference={reference} limit={3}/>}

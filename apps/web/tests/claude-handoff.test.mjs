@@ -34,20 +34,33 @@ test('business operations run against the mock API until the backend exists', ()
   assert.match(source('app/login/page.tsx'), /Acesso demonstrativo/);
 });
 
-test('mock layer never reaches the network nor ships fixed credentials', () => {
-  const mock = source('lib/mock-api.ts');
-  assert.doesNotMatch(mock, /fetch\(|XMLHttpRequest|localStorage/);
-  assert.doesNotMatch(mock, /password\s*[!=]==\s*['"`]/);
-  assert.match(mock, /sessionStorage/);
-  for (const route of routes.filter(route => route !== 'landing/page.tsx')) {
-    assert.doesNotMatch(source(`app/${route}`), /fetch\(/, route);
+test('operational screens read persisted data through the real API boundary', () => {
+  const api = source('lib/library-api.ts');
+  assert.match(api, /fetch\(`\/api\/v1\/\$\{path\}`/);
+  assert.doesNotMatch(api, /password\s*[!=]==\s*['"`]/);
+  assert.doesNotMatch(api, /from '\.\/demo'[^;]*(works|loans|libraryUsers)/);
+  assert.ok(!existsSync(new URL('lib/mock-api.ts', webRoot)), 'mock-api.ts deve ter sido removido');
+  for (const route of ['acervo/page.tsx', 'acervo/novo/page.tsx', 'acervo/[id]/page.tsx', 'usuarios/page.tsx', 'emprestimos/page.tsx', 'devolucoes/page.tsx', 'relatorios/page.tsx']) {
+    const page = source(`app/${route}`);
+    assert.doesNotMatch(page, /fetch\(/, route);
+    assert.doesNotMatch(page, /import \{[^}]*(works|loans|libraryUsers)[^}]*\} from '[./]+\/lib\/demo'/, route);
   }
+  assert.match(source('app/relatorios/page.tsx'), /fetchFineReport\(reference\)/);
+});
+
+test('BFF forwards only to the configured Gateway with an allowlist and no retries', () => {
+  const bff = source('app/api/v1/[...path]/route.ts');
+  assert.match(bff, /GATEWAY_INTERNAL_URL/);
+  assert.match(bff, /RESOURCES = new Set\(\['livros', 'usuarios', 'emprestimos', 'relatorios', 'system'\]\)/);
+  assert.match(bff, /MAX_BODY_BYTES = 65_536/);
+  assert.match(bff, /redirect: 'manual'/);
+  assert.equal(bff.match(/await fetch\(/g)?.length, 1);
 });
 
 test('assets from approved identity are referenced and dashboard is interactive', () => {
   const dashboard = source('components/dashboard.tsx');
   assert.match(dashboard, /EditorialBanner|Enso/);
-  assert.match(dashboard, /DADOS DEMONSTRATIVOS/);
+  assert.match(dashboard, /DEMONSTRAÇÃO ACADÊMICA/);
   assert.match(dashboard, /href="\/motion-lab"/);
   assert.match(source('components/app-shell.tsx'), /inko-logo-inverse\.png/);
 });

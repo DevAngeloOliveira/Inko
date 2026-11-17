@@ -8,7 +8,7 @@ import { useToast } from '../../../components/inko-interactions';
 import { CategoryTag, DemoNotice, InkoButton, InkoCover, InkoInput, InkoLinkButton, InkoSelect, InkoStatus, PageHeading } from '../../../components/inko-kit';
 import { InkoAlert } from '../../../components/inko-patterns';
 import { CATEGORIES, workLabel, type Category, type Work } from '../../../lib/demo';
-import { MockApiError, createWork } from '../../../lib/mock-api';
+import { ApiError, createWork } from '../../../lib/library-api';
 import styles from './cadastro.module.css';
 
 interface FormValues {
@@ -111,7 +111,7 @@ export default function NewWorkPage() {
       setFormKey(key => key + 1);
       toast({ title: 'Obra cadastrada', text: `${workLabel(work)} (${work.id}) já aparece no acervo como Disponível.` });
     } catch (cause) {
-      const error = cause instanceof MockApiError ? cause : null;
+      const error = cause instanceof ApiError ? cause : null;
       const field = error?.field;
       if (error && isRequiredField(field)) {
         setServerErrors({ [field]: error.message });
@@ -198,7 +198,7 @@ export default function NewWorkPage() {
           </div>
         </article>
         <p className="inko-footnote">Toda obra nova entra como Disponível.</p>
-        <DemoNotice>O cadastro é gravado apenas neste navegador, até a integração com o serviço de catálogo.</DemoNotice>
+        <DemoNotice>O cadastro é gravado pelo serviço de Catálogo no PostgreSQL. O envio de capa ainda é apenas visual.</DemoNotice>
       </aside>
     </div>
   </AppShell>;

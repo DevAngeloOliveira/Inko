@@ -7,7 +7,7 @@ import { Icon } from '../../components/icon';
 import { InkoPasswordInput, useToast } from '../../components/inko-interactions';
 import { Enso, InkoButton, InkoInput, SeigaihaBand, WashiTexture } from '../../components/inko-kit';
 import { InkoAlert } from '../../components/inko-patterns';
-import { MockApiError, signIn, useLibrary } from '../../lib/mock-api';
+import { ApiError, signIn, useLibrary } from '../../lib/library-api';
 import { isValidEmailAddress } from '../../lib/validation';
 import styles from './login.module.css';
 
@@ -67,7 +67,7 @@ export default function LoginPage() {
       router.replace('/');
     } catch (error) {
       setSubmitting(false);
-      if (error instanceof MockApiError && (error.field === 'email' || error.field === 'password')) {
+      if (error instanceof ApiError && (error.field === 'email' || error.field === 'password')) {
         const remote: FieldErrors = { [error.field]: error.message };
         setErrors(remote);
         focusFirstInvalid(remote);

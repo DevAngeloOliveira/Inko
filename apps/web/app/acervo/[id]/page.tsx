@@ -8,7 +8,7 @@ import { ConfirmDialog, useMockQuery, useToast } from '../../../components/inko-
 import { CategoryTag, DemoNotice, InkoBadge, InkoButton, InkoCover, InkoEmpty, InkoLinkButton, Section, type Tone } from '../../../components/inko-kit';
 import { InkoAlert, InkoSkeleton, InkoTabs, LoanCard } from '../../../components/inko-patterns';
 import { DEMO_REFERENCE_DATE, activeLoanOf, daysBetween, daysOverdue, fineInCents, formatBRL, formatDate, workLabel, type Loan, type Work } from '../../../lib/demo';
-import { MockApiError, deleteWork, useLibrary } from '../../../lib/mock-api';
+import { ApiError, deleteWork, useLibrary } from '../../../lib/library-api';
 import styles from './obra.module.css';
 
 const TAB_HISTORY = 'Movimentações';
@@ -113,7 +113,7 @@ function AboutSection({ work, loanCount }: Readonly<{ work: Work; loanCount: num
       <div><dt>Volume</dt><dd>{work.volume || 'Não informado'}</dd></div>
       <div><dt>Empréstimos registrados</dt><dd>{loanCount}</dd></div>
     </dl>
-    <DemoNotice>Obra, sinopse e capa são fictícias. Capas reais dependem de licença de uso e do serviço de catálogo.</DemoNotice>
+    <DemoNotice>A capa é ilustrativa: capas reais dependem de licença de uso. Metadados e circulação vêm dos serviços INKO.</DemoNotice>
   </Section>;
 }
 
@@ -150,7 +150,7 @@ export default function WorkDetailsPage() {
       toast({ title: 'Obra excluída', text: `${label} foi removida do acervo.` });
       router.push('/acervo');
     } catch (cause) {
-      const message = cause instanceof MockApiError ? cause.message : 'Não foi possível excluir a obra. Tente novamente.';
+      const message = cause instanceof ApiError ? cause.message : 'Não foi possível excluir a obra. Tente novamente.';
       setLeaving(false);
       setConfirmOpen(false);
       setDeleteError(message);

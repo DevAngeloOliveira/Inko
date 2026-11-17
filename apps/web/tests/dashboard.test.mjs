@@ -9,7 +9,7 @@ const stylesheet = readFileSync(new URL('../app/inko-ui.css', import.meta.url), 
 test('homepage renders the real INKO layout rather than temporary system health', () => {
   assert.match(home, /Dashboard/);
   assert.match(dashboard, /Cada volume/);
-  assert.match(dashboard, /DADOS DEMONSTRATIVOS/);
+  assert.match(dashboard, /DEMONSTRAÇÃO ACADÊMICA/);
 });
 
 test('diagnostic UI remains available at its own route', () => {
