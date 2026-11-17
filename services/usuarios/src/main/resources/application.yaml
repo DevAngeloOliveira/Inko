@@ -5,6 +5,10 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/inko_usuarios}
     username: ${DB_USER:usuarios_user}
     password: ${DB_PASSWORD:}
+  flyway:
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration,classpath:db/seed}
+    baseline-on-migrate: true
+    baseline-version: 0
 server:
   port: ${SERVER_PORT:8082}
 management:
