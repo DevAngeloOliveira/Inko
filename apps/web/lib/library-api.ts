@@ -16,6 +16,7 @@ import {
   DEMO_REFERENCE_DATE, daysBetween, daysOverdue, fineInCents, workLabel,
   type Category, type LibraryUser, type Loan, type Work,
 } from './demo';
+import { editorialOf } from './editorial';
 import { isValidEmailAddress } from './validation';
 
 export interface Session {
@@ -54,7 +55,7 @@ export class ApiError extends Error {
   }
 }
 
-interface LivroDto { id: string; titulo: string; autor: string; categoria: Category; volume: string | null; editora: string | null; tituloOriginal: string | null }
+export interface LivroDto { id: string; titulo: string; autor: string; categoria: Category; volume: string | null; editora: string | null; tituloOriginal: string | null }
 interface UsuarioDto { id: string; nome: string; matricula: string; email: string | null; cadastradoEm: string }
 interface EmprestimoDto { id: string; livroId: string; usuarioId: string; dataEmprestimo: string; dataPrevista: string; dataDevolucao: string | null }
 
@@ -84,10 +85,12 @@ function coverFor(id: string): number {
   return COVERS[sum % COVERS.length];
 }
 
-function toWork(dto: LivroDto): Work {
+export function toWork(dto: LivroDto): Work {
+  const editorial = editorialOf(dto.id);
   return {
     id: dto.id, title: dto.titulo, author: dto.autor, category: dto.categoria, volume: dto.volume ?? '',
     cover: coverFor(dto.id), publisher: dto.editora ?? undefined, originalTitle: dto.tituloOriginal ?? undefined,
+    synopsis: editorial?.synopsis, genres: editorial?.genres,
   };
 }
 
@@ -373,4 +376,21 @@ export function buildNotifications(library: LibraryState, reference: string = DE
   const returned = library.loans.filter(loan => loan.returnedAt === reference)
     .map(loan => ({ id: loan.id, tone: 'success' as const, text: `${loan.user} devolveu ${loan.work}.`, when: 'Hoje', href: '/devolucoes' }));
   return [...late, ...dueSoon, ...returned];
+}
+
+/* ---------- Vitrine pública (landing) ---------- */
+
+export interface PublicCatalog {
+  works: Work[];
+  /** IDs de obras com empréstimo ativo, segundo o serviço de Circulação. */
+  onLoan: ReadonlySet<string>;
+}
+
+/** Obras do Catálogo e disponibilidade da Circulação, sem expor dados de usuários na interface. */
+export async function fetchPublicCatalog(): Promise<PublicCatalog> {
+  const [livros, ativos] = await Promise.all([
+    request<LivroDto[]>('GET', 'livros'),
+    request<EmprestimoDto[]>('GET', 'emprestimos/ativos'),
+  ]);
+  return { works: livros.map(toWork), onLoan: new Set(ativos.map(loan => loan.livroId)) };
 }

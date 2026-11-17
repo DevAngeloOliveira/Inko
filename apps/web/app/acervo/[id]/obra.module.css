@@ -50,6 +50,9 @@
 .holder { font-weight: 600; }
 .historyList { padding: 0 var(--inko-spacing-4) var(--inko-spacing-4); }
 
+.genres { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.genres li { padding: 2px 10px; border-radius: 12px; background: var(--inko-background-subtle); font: 600 12px/20px var(--inko-font-body); color: var(--inko-neutral-brown); }
+.anime { margin: 0; padding: 12px 14px; border-left: 3px solid var(--inko-brand-seal); background: var(--inko-surface-elevated); font: 400 14px/22px var(--inko-font-body); }
 .synopsis { margin: 0; max-width: 640px; font: 400 16px/26px var(--inko-font-body); }
 
 .notFound { border: 1px solid var(--inko-border-default); border-radius: var(--inko-radius-lg); background: var(--inko-surface-default); }

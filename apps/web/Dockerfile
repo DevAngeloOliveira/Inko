@@ -5,6 +5,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/package.json apps/web/package.json
 RUN pnpm install --frozen-lockfile
 COPY packages/design-tokens packages/design-tokens
+COPY data/seeds data/seeds
 COPY apps/web apps/web
 RUN node packages/design-tokens/scripts/generate.mjs --check && pnpm --filter @inko/web build
 

@@ -24,6 +24,8 @@ export interface Work {
   publisher?: string;
   originalTitle?: string;
   synopsis?: string;
+  /** Gêneros editoriais (não confundir com a categoria acadêmica). */
+  genres?: readonly string[];
 }
 
 export interface LibraryUser {
