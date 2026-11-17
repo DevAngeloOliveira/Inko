@@ -210,16 +210,18 @@ class LoginRateLimiterTest {
     }
 
     @Test
-    void varreduraDoMapaCheioTemLimitePorRequisicao() {
+    void ipDescartavelEAlcancadoMesmoComEmailsVivosAFrente() {
         int limite = LoginRateLimiter.MAX_VARREDURA * 2;
         LoginRateLimiter limiter = new LoginRateLimiter(relogio, 100, limite, JANELA, limite);
         for (int indice = 0; indice < limite - 1; indice++) {
             limiter.reservar("e" + indice + "@inko.test", "ip-fixo");
         }
-        int chaves = limiter.quantidadeChaves();
-        assertEquals(limite, chaves);
+        assertEquals(limite, limiter.quantidadeChaves());
 
-        assertThrows(LimiteExcedidoException.class, () -> limiter.reservar("novo@inko.test", "ip-novo"));
-        assertEquals(chaves, limiter.quantidadeChaves());
+        limiter.reservar("e0@inko.test", "ip-novo");
+        assertEquals(limite, limiter.quantidadeChaves());
+
+        assertThrows(LimiteExcedidoException.class, () -> limiter.reservar("novo@inko.test", "ip-outro"));
+        assertTrue(limiter.quantidadeChaves() <= limite);
     }
 }
