@@ -129,15 +129,18 @@ export default function ReportsPage() {
   const [failure, setFailure] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
+  // Recalcula só quando a data ou o conteúdo dos empréstimos muda, não a cada nova referência do array.
+  const loansKey = useMemo(() => library.loans.map(loan => `${loan.id}:${loan.returnedAt ?? ''}`).join('|'), [library.loans]);
+
   useEffect(() => {
-    if (!reference) return undefined;
+    if (!reference || library.status !== 'ok') return undefined;
     let current = true;
     setFailure(null);
     Promise.all([fetchFineReport(reference), fetchStatistics(reference)])
       .then(([report, stats]) => { if (current) setData({ report, stats }); })
       .catch((error: unknown) => { if (current) setFailure(error instanceof Error ? error.message : 'Falha ao gerar o relatório.'); });
     return () => { current = false; };
-  }, [reference, attempt, library.loans]);
+  }, [reference, attempt, loansKey, library.status]);
 
   const loading = reference !== null && failure === null && (data === null || data.report.referenceDate !== reference);
   const late = useMemo(() => (data && reference ? toRows(data.report, library.loans) : []), [data, reference, library.loans]);
