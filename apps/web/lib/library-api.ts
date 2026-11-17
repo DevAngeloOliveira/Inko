@@ -7,8 +7,9 @@
  * repassa ao Gateway → serviços Java → PostgreSQL. Não há dados simulados nem
  * fallback: se a API falhar, o estado expõe o erro e as telas o mostram.
  *
- * Somente a sessão de login continua demonstrativa (RF-25 está fora do escopo):
- * ela vive em `sessionStorage` e não protege nada no servidor.
+ * A sessão de operador é real (SDD-002): o token opaco fica num cookie HttpOnly
+ * gerido por `/api/auth/session`; aqui só vivem nome, e-mail e papel, em memória.
+ * `sessionStorage` guarda apenas preferências de interface, nunca autenticação.
  */
 
 import { useSyncExternalStore } from 'react';
@@ -17,18 +18,18 @@ import {
   type Category, type LibraryUser, type Loan, type Work,
 } from './demo';
 import { editorialOf } from './editorial';
-import { isValidEmailAddress } from './validation';
 
 export interface Session {
   name: string;
   role: string;
   email: string;
+  expiresAt: string;
 }
 
 export type LoadStatus = 'idle' | 'loading' | 'ok' | 'error';
 
 export interface LibraryState {
-  /** `true` quando a sessão foi lida e, havendo sessão, os dados terminaram de carregar (com sucesso ou erro). */
+  /** `true` quando a sessão foi conferida no servidor e, havendo sessão, os dados terminaram de carregar. */
   ready: boolean;
   status: LoadStatus;
   error: string | null;
@@ -55,11 +56,13 @@ export class ApiError extends Error {
   }
 }
 
-export interface LivroDto { id: string; titulo: string; autor: string; categoria: Category; volume: string | null; editora: string | null; tituloOriginal: string | null }
+export interface LivroDto { id: string; titulo: string; autor: string; categoria: Category; volume: string | null; editora: string | null; tituloOriginal: string | null; capaVersao?: string | null }
+interface OperatorDto { nome: string; email: string; papel: string; expiraEm: string }
 interface UsuarioDto { id: string; nome: string; matricula: string; email: string | null; cadastradoEm: string }
 interface EmprestimoDto { id: string; livroId: string; usuarioId: string; dataEmprestimo: string; dataPrevista: string; dataDevolucao: string | null }
 
-const SESSION_KEY = 'inko.session.v1';
+const LEGACY_SESSION_KEY = 'inko.session.v1';
+const ROLE_LABELS: Record<string, string> = { ADMIN: 'Administração', BIBLIOTECARIO: 'Bibliotecário(a)' };
 const UI_KEY = 'inko.ui.v1';
 const COVERS = [0, 1, 2, 3, 4, 6, 7] as const;
 
@@ -77,6 +80,9 @@ const SERVER_STATE: LibraryState = { ...EMPTY, ready: false, session: null, noti
 
 let state: LibraryState | null = null;
 let inflight: Promise<void> | null = null;
+let sessionChecked = false;
+let sessionCheck: Promise<void> | null = null;
+let expiryTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 
 /** Capa fictícia determinística: o slot 2:3 aguarda imagens licenciadas. */
@@ -85,11 +91,16 @@ function coverFor(id: string): number {
   return COVERS[sum % COVERS.length];
 }
 
+/** Capa persistida no Catálogo; a versão (hash) na URL invalida o cache após cada troca. */
+export function coverUrlFor(dto: Pick<LivroDto, 'id' | 'capaVersao'>): string | undefined {
+  return dto.capaVersao ? `/api/media/livros/${encodeURIComponent(dto.id)}?v=${encodeURIComponent(dto.capaVersao)}` : undefined;
+}
+
 export function toWork(dto: LivroDto): Work {
   const editorial = editorialOf(dto.id);
   return {
     id: dto.id, title: dto.titulo, author: dto.autor, category: dto.categoria, volume: dto.volume ?? '',
-    cover: coverFor(dto.id), publisher: dto.editora ?? undefined, originalTitle: dto.tituloOriginal ?? undefined,
+    cover: coverFor(dto.id), coverUrl: coverUrlFor(dto), publisher: dto.editora ?? undefined, originalTitle: dto.tituloOriginal ?? undefined,
     synopsis: editorial?.synopsis, genres: editorial?.genres,
   };
 }
@@ -129,10 +140,14 @@ function writeJson(key: string, value: unknown): void {
 }
 
 function initialState(): LibraryState {
-  const session = readJson<{ session: Session }>(SESSION_KEY).session ?? null;
+  try {
+    globalThis.sessionStorage?.removeItem(LEGACY_SESSION_KEY);
+  } catch {
+    // Armazenamento indisponível: nada a limpar.
+  }
   const ui = readJson<{ notificationsRead: boolean; remindersSent: boolean }>(UI_KEY);
   return {
-    ...EMPTY, ready: !session, session,
+    ...EMPTY, ready: false, session: null,
     notificationsRead: Boolean(ui.notificationsRead), remindersSent: Boolean(ui.remindersSent),
   };
 }
@@ -148,17 +163,16 @@ function getServerSnapshot(): LibraryState {
 
 function commit(patch: Partial<LibraryState>): void {
   const next = { ...getSnapshot(), ...patch };
-  next.ready = !next.session || next.status === 'ok' || next.status === 'error';
+  next.ready = sessionChecked && (!next.session || next.status === 'ok' || next.status === 'error');
   state = next;
-  writeJson(SESSION_KEY, { session: next.session });
   writeJson(UI_KEY, { notificationsRead: next.notificationsRead, remindersSent: next.remindersSent });
   listeners.forEach(listener => listener());
 }
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
-  const current = getSnapshot();
-  if (current.session && current.status === 'idle') void refreshLibrary();
+  if (!sessionChecked) void checkSession();
+  else if (getSnapshot().session && getSnapshot().status === 'idle') void refreshLibrary();
   return () => { listeners.delete(listener); };
 }
 
@@ -180,6 +194,7 @@ async function request<T>(method: 'GET' | 'POST', path: string, body?: unknown):
   } catch {
     payload = null;
   }
+  if (response.status === 401 && getSnapshot().session) clearSession();
   if (!response.ok) {
     const problem = (payload ?? {}) as { detail?: string; title?: string; field?: string; code?: string };
     const field = problem.field ? FIELD_ALIASES[problem.field] ?? problem.field : undefined;
@@ -219,19 +234,89 @@ export function useLibrary(): LibraryState {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
-/* ---------- Sessão demonstrativa (RF-25 fora do escopo) ---------- */
+/* ---------- Sessão de operador (cookie HttpOnly via BFF) ---------- */
+
+function toSession(dto: OperatorDto): Session {
+  return { name: dto.nome, email: dto.email, role: ROLE_LABELS[dto.papel] ?? dto.papel, expiresAt: dto.expiraEm };
+}
+
+function scheduleExpiry(session: Session | null): void {
+  clearTimeout(expiryTimer);
+  if (!session) return;
+  const wait = Date.parse(session.expiresAt) - Date.now();
+  if (Number.isFinite(wait)) {
+    expiryTimer = setTimeout(() => {
+      sessionChecked = false;
+      void checkSession();
+    }, Math.min(Math.max(wait, 0) + 1_000, 2_147_000_000));
+  }
+}
+
+/** Apaga da memória a sessão e todos os dados protegidos. */
+function clearSession(): void {
+  scheduleExpiry(null);
+  commit({ session: null, status: 'idle', error: null, works: [], users: [], loans: [] });
+}
+
+async function sessionRequest(method: 'GET' | 'POST' | 'DELETE', body?: unknown): Promise<Response> {
+  try {
+    return await fetch('/api/auth/session', {
+      method, cache: 'no-store', credentials: 'same-origin',
+      headers: body === undefined ? { accept: 'application/json' } : { accept: 'application/json', 'content-type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    throw new ApiError('Não foi possível contatar o servidor INKO. Verifique se os serviços estão em execução.', 0);
+  }
+}
+
+async function problemOf(response: Response): Promise<ApiError> {
+  const problem = await response.json().catch(() => ({})) as { detail?: string; code?: string };
+  return new ApiError(problem.detail ?? `Falha HTTP ${response.status}.`, response.status, undefined, problem.code);
+}
+
+/** Confere a sessão no servidor uma vez por carregamento (e de novo quando ela expira). */
+export function checkSession(): Promise<void> {
+  if (sessionCheck) return sessionCheck;
+  sessionCheck = (async () => {
+    let session: Session | null = null;
+    let error: string | null = null;
+    try {
+      const response = await sessionRequest('GET');
+      if (response.ok) session = toSession(await response.json() as OperatorDto);
+      else if (response.status !== 401) error = (await problemOf(response)).message;
+    } catch (failure) {
+      error = failure instanceof Error ? failure.message : 'Falha ao conferir a sessão.';
+    }
+    sessionChecked = true;
+    sessionCheck = null;
+    scheduleExpiry(session);
+    if (!session) {
+      commit({ session: null, status: error ? 'error' : 'idle', error, works: [], users: [], loans: [] });
+      return;
+    }
+    commit({ session, status: 'idle' });
+    await refreshLibrary();
+  })();
+  return sessionCheck;
+}
 
 export async function signIn(email: string, password: string): Promise<Session> {
-  if (!isValidEmailAddress(email)) throw new ApiError('Informe um e-mail válido.', 422, 'email');
-  if (password.length < 6) throw new ApiError('A senha deve ter pelo menos 6 caracteres.', 422, 'password');
-  const session: Session = { name: 'Mariana Costa', role: 'Bibliotecária', email: email.trim() };
+  const response = await sessionRequest('POST', { email: email.trim(), senha: password });
+  if (!response.ok) throw await problemOf(response);
+  const session = toSession(await response.json() as OperatorDto);
+  sessionChecked = true;
+  scheduleExpiry(session);
   commit({ session, status: 'idle' });
   await refreshLibrary();
   return session;
 }
 
-export function signOut(): void {
-  commit({ session: null, status: 'idle', error: null, works: [], users: [], loans: [] });
+/** Revoga a sessão no servidor (PostgreSQL) e só então limpa a memória. */
+export async function signOut(): Promise<void> {
+  const response = await sessionRequest('DELETE');
+  if (!response.ok) throw await problemOf(response);
+  clearSession();
 }
 
 /* ---------- Catálogo ---------- */
@@ -258,6 +343,70 @@ export async function createWork(input: NewWorkInput): Promise<Work> {
 /** A exclusão de obras não está no contrato do serviço de Catálogo desta versão. */
 export async function deleteWork(workId: string): Promise<void> {
   throw new ApiError(`A exclusão de ${workId} não faz parte do contrato do Catálogo nesta versão.`, 501);
+}
+
+/* ---------- Capas (Catálogo, via /api/media) ---------- */
+
+export const COVER_MAX_BYTES = 2 * 1024 * 1024;
+export const COVER_TYPES: readonly string[] = ['image/jpeg', 'image/png'];
+
+/** Validação local antecipada; a decisão final (assinatura, decodificação e dimensões) é do Catálogo. */
+export function coverFileError(file: Pick<File, 'type' | 'size'>): string | null {
+  if (!COVER_TYPES.includes(file.type)) return 'Use um arquivo JPEG ou PNG.';
+  if (file.size === 0) return 'O arquivo está vazio.';
+  return file.size > COVER_MAX_BYTES ? 'A capa deve ter no máximo 2 MiB.' : null;
+}
+
+function mediaUrl(workId: string): string {
+  return `/api/media/livros/${encodeURIComponent(workId)}`;
+}
+
+function problemFromXhr(xhr: XMLHttpRequest): ApiError {
+  let problem: { detail?: string; code?: string } = {};
+  try {
+    problem = JSON.parse(xhr.responseText) as typeof problem;
+  } catch {
+    problem = {};
+  }
+  return new ApiError(problem.detail ?? `Falha HTTP ${xhr.status}.`, xhr.status, undefined, problem.code);
+}
+
+/** Envia ou substitui a capa com progresso de upload; recarrega o acervo para trocar a versão da URL. */
+export function uploadCover(workId: string, file: File, onProgress?: (percent: number) => void): Promise<void> {
+  const local = coverFileError(file);
+  if (local) return Promise.reject(new ApiError(local, 422));
+  return new Promise<void>((resolve, reject) => {
+    const form = new FormData();
+    form.append('arquivo', file);
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', mediaUrl(workId));
+    xhr.setRequestHeader('accept', 'application/json');
+    xhr.upload.onprogress = event => {
+      if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
+    };
+    xhr.onerror = () => reject(new ApiError('Não foi possível contatar o servidor INKO.', 0));
+    xhr.onload = () => {
+      if (xhr.status === 401) clearSession();
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(problemFromXhr(xhr));
+        return;
+      }
+      refreshLibrary().then(resolve, resolve);
+    };
+    xhr.send(form);
+  });
+}
+
+export async function removeCover(workId: string): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(mediaUrl(workId), { method: 'DELETE', cache: 'no-store', headers: { accept: 'application/json' } });
+  } catch {
+    throw new ApiError('Não foi possível contatar o servidor INKO.', 0);
+  }
+  if (response.status === 401) clearSession();
+  if (!response.ok) throw await problemOf(response);
+  await refreshLibrary();
 }
 
 /* ---------- Usuários ---------- */
@@ -386,11 +535,22 @@ export interface PublicCatalog {
   onLoan: ReadonlySet<string>;
 }
 
-/** Obras do Catálogo e disponibilidade da Circulação, sem expor dados de usuários na interface. */
+async function fetchAvailability(): Promise<{ emprestados: string[] }> {
+  let response: Response;
+  try {
+    response = await fetch('/api/public/disponibilidade', { cache: 'no-store', headers: { accept: 'application/json' } });
+  } catch {
+    throw new ApiError('Não foi possível contatar o servidor INKO.', 0);
+  }
+  if (!response.ok) throw await problemOf(response);
+  return response.json() as Promise<{ emprestados: string[] }>;
+}
+
+/** Obras do Catálogo e IDs emprestados (rota pública sem dados de leitores). */
 export async function fetchPublicCatalog(): Promise<PublicCatalog> {
-  const [livros, ativos] = await Promise.all([
+  const [livros, disponibilidade] = await Promise.all([
     request<LivroDto[]>('GET', 'livros'),
-    request<EmprestimoDto[]>('GET', 'emprestimos/ativos'),
+    fetchAvailability(),
   ]);
-  return { works: livros.map(toWork), onLoan: new Set(ativos.map(loan => loan.livroId)) };
+  return { works: livros.map(toWork), onLoan: new Set(disponibilidade.emprestados) };
 }

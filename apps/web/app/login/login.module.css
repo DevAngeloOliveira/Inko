@@ -57,17 +57,6 @@
 .form { display: flex; flex-direction: column; gap: 18px; }
 .form :global(.inko-input) { height: 48px; font-size: 16px; background: var(--inko-surface-default); }
 
-.options { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 var(--inko-spacing-4); }
-.remember { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font: 400 14px/20px var(--inko-font-body); cursor: pointer; }
-.remember input { width: 18px; height: 18px; margin: 0; accent-color: var(--inko-brand-ink); }
-.forgot {
-  display: inline-flex; align-items: center; min-height: 44px; padding: 0;
-  border: 0; background: transparent;
-  font: 600 14px/20px var(--inko-font-body); color: var(--inko-action-primary);
-  text-decoration: underline; cursor: pointer;
-}
-.forgot:hover { color: var(--inko-action-primary-hover); }
-
 .form .submit { height: 52px; }
 
 .demo {
@@ -76,8 +65,6 @@
   border: 1px dashed var(--inko-border-strong); border-radius: var(--inko-radius-md);
   font: 400 12px/18px var(--inko-font-body); color: var(--inko-text-secondary);
 }
-.demo svg { margin-top: 1px; color: var(--inko-neutral-brown); }
-.demo strong { font-weight: 600; color: var(--inko-text-primary); }
 
 @media (min-width: 768px) {
   .page { flex-direction: row; flex-wrap: wrap; }
@@ -117,5 +104,4 @@
   .heading h1 { font: 800 32px/40px var(--inko-font-display); letter-spacing: -0.01em; }
   .form :global(.inko-input) { height: 44px; }
   .form .submit { height: 48px; }
-  .forgot { font: 500 13px/18px var(--inko-font-body); }
 }

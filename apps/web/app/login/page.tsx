@@ -3,8 +3,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
-import { Icon } from '../../components/icon';
-import { InkoPasswordInput, useToast } from '../../components/inko-interactions';
+import { InkoPasswordInput } from '../../components/inko-interactions';
 import { Enso, InkoButton, InkoInput, SeigaihaBand, WashiTexture } from '../../components/inko-kit';
 import { InkoAlert } from '../../components/inko-patterns';
 import { ApiError, signIn, useLibrary } from '../../lib/library-api';
@@ -22,8 +21,7 @@ function emailError(email: string): string | undefined {
 }
 
 function passwordError(password: string): string | undefined {
-  if (!password) return 'Informe sua senha.';
-  return password.length < 6 ? 'A senha tem pelo menos 6 caracteres.' : undefined;
+  return password ? undefined : 'Informe sua senha.';
 }
 
 function focusFirstInvalid(errors: FieldErrors) {
@@ -34,22 +32,17 @@ function focusFirstInvalid(errors: FieldErrors) {
 export default function LoginPage() {
   const router = useRouter();
   const library = useLibrary();
-  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  // Só é verdadeiro no navegador, depois de o estado mockado ser lido (evita divergência na hidratação).
+  // Só é verdadeiro no navegador, depois de a sessão ser conferida no servidor (evita divergência na hidratação).
   const signedIn = library.ready && Boolean(library.session);
 
   useEffect(() => {
     if (signedIn) router.replace('/');
   }, [signedIn, router]);
-
-  function needsBackend(feature: string) {
-    toast({ title: `${feature} depende do backend`, text: 'Disponível quando o serviço de autenticação for integrado.' });
-  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -73,7 +66,9 @@ export default function LoginPage() {
         focusFirstInvalid(remote);
         return;
       }
+      setPassword('');
       setFormError(error instanceof Error ? error.message : 'Tente novamente em instantes.');
+      document.getElementById(PASSWORD_ID)?.focus();
     }
   }
 
@@ -109,19 +104,11 @@ export default function LoginPage() {
           <InkoPasswordInput id={PASSWORD_ID} label="Senha" name="password" autoComplete="current-password"
             value={password} error={errors.password}
             onChange={event => { setPassword(event.target.value); setErrors(current => ({ ...current, password: undefined })); }}/>
-          <div className={styles.options}>
-            <label className={styles.remember}>
-              <input type="checkbox" name="remember" onChange={event => { if (event.target.checked) needsBackend('Manter conectado'); }}/>{' '}
-              Manter conectado neste dispositivo
-            </label>
-            <button type="button" className={styles.forgot} onClick={() => needsBackend('A recuperação de senha')}>Esqueci a senha</button>
-          </div>
           <InkoButton type="submit" size="lg" loading={submitting} className={styles.submit}>Entrar</InkoButton>
         </form>}
 
         <p className={styles.demo}>
-          <Icon name="info" size={16}/>
-          <span><strong>Acesso demonstrativo.</strong> Qualquer e-mail válido e senha com 6 ou mais caracteres entram. Nada é transmitido: a sessão fica apenas nesta aba do navegador.</span>
+          A conta é criada pela administração da biblioteca. A sessão expira em até 8 horas e é encerrada no servidor ao sair.
         </p>
       </div>
     </main>

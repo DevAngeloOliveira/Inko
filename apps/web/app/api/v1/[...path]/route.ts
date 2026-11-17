@@ -1,9 +1,15 @@
 import type { NextRequest } from 'next/server';
+import { accessFor } from '../../../../lib/server/auth-policy';
+import { problem, requireStaff } from '../../../../lib/server/session';
 
 /**
  * BFF mínimo: o navegador fala só com a própria origem e este handler repassa a
  * chamada ao Gateway (`GATEWAY_INTERNAL_URL`). Não há lógica de negócio, retry ou
  * fan-out aqui; o Gateway continua responsável por rotas, limites e capacidade.
+ *
+ * Autorização (SDD-002): só leituras do catálogo são anônimas. Todo o resto exige
+ * sessão real de operador, validada no serviço de Usuários, e mutações exigem
+ * `Origin` da própria aplicação. O cookie de sessão nunca é repassado ao Gateway.
  */
 export const dynamic = 'force-dynamic';
 
@@ -14,16 +20,13 @@ const SEGMENT = /^[A-Za-z0-9-]{1,40}$/;
 const RESOURCES = new Set(['livros', 'usuarios', 'emprestimos', 'relatorios', 'system']);
 const FORWARDED_HEADERS = ['content-type', 'x-request-id', 'retry-after'];
 
-function problem(status: number, code: string, detail: string): Response {
-  return Response.json({ type: 'about:blank', title: detail, status, code, detail }, {
-    status,
-    headers: { 'content-type': 'application/problem+json', 'cache-control': 'no-store' },
-  });
-}
-
 async function forward(request: NextRequest, path: readonly string[]): Promise<Response> {
   if (path.length === 0 || path.length > 4 || !RESOURCES.has(path[0]) || !path.every(segment => SEGMENT.test(segment))) {
     return problem(404, 'ROUTE_NOT_FOUND', 'Rota indisponível');
+  }
+  if (accessFor(request.method, path) === 'staff') {
+    const operator = await requireStaff(request);
+    if (operator instanceof Response) return operator;
   }
   let body: ArrayBuffer | undefined;
   if (request.method === 'POST') {

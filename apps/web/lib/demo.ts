@@ -21,6 +21,8 @@ export interface Work {
   category: Category;
   /** Índice da capa fictícia em CSS (0–7); `null` = estado "Sem capa". */
   cover: number | null;
+  /** Capa persistida no Catálogo (`/api/media/livros/{id}?v=…`); sem ela, vale a capa em CSS. */
+  coverUrl?: string;
   publisher?: string;
   originalTitle?: string;
   synopsis?: string;
