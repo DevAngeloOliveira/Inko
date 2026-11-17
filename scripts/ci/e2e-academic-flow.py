@@ -30,6 +30,7 @@ WARMUP = [
     ("POST", "/api/v1/livros", {"id": "INVALIDO"}), ("POST", "/api/v1/usuarios", {"nome": ""}),
     ("POST", "/api/v1/emprestimos", {"livroId": "INK-0000", "usuarioId": "USR-0000"}),
     ("POST", "/api/v1/emprestimos/EMP-0/devolucao", {}), ("GET", "/api/v1/emprestimos/EMP-0", None),
+    ("GET", "/api/v1/emprestimos/atrasados?referenceDate=2026-11-09", None),
 ]
 REFERENCIA = "2026-11-09"
 STEPS = []
@@ -38,6 +39,15 @@ OPENER = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(COOKIES)
 
 
 def call(method, path, body=None):
+    for _ in range(10):
+        status, payload, retry_after = attempt(method, path, body)
+        if not (status == 429 and isinstance(payload, dict) and payload.get("code") == "RATE_LIMITED"):
+            return status, payload
+        time.sleep(min(float(retry_after or 1), 5))
+    return status, payload
+
+
+def attempt(method, path, body=None):
     data = json.dumps(body).encode() if body is not None else None
     request = urllib.request.Request(BASE + path, data=data, method=method)
     if data is not None:
@@ -46,10 +56,10 @@ def call(method, path, body=None):
         request.add_header("Origin", BASE)
     try:
         with OPENER.open(request, timeout=5) as response:
-            return response.status, json.loads(response.read() or b"null")
+            return response.status, json.loads(response.read() or b"null"), None
     except urllib.error.HTTPError as error:
         payload = error.read()
-        return error.code, json.loads(payload) if payload else None
+        return error.code, json.loads(payload) if payload else None, error.headers.get("Retry-After")
 
 
 def cents(value):
@@ -158,9 +168,9 @@ def main():
     status, active = call("GET", "/api/v1/emprestimos/ativos")
     step("RF-10 empréstimo aparece entre os ativos", any(item["id"] == loan["id"] for item in active))
     status, late = call("GET", "/api/v1/emprestimos/atrasados?referenceDate=2026-11-24")
-    step("RF-11 atrasado após o vencimento", any(item["id"] == loan["id"] for item in late))
+    step("RF-11 atrasado após o vencimento", status == 200 and any(item["id"] == loan["id"] for item in late), f"{status} {late}")
     status, late = call("GET", "/api/v1/emprestimos/atrasados?referenceDate=2026-11-23")
-    step("RF-11 sem atraso no dia do vencimento", all(item["id"] != loan["id"] for item in late))
+    step("RF-11 sem atraso no dia do vencimento", status == 200 and all(item["id"] != loan["id"] for item in late), f"{status} {late}")
 
     status, report_before = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
     item = next((row for row in report_before["itens"] if row["emprestimoId"] == loan["id"]), None)
