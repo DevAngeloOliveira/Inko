@@ -34,7 +34,13 @@ jobs:
         with:
           node-version: '24'
       - name: Set ephemeral CI credentials
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          admin_password="$(openssl rand -hex 24)"
+          echo "::add-mask::$admin_password"
+          sed -i '/^INKO_BOOTSTRAP_ADMIN_\(EMAIL\|PASSWORD\)=/d' .env
+          printf 'INKO_BOOTSTRAP_ADMIN_EMAIL=ci-admin@inko.local\nINKO_BOOTSTRAP_ADMIN_PASSWORD=%s\n' "$admin_password" >> .env
+          printf 'INKO_E2E_EMAIL=ci-admin@inko.local\nINKO_E2E_PASSWORD=%s\n' "$admin_password" >> "$GITHUB_ENV"
       - name: Start all services and wait for health
         run: docker compose up --detach --build --wait --wait-timeout 600
       - name: Validate HTTP routes, backends and static assets
@@ -43,6 +49,14 @@ jobs:
         run: |
           python3 scripts/ci/e2e-academic-flow.py http://127.0.0.1:8000
           python3 scripts/ci/e2e-academic-flow.py http://127.0.0.1:3000
+      - name: Verify operator sessions and durable catalog covers (SDD-002)
+        run: |
+          python3 scripts/ci/e2e-mvp-auth-media.py http://127.0.0.1:3000
+          docker compose restart catalogo web
+          python3 scripts/ci/e2e-mvp-auth-media.py http://127.0.0.1:3000 --after-restart
+          docker compose stop
+          docker compose up --detach --wait --wait-timeout 600
+          python3 scripts/ci/e2e-mvp-auth-media.py http://127.0.0.1:3000 --after-restart
       - name: Print container diagnostics on failure
         if: failure()
         run: |
