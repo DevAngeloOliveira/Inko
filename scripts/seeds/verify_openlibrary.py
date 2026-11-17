@@ -1,7 +1,7 @@
 """Confere autoria das obras do manifesto na Open Library e registra a referência encontrada.
 
 Executado só durante a curadoria (precisa de internet); a aplicação nunca chama a Open Library.
-Uso: python scripts/seeds/verify_openlibrary.py data/seeds/catalogo-obras.json
+Uso: python scripts/seeds/verify_openlibrary.py
 """
 import json
 import sys
@@ -9,10 +9,12 @@ import time
 import unicodedata
 import urllib.parse
 import urllib.request
+from pathlib import Path
 
 SEARCH = "https://openlibrary.org/search.json"
 HEADERS = {"User-Agent": "INKO-catalog-curation/1.0 (academic project)"}
 VERIFIED_ON = "2026-11-17"
+MANIFEST_PATH = Path(__file__).resolve().parents[2] / "data" / "seeds" / "catalogo-obras.json"
 
 
 def normalize(text):
@@ -51,9 +53,11 @@ def rank(doc, title):
     return 3
 
 
-def main(path):
-    sys.stdout.reconfigure(encoding="utf-8")
-    manifest = json.load(open(path, encoding="utf-8"))
+def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    with MANIFEST_PATH.open(encoding="utf-8") as source:
+        manifest = json.load(source)
     for work in manifest["obras"]:
         lead = creators(work)[0]
         title = work["titulo"].split(":")[0] if work["categoria"] == "Mangá" else work["titulo"]
@@ -82,10 +86,12 @@ def main(path):
         else:
             work.pop("referencia", None)
             print(f"SEMREF {work['id']} {work['titulo']}")
-    with open(path, "w", encoding="utf-8", newline="\n") as output:
+    with MANIFEST_PATH.open("w", encoding="utf-8", newline="\n") as output:
         json.dump(manifest, output, ensure_ascii=False, indent=2)
         output.write("\n")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if len(sys.argv) != 1:
+        raise SystemExit("Usage: python scripts/seeds/verify_openlibrary.py")
+    main()
