@@ -5,6 +5,10 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/inko_circulacao}
     username: ${DB_USER:circulacao_user}
     password: ${DB_PASSWORD:}
+  flyway:
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration,classpath:db/seed}
+    baseline-on-migrate: true
+    baseline-version: 0
 server:
   port: ${SERVER_PORT:8083}
 management:
@@ -15,3 +19,9 @@ management:
   endpoint:
     health:
       show-details: never
+inko:
+  catalogo-url: ${CATALOGO_URL:http://localhost:8081}
+  usuarios-url: ${USUARIOS_URL:http://localhost:8082}
+  http:
+    connect-timeout: 300ms
+    read-timeout: 500ms
