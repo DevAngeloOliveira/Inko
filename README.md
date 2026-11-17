@@ -47,7 +47,7 @@ Migrações Flyway versionadas em cada serviço (`src/main/resources/db/migratio
 - Capas são ilustrações CSS; o envio de capa é apenas visual.
 - Catálogo público (RF-20), filtros históricos (RF-24) e auditoria (RF-26) estão pendentes.
 - A primeira chamada a um serviço Java logo após subir os contêineres pode exceder o prazo de 2 s do Gateway (aquecimento da JVM); a seguinte responde normalmente.
-- O frontend em modo `next dev` apresentou recarregamentos em ciclo no ambiente Windows durante os testes; use o frontend do Docker (ou `next build && next start`) para a demonstração.
+- Durante os testes, o frontend em modo `next dev` recarregou em ciclo uma vez e o problema não se repetiu; para a demonstração, prefira o frontend do Docker (ou `next build && next start`).
 
 ## Requisitos
 
