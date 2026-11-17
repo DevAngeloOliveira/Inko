@@ -29,16 +29,17 @@ jobs:
           python-version: '3.13'
       - name: Verify revision audit contract
         run: python scripts/ci/test_sonar_main_audit.py
-      - name: Fetch revision-bound main Quality Gate and open security issues
+      - name: Fetch revision-bound Quality Gate and open issues
         timeout-minutes: 11
         env:
           SONAR_TOKEN: ${{ github.event_name != 'pull_request' && secrets.SONAR_TOKEN || '' }}
           INKO_STRICT_SONAR: ${{ github.event_name != 'pull_request' }}
           INKO_PR_NUMBER: ${{ github.event.pull_request.number }}
+          INKO_PR_SHA: ${{ github.event.pull_request.head.sha }}
         shell: bash
         run: |
           if [[ "$INKO_STRICT_SONAR" == "true" ]]; then
             python scripts/ci/sonar-main-audit.py --strict --expected-sha "$GITHUB_SHA"
           else
-            python scripts/ci/sonar-main-audit.py --pull-request "$INKO_PR_NUMBER"
+            python scripts/ci/sonar-main-audit.py --pull-request "$INKO_PR_NUMBER" --expected-sha "$INKO_PR_SHA"
           fi

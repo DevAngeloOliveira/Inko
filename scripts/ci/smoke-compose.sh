@@ -56,5 +56,55 @@ database_count="$(docker compose exec -T postgres psql --username inko_admin --d
   exit 1
 }
 
+docker compose exec -T gateway python - <<'PY'
+import re
+from urllib.request import urlopen
+
+services = ("catalogo", "usuarios", "circulacao", "relatorios")
+for port, service in enumerate(services, 8081):
+    with urlopen(f"http://{service}:{port}/actuator/prometheus", timeout=5) as response:
+        content_type = response.headers.get_content_type()
+        body = response.read(2_097_153)
+    if content_type not in ("text/plain", "application/openmetrics-text") or len(body) > 2_097_152:
+        raise SystemExit(f"Invalid Prometheus response for {service}")
+    series = {re.split(r"[{ ]", line, maxsplit=1)[0] for line in body.decode().splitlines() if line and not line.startswith("#")}
+    required = {"jvm_memory_used_bytes", "process_uptime_seconds", "http_server_requests_seconds_count"}
+    if service != "relatorios":
+        required |= {f"hikaricp_connections_{state}" for state in ("active", "idle", "pending", "max")}
+    missing = required - series
+    if missing:
+        raise SystemExit(f"Missing Prometheus series for {service}: {sorted(missing)}")
+print("All four internal Java Prometheus endpoints returned the required metrics.")
+PY
+
+if [[ "${INKO_CHECK_MONITORING:-0}" == 1 ]]; then
+  docker compose exec -T gateway python - <<'PY'
+import json
+import time
+from urllib.request import urlopen
+
+expected = {"inko-java": 4, "inko-gateway": 1}
+deadline = time.monotonic() + 45
+while True:
+    try:
+        with urlopen("http://prometheus:9090/api/v1/targets?state=active", timeout=2) as response:
+            targets = json.load(response)["data"]["activeTargets"]
+        counts = {job: sum(t["labels"].get("job") == job and t["health"] == "up" for t in targets) for job in expected}
+        if counts == expected:
+            print("Prometheus scrape is UP for all four Java services and the Gateway.")
+            break
+    except (OSError, ValueError, KeyError):
+        pass
+    if time.monotonic() >= deadline:
+        raise SystemExit("Prometheus targets did not all become UP")
+    time.sleep(1)
+PY
+fi
+
+if [[ "$(curl --silent --show-error --max-time 3 --output /dev/null --write-out '%{http_code}' "$web_url/metrics")" != 404 ]]; then
+  echo "Expected Web /metrics to return 404" >&2
+  exit 1
+fi
+
 INKO_BASE_URL="$web_url" node apps/web/scripts/smoke-static-assets.mjs
 echo "INKO seven-container smoke suite succeeded."

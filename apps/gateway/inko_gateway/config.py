@@ -1,4 +1,5 @@
 import os
+import re
 from dataclasses import dataclass, field
 from math import isfinite
 from urllib.parse import urlsplit
@@ -116,6 +117,65 @@ class RoutePolicy:
     id: str
     path: str
     service: str | None = None
+    methods: tuple[str, ...] = ("GET",)
+    query: frozenset[str] = frozenset()
+    body: bool = False
+    upstream: str | None = None
+
+
+IDENTIFIER = r"[A-Za-z0-9-]{1,32}"
+REFERENCE_DATE = frozenset({"referenceDate"})
+
+BUSINESS_ROUTES = (
+    RoutePolicy("livros_list", "/api/v1/livros", "catalogo", ("GET",), frozenset({"categoria", "q"})),
+    RoutePolicy("livros_create", "/api/v1/livros", "catalogo", ("POST",), body=True),
+    RoutePolicy("livros_get", "/api/v1/livros/{id}", "catalogo"),
+    RoutePolicy("livros_availability", "/api/v1/livros/{id}/disponibilidade", "circulacao"),
+    RoutePolicy("usuarios_list", "/api/v1/usuarios", "usuarios", ("GET",), frozenset({"q"})),
+    RoutePolicy("usuarios_create", "/api/v1/usuarios", "usuarios", ("POST",), body=True),
+    RoutePolicy("usuarios_get", "/api/v1/usuarios/{id}", "usuarios"),
+    RoutePolicy("emprestimos_list", "/api/v1/emprestimos", "circulacao", ("GET",), frozenset({"usuarioId", "livroId"})),
+    RoutePolicy("emprestimos_create", "/api/v1/emprestimos", "circulacao", ("POST",), body=True),
+    RoutePolicy("emprestimos_active", "/api/v1/emprestimos/ativos", "circulacao"),
+    RoutePolicy("emprestimos_overdue", "/api/v1/emprestimos/atrasados", "circulacao", ("GET",), REFERENCE_DATE),
+    RoutePolicy("emprestimos_get", "/api/v1/emprestimos/{id}", "circulacao"),
+    RoutePolicy("emprestimos_return", "/api/v1/emprestimos/{id}/devolucao", "circulacao", ("POST",), body=True),
+    RoutePolicy("relatorios_fines", "/api/v1/relatorios/multas", "relatorios", ("GET",), REFERENCE_DATE),
+    RoutePolicy("relatorios_statistics", "/api/v1/relatorios/estatisticas", "relatorios", ("GET",), REFERENCE_DATE),
+)
+
+
+class RouteTable:
+    def __init__(self, routes):
+        self.exact = {}
+        self.templates = []
+        for policy in routes:
+            if "{" in policy.path:
+                pattern = re.escape(policy.path).replace(re.escape("{id}"), f"(?:{IDENTIFIER})")
+                self.templates.append((re.compile(pattern), policy))
+            else:
+                self.exact.setdefault(policy.path, []).append(policy)
+
+    def candidates(self, path):
+        if path in self.exact:
+            return self.exact[path]
+        for pattern, policy in self.templates:
+            if pattern.fullmatch(path):
+                return [
+                    candidate for template, candidate in self.templates
+                    if template.pattern == pattern.pattern
+                ]
+        return []
+
+    def match(self, path, method):
+        candidates = self.candidates(path)
+        if not candidates:
+            return None, ()
+        allowed = tuple(dict.fromkeys(item for policy in candidates for item in policy.methods))
+        for policy in candidates:
+            if method in policy.methods:
+                return policy, allowed
+        return candidates[0], allowed
 
 
 @dataclass(slots=True)

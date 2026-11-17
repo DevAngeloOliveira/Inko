@@ -1,5 +1,6 @@
 import asyncio
 import re
+from urllib.parse import parse_qsl, urlencode
 from uuid import uuid4
 
 from starlette.datastructures import MutableHeaders
@@ -56,7 +57,7 @@ def validate_structure(scope):
         raise RequestProblem(400, "INVALID_REQUEST", "Caminho inválido")
 
 
-async def read_ping_body(scope, receive, maximum):
+async def read_body(scope, receive, maximum):
     headers = scope["headers"]
     encodings = [value.lower() for name, value in headers if name == b"content-encoding"]
     if encodings and encodings != [b"identity"]:
@@ -72,20 +73,56 @@ async def read_ping_body(scope, receive, maximum):
             raise RequestProblem(413, "PAYLOAD_TOO_LARGE", "Corpo excede o limite")
         declared = int(digits)
 
-    received = 0
+    body = bytearray()
     while True:
         message = await receive()
         if message["type"] == "http.disconnect":
             raise Disconnected
-        received += len(message.get("body", b""))
-        if received > maximum:
+        body.extend(message.get("body", b""))
+        if len(body) > maximum:
             raise RequestProblem(413, "PAYLOAD_TOO_LARGE", "Corpo excede o limite")
         if not message.get("more_body", False):
             break
-    if declared is not None and received != declared:
+    if declared is not None and len(body) != declared:
         raise RequestProblem(400, "INVALID_REQUEST", "Comprimento de corpo divergente")
-    if received:
-        raise RequestProblem(400, "BODY_NOT_ALLOWED", "Ping exige corpo vazio")
+    return bytes(body)
+
+
+async def read_ping_body(scope, receive, maximum, title="Ping exige corpo vazio"):
+    if await read_body(scope, receive, maximum):
+        raise RequestProblem(400, "BODY_NOT_ALLOWED", title)
+
+
+async def read_json_body(scope, receive, maximum):
+    body = await read_body(scope, receive, maximum)
+    if not body:
+        return body
+    types = [value for name, value in scope["headers"] if name == b"content-type"]
+    media = types[0].split(b";", 1)[0].strip().lower() if len(types) == 1 else b""
+    if media != b"application/json":
+        raise RequestProblem(415, "UNSUPPORTED_MEDIA_TYPE", "Corpo deve ser application/json")
+    return body
+
+
+def validate_query(policy, raw):
+    if not raw:
+        return b""
+    if not policy.query:
+        title = "Ping não aceita parâmetros de consulta" if policy.id.endswith("_ping") else "Rota não aceita parâmetros de consulta"
+        raise RequestProblem(400, "INVALID_REQUEST", title)
+    try:
+        pairs = parse_qsl(
+            raw.decode("ascii"), keep_blank_values=True, strict_parsing=True,
+            max_num_fields=len(policy.query), separator="&",
+        )
+    except (UnicodeDecodeError, ValueError):
+        raise RequestProblem(400, "INVALID_QUERY", "Parâmetros de consulta inválidos") from None
+    names = [name for name, _ in pairs]
+    if len(set(names)) != len(names) or not set(names) <= policy.query or any(
+        len(value) > 120 or any(ord(char) < 32 for char in value) for _, value in pairs
+    ):
+        raise RequestProblem(400, "INVALID_QUERY", "Parâmetros de consulta inválidos")
+    return urlencode(pairs).encode("ascii")
 
 
 async def wait_for_disconnect(receive):
@@ -127,10 +164,10 @@ class GatewayHTTP:
         budget = RequestBudget(start + settings.deadline)
         cutoff = budget.deadline - settings.error_reserve
         metrics = runtime.metrics
-        policy = self.routes.get(scope["path"])
+        method = scope["method"]
+        policy, allowed = self.routes.match(scope["path"], method)
         route_id = policy.id if policy else "unmatched"
         control = policy is not None and policy.service is None
-        method = scope["method"]
         ids = [value for name, value in scope["headers"] if name == b"x-request-id"]
         request_id = ids[0].decode("ascii") if len(ids) == 1 and REQUEST_ID.fullmatch(ids[0]) else str(uuid4())
         state = scope.setdefault("state", {})
@@ -168,16 +205,24 @@ class GatewayHTTP:
                                 raise RequestProblem(429, "RATE_LIMITED", "Quota excedida", {"Retry-After": str(wait)})
                         if policy is None:
                             raise RequestProblem(404, "ROUTE_NOT_FOUND", "Rota indisponível")
-                        if method != "GET":
-                            raise RequestProblem(405, "METHOD_NOT_ALLOWED", "Método não permitido", {"Allow": "GET"})
-                        if not control and scope["query_string"]:
-                            raise RequestProblem(400, "INVALID_REQUEST", "Ping não aceita parâmetros de consulta")
+                        if method not in policy.methods:
+                            raise RequestProblem(
+                                405, "METHOD_NOT_ALLOWED", "Método não permitido", {"Allow": ", ".join(allowed)},
+                            )
+                        if not control:
+                            state["upstream_query"] = validate_query(policy, scope["query_string"])
                         lease = runtime.acquire(policy.service)
                         if control:
                             state["phase"] = "send"
                             await self.app(scope, receive, tracked_send)
                         else:
-                            await read_ping_body(scope, receive, settings.request_bytes)
+                            state["route"] = policy
+                            if policy.body:
+                                state["upstream_body"] = await read_json_body(scope, receive, settings.request_bytes)
+                            else:
+                                title = "Ping exige corpo vazio" if policy.upstream else "Rota não aceita corpo"
+                                await read_ping_body(scope, receive, settings.request_bytes, title)
+                                state["upstream_body"] = b""
                             await serve_until_disconnect(self.app, scope, receive, tracked_send)
                 except TimeoutError:
                     if response_started:

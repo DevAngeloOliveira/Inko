@@ -41,15 +41,15 @@ class RateLimiter:
             self.clients.move_to_end(peer)
         elif peer is None or len(self.clients) >= self.settings.client_limit:
             scope, client = "overflow", self.overflow
-        elif self.global_bucket.tokens >= 1:
+        elif self.global_bucket.tokens < 1:
+            return "global", self.global_bucket.retry_after
+        else:
             client = Bucket.full(self.settings.client_rate, self.settings.client_burst, now)
             self.clients[peer] = client
 
-        if client is not None:
-            client.refill(now)
+        client.refill(now)
         if self.global_bucket.tokens < 1:
-            delay = max(self.global_bucket.retry_after, client.retry_after) if client is not None else self.global_bucket.retry_after
-            return "global", delay
+            return "global", max(self.global_bucket.retry_after, client.retry_after)
         if client.tokens < 1:
             return scope, client.retry_after
         self.global_bucket.tokens -= 1

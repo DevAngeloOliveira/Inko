@@ -167,7 +167,7 @@ function MobileDrawer({ open, onClose, pathname, lateCount, session, onSignOut }
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
-  return <dialog ref={dialogRef} className="inko-drawer" aria-label="Menu principal" onClose={onClose} onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+  return <dialog ref={dialogRef} className="inko-drawer" aria-label="Menu principal" onClose={onClose}>
     <div className="inko-drawer-panel">
       <div className="inko-drawer-head">
         <Image src="/inko/logo/inko-logo-inverse.png" alt="INKO" width={110} height={81}/>
@@ -183,6 +183,7 @@ function MobileDrawer({ open, onClose, pathname, lateCount, session, onSignOut }
         </div>
       </div>
     </div>
+    <button type="button" className="inko-drawer-backdrop" aria-label="Fechar menu" tabIndex={-1} onClick={onClose}/>
   </dialog>;
 }
 

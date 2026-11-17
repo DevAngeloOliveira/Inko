@@ -505,7 +505,9 @@ a.inko-stat:hover { border-color: var(--inko-brand-ink); box-shadow: var(--inko-
 .inko-app-loading { display: flex; align-items: center; justify-content: center; min-height: 40vh; color: var(--inko-text-secondary); }
 
 .inko-drawer { width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; }
-.inko-drawer-panel { display: flex; flex-direction: column; width: 304px; max-width: calc(100vw - 48px); height: 100%; background: var(--inko-surface-inverse); color: var(--inko-text-inverse); box-shadow: var(--inko-shadow-lg); overflow: hidden; }
+.inko-drawer[open] { display: flex; }
+.inko-drawer-backdrop { flex: 1; padding: 0; border: 0; background: transparent; }
+.inko-drawer-panel { display: flex; flex-shrink: 0; flex-direction: column; width: 304px; max-width: calc(100vw - 48px); height: 100%; background: var(--inko-surface-inverse); color: var(--inko-text-inverse); box-shadow: var(--inko-shadow-lg); overflow: hidden; }
 .inko-drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 8px 12px 20px; }
 .inko-drawer-head img { width: 110px; height: auto; }
 .inko-drawer-close, .inko-drawer-user button { display: flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; border: 0; border-radius: var(--inko-radius-sm); background: transparent; color: var(--inko-text-inverse); cursor: pointer; }

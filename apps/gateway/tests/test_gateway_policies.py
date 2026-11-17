@@ -216,6 +216,16 @@ def test_global_quota_client_overflow_and_expiry_are_bounded():
     assert list(limiter.clients) == ["fresh-peer"]
 
 
+def test_exhausted_global_quota_does_not_allocate_unknown_peers():
+    settings = replace(GatewaySettings(), global_burst=1)
+    limiter = RateLimiter(settings, 100)
+
+    assert limiter.check("known-peer", 100) is None
+    assert limiter.check("new-peer", 100) == ("global", 1)
+    assert list(limiter.clients) == ["known-peer"]
+    assert limiter.check("new-peer", 101) is None
+
+
 def test_startup_configuration_rejects_invalid_slot_budget(monkeypatch):
     monkeypatch.setenv("INKO_GATEWAY_BUSINESS_SLOTS", "37")
     with pytest.raises(ValueError, match="sum of service slots"):

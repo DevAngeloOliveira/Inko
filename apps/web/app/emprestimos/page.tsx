@@ -106,7 +106,7 @@ function UserStep({ users, loans, selectedId, onSelect }: Readonly<{ users: read
   const anyChecked = filtered.some(user => user.id === selectedId);
   return <>
     <InkoSearch label="Buscar usuário por nome, e-mail ou identificador" placeholder="Nome, e-mail ou identificador…" value={query} onChange={event => setQuery(event.target.value)} className={styles.search}/>
-    {filtered.length > 0 && <div role="radiogroup" aria-label="Usuário" className={styles.choices} onKeyDown={onRadioKeyDown}>
+    {filtered.length > 0 && <div role="radiogroup" tabIndex={-1} aria-label="Usuário" className={styles.choices} onKeyDown={onRadioKeyDown}>
       {filtered.map((user, index) => {
         const pending = pendingOf(user.id, loans);
         const checked = user.id === selectedId;
@@ -127,7 +127,7 @@ function WorkStep({ works, loans, selectedId, onSelect }: Readonly<{ works: read
   const anyChecked = filtered.some(work => work.id === selectedId);
   return <>
     <InkoSearch label="Buscar obra por título, autor ou identificador" placeholder="Título, autor ou identificador INK-…" value={query} onChange={event => setQuery(event.target.value)} className={styles.search}/>
-    {filtered.length > 0 && <div role="radiogroup" aria-label="Obra" className={styles.choices} onKeyDown={onRadioKeyDown}>
+    {filtered.length > 0 && <div role="radiogroup" tabIndex={-1} aria-label="Obra" className={styles.choices} onKeyDown={onRadioKeyDown}>
       {filtered.map((work, index) => {
         const checked = work.id === selectedId;
         return <button key={work.id} type="button" role="radio" aria-checked={checked} tabIndex={radioTabIndex(checked, index, anyChecked)} className="inko-choice" onClick={() => onSelect(work.id)}>
@@ -172,7 +172,7 @@ function DatesStep({ term, due, onTerm }: Readonly<{ term: number; due: string; 
       </InkoField>
       <fieldset className={styles.terms}>
         <legend>Prazo</legend>
-        <div role="radiogroup" aria-label="Prazo" className={styles.termOptions} onKeyDown={onRadioKeyDown}>
+        <div role="radiogroup" tabIndex={-1} aria-label="Prazo" className={styles.termOptions} onKeyDown={onRadioKeyDown}>
           {TERMS.map(option => <button key={option} type="button" role="radio" aria-checked={term === option} tabIndex={term === option ? 0 : -1} className={styles.term} onClick={() => onTerm(option)}>{option} dias</button>)}
         </div>
         <span className={styles.due}>Devolução até <strong>{formatDate(due)}</strong></span>

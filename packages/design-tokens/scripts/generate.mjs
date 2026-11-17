@@ -131,7 +131,7 @@ for (const [name, value] of compatibility) define(name, value);
 
 const result = `:root {\n${[...definitions].map(([name, value]) => `  ${name}: ${value};`).join('\n')}\n}\n`;
 if (process.argv.includes('--check')) {
-  assert.equal(readFileSync(output, 'utf8'), result, 'Tokens are out of sync: run npm run tokens:build');
+  assert.equal(readFileSync(output, 'utf8').replaceAll('\r\n', '\n'), result, 'Tokens are out of sync: run npm run tokens:build');
   process.stdout.write(`Validated ${nodes.size} tokens and ${definitions.size} CSS custom properties.\n`);
 } else {
   writeFileSync(output, result);

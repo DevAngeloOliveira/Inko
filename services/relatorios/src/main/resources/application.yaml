@@ -11,3 +11,11 @@ management:
   endpoint:
     health:
       show-details: never
+inko:
+  catalogo-url: ${CATALOGO_URL:http://localhost:8081}
+  usuarios-url: ${USUARIOS_URL:http://localhost:8082}
+  circulacao-url: ${CIRCULACAO_URL:http://localhost:8083}
+  http:
+    connect-timeout: 300ms
+    read-timeout: 700ms
+    budget: 1000ms
