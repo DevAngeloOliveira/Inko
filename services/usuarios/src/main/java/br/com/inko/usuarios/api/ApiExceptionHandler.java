@@ -2,6 +2,7 @@ package br.com.inko.usuarios.api;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,15 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> handle(ApiException exception) {
         return problem(exception.status(), exception.code(), exception.getMessage(), exception.field());
+    }
+
+    @ExceptionHandler(LimiteExcedidoException.class)
+    public ResponseEntity<Map<String, Object>> limite(LimiteExcedidoException exception) {
+        ResponseEntity<Map<String, Object>> resposta = handle(exception);
+        return ResponseEntity.status(resposta.getStatusCode())
+                .headers(resposta.getHeaders())
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(exception.retryAfterSegundos()))
+                .body(resposta.getBody());
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})

@@ -9,6 +9,7 @@ spring:
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration,classpath:db/seed}
     baseline-on-migrate: true
     baseline-version: 0
+    out-of-order: true
 server:
   port: ${SERVER_PORT:8082}
 management:
@@ -19,3 +20,15 @@ management:
   endpoint:
     health:
       show-details: never
+inko:
+  auth:
+    session-ttl: ${INKO_SESSION_TTL:8h}
+    bcrypt-strength: ${INKO_BCRYPT_STRENGTH:12}
+    login:
+      max-falhas-email: ${INKO_LOGIN_MAX_FAILURES_EMAIL:5}
+      max-falhas-ip: ${INKO_LOGIN_MAX_FAILURES_IP:20}
+      janela: ${INKO_LOGIN_WINDOW:15m}
+    bootstrap-admin:
+      email: ${INKO_BOOTSTRAP_ADMIN_EMAIL:}
+      password: ${INKO_BOOTSTRAP_ADMIN_PASSWORD:}
+      name: ${INKO_BOOTSTRAP_ADMIN_NAME:Administrador INKO}
