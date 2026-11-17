@@ -10,10 +10,10 @@ A conta de operador foi criada pelo bootstrap. As variáveis `INKO_BOOTSTRAP_ADM
 
 | Verificação | Comando | Resultado |
 |---|---|---|
-| Unitários Java | `mvn -B -ntp verify` em cada serviço | Usuários 26, Catálogo 27, Circulação 9, Relatórios 10, todos sem falhas |
+| Unitários Java | `mvn -B -ntp verify` em cada serviço | Usuários 29, Catálogo 27, Circulação 9, Relatórios 10, todos sem falhas |
 | Gateway (REG-02) | `uv run pytest` em `apps/gateway` | 32 aprovados; o Gateway não foi alterado |
 | Web | `tsc --noEmit`, `node --test tests/*.test.mjs`, `next build` | typecheck OK, 55/55 testes, build OK |
-| Aceitação SDD-002 | `python scripts/ci/e2e-mvp-auth-media.py http://127.0.0.1:13000` | 48/48 verificações (inclui o limitador corrigido: reserva atômica e teto rígido de chaves) |
+| Aceitação SDD-002 | `python scripts/ci/e2e-mvp-auth-media.py http://127.0.0.1:13000` | 48/48 verificações (inclui o limitador corrigido: reserva atômica e despejo das chaves não bloqueadas mais antigas, sem bloqueio global) |
 | MEDIA-04 (restart parcial) | `docker compose restart catalogo web` + `--after-restart` | 3/3 |
 | MEDIA-04 (stack inteira) | `docker compose stop` + `up -d` (sem `-v`) + `--after-restart` | 3/3 |
 | REG-01 pelo BFF autenticado | `e2e-academic-flow.py http://127.0.0.1:13000` com `INKO_E2E_*` | 32/32 |

@@ -6,7 +6,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -25,7 +26,7 @@ public class LoginRateLimiter {
     private final int maxFalhasIp;
     private final Duration janela;
     private final int limiteChaves;
-    private final Map<String, Deque<Instant>> tentativas = new HashMap<>();
+    private final Map<String, Deque<Instant>> tentativas = new LinkedHashMap<>();
 
     public LoginRateLimiter(Clock clock, int maxFalhasEmail, int maxFalhasIp, Duration janela) {
         this(clock, maxFalhasEmail, maxFalhasIp, janela, LIMITE_CHAVES_PADRAO);
@@ -70,24 +71,42 @@ public class LoginRateLimiter {
         }
     }
 
+    synchronized int quantidadeChaves() {
+        return tentativas.size();
+    }
+
     private void garantirCapacidade(String chaveEmail, String chaveIp, Instant agora) {
         int novas = (tentativas.containsKey(chaveEmail) ? 0 : 1) + (tentativas.containsKey(chaveIp) ? 0 : 1);
-        if (novas == 0 || tentativas.size() + novas <= limiteChaves) {
-            return;
+        Iterator<Map.Entry<String, Deque<Instant>>> entradas = tentativas.entrySet().iterator();
+        while (tentativas.size() + novas > limiteChaves && entradas.hasNext()) {
+            Map.Entry<String, Deque<Instant>> entrada = entradas.next();
+            String chave = entrada.getKey();
+            if (chave.equals(chaveEmail) || chave.equals(chaveIp)) {
+                continue;
+            }
+            if (descartarExpiradas(entrada.getValue(), agora).size() < maximo(chave)) {
+                entradas.remove();
+            }
         }
-        tentativas.values().removeIf(registros -> descartarExpiradas(registros, agora).isEmpty());
-        novas = (tentativas.containsKey(chaveEmail) ? 0 : 1) + (tentativas.containsKey(chaveIp) ? 0 : 1);
         if (tentativas.size() + novas > limiteChaves) {
             throw new LimiteExcedidoException(CODIGO, MENSAGEM, janela);
         }
     }
 
+    private int maximo(String chave) {
+        return chave.startsWith(PREFIXO_EMAIL) ? maxFalhasEmail : maxFalhasIp;
+    }
+
     private void registrar(String chave, int maximo, Instant agora) {
-        Deque<Instant> registros = tentativas.computeIfAbsent(chave, ignorada -> new ArrayDeque<>());
+        Deque<Instant> registros = tentativas.remove(chave);
+        if (registros == null) {
+            registros = new ArrayDeque<>();
+        }
         descartarExpiradas(registros, agora).addLast(agora);
         while (registros.size() > maximo) {
             registros.removeFirst();
         }
+        tentativas.put(chave, registros);
     }
 
     private Optional<Duration> bloqueio(String chave, int maximo, Instant agora) {

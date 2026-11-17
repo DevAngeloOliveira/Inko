@@ -97,26 +97,71 @@ class LoginRateLimiterTest {
     }
 
     @Test
-    void tetoDeChavesFalhaFechadoSemAfetarChavesExistentes() {
-        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 5, 20, JANELA, 4);
+    void mapaCheioDespejaChaveNaoBloqueadaMaisAntiga() {
+        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 2, 20, JANELA, 4);
         limiter.reservar("a@inko.test", "ip-1");
-        limiter.reservar("b@inko.test", "ip-1");
+        limiter.reservar("b@inko.test", "ip-2");
+        limiter.reservar("c@inko.test", "ip-3");
+        assertEquals(4, limiter.quantidadeChaves());
+
+        limiter.reservar("a@inko.test", "ip-3");
+        limiter.reservar("a@inko.test", "ip-3");
+        assertEquals(4, limiter.quantidadeChaves());
+        assertEquals(HttpStatus.TOO_MANY_REQUESTS,
+                assertThrows(LimiteExcedidoException.class, () -> limiter.reservar("a@inko.test", "ip-3")).status());
+    }
+
+    @Test
+    void chaveBloqueadaSobreviveAInundacao() {
+        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 2, 100, JANELA, 6);
+        limiter.reservar("vitima@inko.test", "ip-v");
+        limiter.reservar("vitima@inko.test", "ip-v");
         relogio.avancar(Duration.ofMinutes(1));
 
+        for (int indice = 0; indice < 200; indice++) {
+            limiter.reservar("forjado" + indice + "@inko.test", "ip-f" + indice);
+            assertTrue(limiter.quantidadeChaves() <= 6);
+        }
+
+        LimiteExcedidoException bloqueado = assertThrows(LimiteExcedidoException.class,
+                () -> limiter.reservar("vitima@inko.test", "ip-novo"));
+        assertEquals("TOO_MANY_ATTEMPTS", bloqueado.code());
+        assertEquals(Duration.ofMinutes(14).toSeconds(), bloqueado.retryAfterSegundos());
+    }
+
+    @Test
+    void loginLegitimoNaoSofre429PorInundacao() {
+        AuthServiceTest.MemoriaOperadorRepository repository = new AuthServiceTest.MemoriaOperadorRepository();
+        PasswordEncoder encoder = new BCryptPasswordEncoder(4);
+        repository.inserir(new Operador(UUID.randomUUID(), "legitimo@inko.test", "Legitimo",
+                encoder.encode("senha-correta-123"), Papel.BIBLIOTECARIO, true), relogio.instant());
+        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 5, 20, JANELA, 8);
+        AuthService service = new AuthService(repository, encoder, limiter, relogio, Duration.ofHours(8));
+
+        for (int indice = 0; indice < 50; indice++) {
+            String email = "forjado" + indice + "@inko.test";
+            String ip = "198.51.100." + indice;
+            assertEquals(HttpStatus.UNAUTHORIZED,
+                    assertThrows(ApiException.class, () -> service.login(email, "senha-errada-xyz", ip)).status());
+        }
+
+        assertEquals("legitimo@inko.test", service.login("legitimo@inko.test", "senha-correta-123", "203.0.113.7")
+                .operador().email());
+        assertTrue(limiter.quantidadeChaves() <= 8);
+    }
+
+    @Test
+    void todasChavesBloqueadasRecusaChaveNova() {
+        LoginRateLimiter limiter = new LoginRateLimiter(relogio, 1, 1, JANELA, 2);
+        limiter.reservar("a@inko.test", "ip-1");
+
         LimiteExcedidoException cheio = assertThrows(LimiteExcedidoException.class,
-                () -> limiter.reservar("c@inko.test", "ip-2"));
+                () -> limiter.reservar("b@inko.test", "ip-2"));
         assertEquals("TOO_MANY_ATTEMPTS", cheio.code());
         assertEquals(JANELA.toSeconds(), cheio.retryAfterSegundos());
-
-        limiter.reservar("c@inko.test", "ip-1");
-        LimiteExcedidoException semEspaco = assertThrows(LimiteExcedidoException.class,
-                () -> limiter.reservar("d@inko.test", "ip-1"));
-        assertEquals(JANELA.toSeconds(), semEspaco.retryAfterSegundos());
-
-        limiter.reservar("a@inko.test", "ip-1");
-        limiter.reservar("b@inko.test", "ip-1");
+        assertEquals(2, limiter.quantidadeChaves());
 
         relogio.avancar(JANELA);
-        assertTrue(limiter.reservar("c@inko.test", "ip-2").instante().isAfter(Instant.parse("2026-11-17T12:00:00Z")));
+        limiter.reservar("b@inko.test", "ip-2");
     }
 }
