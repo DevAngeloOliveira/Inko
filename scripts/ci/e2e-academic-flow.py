@@ -8,6 +8,7 @@ import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000").rstrip("/")
 REFERENCIA = "2026-11-09"
@@ -25,6 +26,10 @@ def call(method, path, body=None):
     except urllib.error.HTTPError as error:
         payload = error.read()
         return error.code, json.loads(payload) if payload else None
+
+
+def cents(value):
+    return int(Decimal(str(value)) * 100)
 
 
 def step(name, condition, detail=""):
@@ -95,7 +100,7 @@ def main():
 
     status, report_before = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
     item = next((row for row in report_before["itens"] if row["emprestimoId"] == loan["id"]), None)
-    step("RF-12/13 multa de 3 dias = R$ 6,00 no relatório", item is not None and item["diasAtraso"] == 3 and item["valor"] == 6.0, f"{item}")
+    step("RF-12/13 multa de 3 dias = R$ 6,00 no relatório", item is not None and item["diasAtraso"] == 3 and cents(item["valor"]) == 600, f"{item}")
 
     status, returned = call("POST", f"/api/v1/emprestimos/{loan['id']}/devolucao", {"dataDevolucao": "2026-11-20"})
     step("RF-09 registrar devolução (200)", status == 200 and returned["dataDevolucao"] == "2026-11-20", f"{status} {returned}")
@@ -111,9 +116,9 @@ def main():
     status, report_after = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
     step("RF-13 devolvido sai do relatório", all(row["emprestimoId"] != loan["id"] for row in report_after["itens"]))
     status, fines = call("GET", f"/api/v1/relatorios/multas?referenceDate={REFERENCIA}")
-    step("RF-18 total consistente com itens", round(sum(row["valor"] for row in fines["itens"]), 2) == fines["total"])
+    step("RF-18 total consistente com itens", sum(cents(row["valor"]) for row in fines["itens"]) == cents(fines["total"]))
     status, stats = call("GET", f"/api/v1/relatorios/estatisticas?referenceDate={REFERENCIA}")
-    step("RF-14..17 estatísticas", status == 200 and stats["totalMultas"] == fines["total"]
+    step("RF-14..17 estatísticas", status == 200 and cents(stats["totalMultas"]) == cents(fines["total"])
          and stats["emprestimosAtrasados"] == fines["quantidade"] and sum(stats["livrosPorCategoria"].values()) == stats["totalLivros"])
     step("Gateway recusa parâmetro não permitido (400)", call("GET", "/api/v1/livros?destino=x")[0] == 400)
 
