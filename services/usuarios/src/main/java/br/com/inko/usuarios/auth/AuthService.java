@@ -54,14 +54,13 @@ public class AuthService {
         if (normalizado.length() > MAX_EMAIL) {
             throw ApiException.invalido("Informe um e-mail válido.", "email");
         }
-        limiter.verificar(normalizado, ip);
+        LoginRateLimiter.Reserva reserva = limiter.reservar(normalizado, ip);
         Optional<Operador> encontrado = repository.buscarPorEmail(normalizado);
         boolean senhaConfere = senhaConfere(senha, encontrado.map(Operador::senhaHash).orElse(hashReferencia));
         if (encontrado.isEmpty() || !encontrado.get().ativo() || !senhaConfere) {
-            limiter.registrarFalha(normalizado, ip);
             throw credenciaisInvalidas();
         }
-        limiter.limpar(normalizado);
+        limiter.confirmarSucesso(reserva);
         Operador operador = encontrado.get();
         String token = TokenSessao.gerar();
         Instant agora = clock.instant();

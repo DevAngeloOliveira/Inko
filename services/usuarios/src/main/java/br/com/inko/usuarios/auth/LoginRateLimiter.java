@@ -11,52 +11,79 @@ import java.util.Map;
 import java.util.Optional;
 
 public class LoginRateLimiter {
-    private static final int LIMITE_CHAVES = 10_000;
+    static final int LIMITE_CHAVES_PADRAO = 10_000;
     private static final String PREFIXO_EMAIL = "email:";
     private static final String PREFIXO_IP = "ip:";
+    private static final String CODIGO = "TOO_MANY_ATTEMPTS";
+    private static final String MENSAGEM = "Muitas tentativas de login. Aguarde antes de tentar novamente.";
+
+    public record Reserva(String email, String ip, Instant instante) {
+    }
 
     private final Clock clock;
     private final int maxFalhasEmail;
     private final int maxFalhasIp;
     private final Duration janela;
-    private final Map<String, Deque<Instant>> falhas = new HashMap<>();
+    private final int limiteChaves;
+    private final Map<String, Deque<Instant>> tentativas = new HashMap<>();
 
     public LoginRateLimiter(Clock clock, int maxFalhasEmail, int maxFalhasIp, Duration janela) {
-        if (maxFalhasEmail < 1 || maxFalhasIp < 1 || janela.isNegative() || janela.isZero()) {
+        this(clock, maxFalhasEmail, maxFalhasIp, janela, LIMITE_CHAVES_PADRAO);
+    }
+
+    public LoginRateLimiter(Clock clock, int maxFalhasEmail, int maxFalhasIp, Duration janela, int limiteChaves) {
+        if (maxFalhasEmail < 1 || maxFalhasIp < 1 || limiteChaves < 2 || janela.isNegative() || janela.isZero()) {
             throw new IllegalArgumentException("Limites de tentativas de login inválidos.");
         }
         this.clock = clock;
         this.maxFalhasEmail = maxFalhasEmail;
         this.maxFalhasIp = maxFalhasIp;
         this.janela = janela;
+        this.limiteChaves = limiteChaves;
     }
 
-    public synchronized void verificar(String email, String ip) {
+    public synchronized Reserva reservar(String email, String ip) {
         Instant agora = clock.instant();
-        Duration porEmail = bloqueio(PREFIXO_EMAIL + email, maxFalhasEmail, agora).orElse(Duration.ZERO);
-        Duration porIp = bloqueio(PREFIXO_IP + ip, maxFalhasIp, agora).orElse(Duration.ZERO);
+        String chaveEmail = PREFIXO_EMAIL + email;
+        String chaveIp = PREFIXO_IP + ip;
+        Duration porEmail = bloqueio(chaveEmail, maxFalhasEmail, agora).orElse(Duration.ZERO);
+        Duration porIp = bloqueio(chaveIp, maxFalhasIp, agora).orElse(Duration.ZERO);
         Duration espera = porEmail.compareTo(porIp) >= 0 ? porEmail : porIp;
         if (espera.isPositive()) {
-            throw new LimiteExcedidoException("TOO_MANY_ATTEMPTS",
-                    "Muitas tentativas de login. Aguarde antes de tentar novamente.", espera);
+            throw new LimiteExcedidoException(CODIGO, MENSAGEM, espera);
+        }
+        garantirCapacidade(chaveEmail, chaveIp, agora);
+        registrar(chaveEmail, maxFalhasEmail, agora);
+        registrar(chaveIp, maxFalhasIp, agora);
+        return new Reserva(email, ip, agora);
+    }
+
+    public synchronized void confirmarSucesso(Reserva reserva) {
+        tentativas.remove(PREFIXO_EMAIL + reserva.email());
+        String chaveIp = PREFIXO_IP + reserva.ip();
+        Deque<Instant> registros = tentativas.get(chaveIp);
+        if (registros != null) {
+            registros.removeLastOccurrence(reserva.instante());
+            if (registros.isEmpty()) {
+                tentativas.remove(chaveIp);
+            }
         }
     }
 
-    public synchronized void registrarFalha(String email, String ip) {
-        Instant agora = clock.instant();
-        if (falhas.size() >= LIMITE_CHAVES) {
-            falhas.values().removeIf(registros -> descartarExpiradas(registros, agora).isEmpty());
+    private void garantirCapacidade(String chaveEmail, String chaveIp, Instant agora) {
+        int novas = (tentativas.containsKey(chaveEmail) ? 0 : 1) + (tentativas.containsKey(chaveIp) ? 0 : 1);
+        if (novas == 0 || tentativas.size() + novas <= limiteChaves) {
+            return;
         }
-        registrar(PREFIXO_EMAIL + email, maxFalhasEmail, agora);
-        registrar(PREFIXO_IP + ip, maxFalhasIp, agora);
-    }
-
-    public synchronized void limpar(String email) {
-        falhas.remove(PREFIXO_EMAIL + email);
+        tentativas.values().removeIf(registros -> descartarExpiradas(registros, agora).isEmpty());
+        novas = (tentativas.containsKey(chaveEmail) ? 0 : 1) + (tentativas.containsKey(chaveIp) ? 0 : 1);
+        if (tentativas.size() + novas > limiteChaves) {
+            throw new LimiteExcedidoException(CODIGO, MENSAGEM, janela);
+        }
     }
 
     private void registrar(String chave, int maximo, Instant agora) {
-        Deque<Instant> registros = falhas.computeIfAbsent(chave, ignorada -> new ArrayDeque<>());
+        Deque<Instant> registros = tentativas.computeIfAbsent(chave, ignorada -> new ArrayDeque<>());
         descartarExpiradas(registros, agora).addLast(agora);
         while (registros.size() > maximo) {
             registros.removeFirst();
@@ -64,12 +91,12 @@ public class LoginRateLimiter {
     }
 
     private Optional<Duration> bloqueio(String chave, int maximo, Instant agora) {
-        Deque<Instant> registros = falhas.get(chave);
+        Deque<Instant> registros = tentativas.get(chave);
         if (registros == null) {
             return Optional.empty();
         }
         if (descartarExpiradas(registros, agora).isEmpty()) {
-            falhas.remove(chave);
+            tentativas.remove(chave);
             return Optional.empty();
         }
         if (registros.size() < maximo) {

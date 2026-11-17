@@ -234,6 +234,8 @@ def expiry_check():
 
 
 def media_checks(opener):
+    status, _, _ = call(opener, "DELETE", f"/api/media/livros/{SCRATCH_BOOK}")
+    step("MEDIA-00 obra de rascunho sem capa antes dos testes", status in (204, 404), f"{status}")
     before = media_files()
     image = png(120, 180)
     status, _, raw = upload(ANON, SCRATCH_BOOK, image, "image/png")
