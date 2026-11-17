@@ -9,11 +9,11 @@ import {
 const web = new URL('../', import.meta.url);
 const read = path => readFileSync(new URL(path, web), 'utf8');
 
-test('only catalog reads are anonymous; loans, users, reports and mutations require staff', () => {
+test('only catalog reads are anonymous; per-book availability, loans, users, reports and mutations require staff', () => {
   assert.equal(accessFor('GET', ['livros']), 'public');
   assert.equal(accessFor('GET', ['livros', 'INK-0001']), 'public');
-  assert.equal(accessFor('GET', ['livros', 'INK-0001', 'disponibilidade']), 'public');
   for (const [method, path] of [
+    ['GET', ['livros', 'INK-0001', 'disponibilidade']],
     ['GET', ['emprestimos']], ['GET', ['emprestimos', 'ativos']], ['GET', ['usuarios']],
     ['GET', ['relatorios', 'multas']], ['GET', ['system', 'status']], ['POST', ['livros']],
     ['POST', ['emprestimos']], ['GET', ['livros', 'INK-0001', 'capa']],
@@ -62,6 +62,15 @@ test('session cookie is HttpOnly and SameSite=Lax and the token never reaches th
   assert.match(route, /json\(\{ id, nome, email, papel, expiraEm: session\.expiraEm \}/);
   assert.doesNotMatch(route, /json\(\{[^}]*token/);
   assert.match(route, /rejectForeignOrigin\(request\)/);
+  assert.match(route, /total > MAX_LOGIN_BYTES[\s\S]*reader\.cancel\(\)/);
+  assert.doesNotMatch(route, /request\.text\(\)/);
+});
+
+test('a session check started before login or logout never overwrites the newer state', () => {
+  const api = read('lib/library-api.ts');
+  assert.match(api, /const generation = sessionGeneration;/);
+  assert.match(api, /if \(generation !== sessionGeneration\) return;/);
+  assert.equal((api.match(/sessionGeneration\+\+/g) ?? []).length, 2, 'signIn e clearSession');
 });
 
 test('the browser keeps no credential: no token or session in web storage', () => {

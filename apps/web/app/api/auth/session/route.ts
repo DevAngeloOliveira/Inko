@@ -33,12 +33,32 @@ function rejectForeignOrigin(request: NextRequest): Response | null {
     : problem(403, 'ORIGIN_REJECTED', 'Origem da requisição não permitida');
 }
 
+/** Lê o corpo contando bytes e cancela o stream assim que passa do limite. */
+async function readLimitedText(request: NextRequest): Promise<string | null> {
+  if (Number(request.headers.get('content-length') ?? '0') > MAX_LOGIN_BYTES) return null;
+  const reader = request.body?.getReader();
+  if (!reader) return '';
+  const decoder = new TextDecoder();
+  let total = 0;
+  let text = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return text + decoder.decode();
+    total += value.byteLength;
+    if (total > MAX_LOGIN_BYTES) {
+      await reader.cancel();
+      return null;
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+}
+
 async function readCredentials(request: NextRequest): Promise<{ email: string; senha: string } | Response> {
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
     return problem(415, 'UNSUPPORTED_MEDIA_TYPE', 'Envie as credenciais como JSON');
   }
-  const text = await request.text();
-  if (text.length > MAX_LOGIN_BYTES) return problem(413, 'PAYLOAD_TOO_LARGE', 'Corpo excede o limite');
+  const text = await readLimitedText(request);
+  if (text === null) return problem(413, 'PAYLOAD_TOO_LARGE', 'Corpo excede o limite');
   try {
     const body = JSON.parse(text) as { email?: unknown; senha?: unknown };
     if (typeof body.email === 'string' && typeof body.senha === 'string') return { email: body.email, senha: body.senha };

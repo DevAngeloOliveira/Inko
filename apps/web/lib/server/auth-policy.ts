@@ -20,11 +20,12 @@ const TOKEN = /^[A-Za-z0-9_-]{32,128}$/;
 const BOOK_ID = /^[A-Za-z0-9-]{1,16}$/;
 const MUTATIONS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-/** Somente leituras do catálogo (obra, lista e disponibilidade) são públicas. */
+/**
+ * Somente a lista e o detalhe de obras são públicos. A disponibilidade por obra
+ * expõe leitor e empréstimo; o público usa `/api/public/disponibilidade`.
+ */
 export function accessFor(method: string, path: readonly string[]): Access {
-  if (method !== 'GET' || path[0] !== 'livros') return 'staff';
-  if (path.length <= 2) return 'public';
-  return path.length === 3 && path[2] === 'disponibilidade' ? 'public' : 'staff';
+  return method === 'GET' && path[0] === 'livros' && path.length <= 2 ? 'public' : 'staff';
 }
 
 export function isMutation(method: string): boolean {

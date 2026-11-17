@@ -82,6 +82,8 @@ let state: LibraryState | null = null;
 let inflight: Promise<void> | null = null;
 let sessionChecked = false;
 let sessionCheck: Promise<void> | null = null;
+/** Muda a cada login ou limpeza; descarta conferências iniciadas antes da mudança. */
+let sessionGeneration = 0;
 let expiryTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 
@@ -254,6 +256,7 @@ function scheduleExpiry(session: Session | null): void {
 
 /** Apaga da memória a sessão e todos os dados protegidos. */
 function clearSession(): void {
+  sessionGeneration++;
   scheduleExpiry(null);
   commit({ session: null, status: 'idle', error: null, works: [], users: [], loans: [] });
 }
@@ -278,6 +281,7 @@ async function problemOf(response: Response): Promise<ApiError> {
 /** Confere a sessão no servidor uma vez por carregamento (e de novo quando ela expira). */
 export function checkSession(): Promise<void> {
   if (sessionCheck) return sessionCheck;
+  const generation = sessionGeneration;
   sessionCheck = (async () => {
     let session: Session | null = null;
     let error: string | null = null;
@@ -288,8 +292,9 @@ export function checkSession(): Promise<void> {
     } catch (failure) {
       error = failure instanceof Error ? failure.message : 'Falha ao conferir a sessão.';
     }
-    sessionChecked = true;
     sessionCheck = null;
+    if (generation !== sessionGeneration) return;
+    sessionChecked = true;
     scheduleExpiry(session);
     if (!session) {
       commit({ session: null, status: error ? 'error' : 'idle', error, works: [], users: [], loans: [] });
@@ -305,6 +310,7 @@ export async function signIn(email: string, password: string): Promise<Session> 
   const response = await sessionRequest('POST', { email: email.trim(), senha: password });
   if (!response.ok) throw await problemOf(response);
   const session = toSession(await response.json() as OperatorDto);
+  sessionGeneration++;
   sessionChecked = true;
   scheduleExpiry(session);
   commit({ session, status: 'idle' });
