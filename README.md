@@ -41,10 +41,10 @@ Migrações Flyway versionadas em cada serviço (`src/main/resources/db/migratio
 
 ## Limitações conhecidas
 
-- **Login demonstrativo**: qualquer e-mail válido com senha de 6+ caracteres abre uma sessão só no navegador. Não há autenticação nem autorização (RF-25). Execute apenas localmente.
+- **Autenticação de operadores (SDD-002)**: a senha é guardada como hash BCrypt e a sessão é opaca, revogável e expira em 8 h, num cookie HttpOnly. O BFF autoriza as rotas privadas. O Gateway (porta 8000) continua sem credencial e acessível só em `127.0.0.1`. Isso é um MVP local, não produção; os limites estão em `docs/academic/SDD-002-EVIDENCIAS.md`.
 - "Enviar lembretes" é simulação identificada; não há envio de e-mail (RF-27).
 - Exclusão de obras não faz parte do contrato desta versão; o botão informa isso.
-- Capas são ilustrações CSS; o envio de capa é apenas visual.
+- Capas: o operador envia JPEG/PNG de até 2 MiB, gravados no volume `catalogo_media` (ADR-004). Obras sem capa enviada mantêm a ilustração em CSS. O volume não é backup: faça backup dele junto com o PostgreSQL.
 - Catálogo público (RF-20), filtros históricos (RF-24) e auditoria (RF-26) estão pendentes.
 - SonarCloud: o Quality Gate da `main` estava em ERROR (confiabilidade C e segurança B em código novo). As três ocorrências de confiabilidade foram corrigidas em `249cca0`, mas ainda falta uma nova análise. A de segurança (`python:S5332`, origem `http://` de loopback em `scripts/ops/measure-gateway.py`) precisa de revisão no próprio SonarCloud.
 - A primeira chamada a um serviço Java logo após subir os contêineres pode exceder o prazo de 2 s do Gateway (aquecimento da JVM); a seguinte responde normalmente.
@@ -60,13 +60,15 @@ Migrações Flyway versionadas em cada serviço (`src/main/resources/db/migratio
 
 ```bash
 cp .env.example .env          # Windows PowerShell: Copy-Item .env.example .env
+# Edite .env e defina INKO_BOOTSTRAP_ADMIN_EMAIL e INKO_BOOTSTRAP_ADMIN_PASSWORD (12+ caracteres).
+# A conta de operador ADMIN é criada uma única vez; nunca commite esses valores.
 docker compose up --build -d --wait
 docker compose ps
 ```
 
 Acesse:
 
-- Frontend: http://localhost:3000 (login demonstrativo: qualquer e-mail válido e senha com 6+ caracteres)
+- Frontend: http://localhost:3000 (entre com a conta de operador definida no `.env`)
 - Gateway e OpenAPI: http://localhost:8000/docs (os contratos de negócio estão em `docs/contracts/openapi.yaml`)
 - Status dos serviços: http://localhost:8000/api/v1/system/status
 - Exemplo de contrato: http://localhost:8000/api/v1/relatorios/multas?referenceDate=2026-11-09

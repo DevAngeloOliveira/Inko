@@ -38,6 +38,6 @@ Legenda dos testes: **U** = JUnit/pytest/node unitário, **E2E** = `scripts/ci/e
 | RF-23 | Exportação CSV | Relatórios (CSV a partir do relatório Java) | UI manual | Concluído |
 | RF-20 | Catálogo público | `/landing` com amostra estática | — | Pendente (fora do caminho crítico) |
 | RF-24 | Filtros históricos adicionais | — | — | Pendente |
-| RF-25 | Autenticação e autorização | login demonstrativo apenas no navegador | — | Pendente: não há autenticação real; usar só localmente |
+| RF-25 | Autenticação e autorização | operadores com BCrypt e sessões revogáveis (Usuários); BFF com cookie HttpOnly, papel e Origin | U (`AuthServiceTest`, `auth-bff.test.mjs`), E2E (`e2e-mvp-auth-media.py`) | Concluído no MVP local; autorização no Gateway e nos serviços pendente (SDD-002 P1) |
 | RF-26 | Auditoria avançada | — | — | Pendente |
 | RF-27 | Notificações por e-mail | botão "Enviar lembretes" é simulação identificada | — | Pendente |
