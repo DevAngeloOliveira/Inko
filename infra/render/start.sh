@@ -55,12 +55,20 @@ export HOME=/tmp XDG_CONFIG_HOME=/tmp XDG_DATA_HOME=/tmp
 caddy start --config "$config" --adapter caddyfile
 case "$INKO_SERVICE" in
     web) export HOSTNAME=0.0.0.0; exec node apps/web/server.js ;;
-    gateway) exec uvicorn inko_gateway.main:app --host 127.0.0.1 --port 9000 --no-proxy-headers --no-access-log ;;
+    gateway)
+        export INKO_GATEWAY_READ_TIMEOUT="${INKO_GATEWAY_READ_TIMEOUT:-2.2}"
+        export INKO_GATEWAY_DEADLINE="${INKO_GATEWAY_DEADLINE:-2.35}"
+        exec uvicorn inko_gateway.main:app --host 127.0.0.1 --port 9000 --no-proxy-headers --no-access-log
+        ;;
     catalogo|circulacao|usuarios)
         export DB_URL="jdbc:postgresql://${DB_HOST:?}:5432/${DB_NAME:?}?currentSchema=$INKO_SERVICE"
         export SPRING_FLYWAY_SCHEMAS="$INKO_SERVICE"
         ;;
-    relatorios) ;;
+    relatorios)
+        export INKO_REPORT_CONNECT_TIMEOUT="${INKO_REPORT_CONNECT_TIMEOUT:-800ms}"
+        export INKO_REPORT_READ_TIMEOUT="${INKO_REPORT_READ_TIMEOUT:-1700ms}"
+        export INKO_REPORT_BUDGET="${INKO_REPORT_BUDGET:-1900ms}"
+        ;;
     *) exit 1 ;;
 esac
 export SERVER_ADDRESS=127.0.0.1 SERVER_PORT=9000

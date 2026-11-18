@@ -16,6 +16,6 @@ inko:
   usuarios-url: ${USUARIOS_URL:http://localhost:8082}
   circulacao-url: ${CIRCULACAO_URL:http://localhost:8083}
   http:
-    connect-timeout: 300ms
-    read-timeout: 700ms
-    budget: 1000ms
+    connect-timeout: ${INKO_REPORT_CONNECT_TIMEOUT:300ms}
+    read-timeout: ${INKO_REPORT_READ_TIMEOUT:700ms}
+    budget: ${INKO_REPORT_BUDGET:1000ms}
