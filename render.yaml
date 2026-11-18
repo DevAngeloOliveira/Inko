@@ -33,6 +33,10 @@ services:
     value: catalogo
   - key: SERVICE
     value: catalogo
+  - key: DB_NAME
+    fromDatabase:
+      name: inko-piloto-db
+      property: database
   - key: DB_HOST
     fromDatabase:
       name: inko-piloto-db
@@ -66,6 +70,10 @@ services:
     value: usuarios
   - key: SERVICE
     value: usuarios
+  - key: DB_NAME
+    fromDatabase:
+      name: inko-piloto-db
+      property: database
   - key: DB_HOST
     fromDatabase:
       name: inko-piloto-db
@@ -101,6 +109,10 @@ services:
     value: circulacao
   - key: SERVICE
     value: circulacao
+  - key: DB_NAME
+    fromDatabase:
+      name: inko-piloto-db
+      property: database
   - key: DB_HOST
     fromDatabase:
       name: inko-piloto-db

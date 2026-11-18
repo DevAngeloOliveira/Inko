@@ -57,7 +57,7 @@ case "$INKO_SERVICE" in
     web) export HOSTNAME=0.0.0.0; exec node apps/web/server.js ;;
     gateway) exec uvicorn inko_gateway.main:app --host 127.0.0.1 --port 9000 --no-proxy-headers --no-access-log ;;
     catalogo|circulacao|usuarios)
-        export DB_URL="jdbc:postgresql://${DB_HOST:?}:5432/inko?currentSchema=$INKO_SERVICE"
+        export DB_URL="jdbc:postgresql://${DB_HOST:?}:5432/${DB_NAME:?}?currentSchema=$INKO_SERVICE"
         export SPRING_FLYWAY_SCHEMAS="$INKO_SERVICE"
         ;;
     relatorios) ;;
