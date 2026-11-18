@@ -1,12 +1,12 @@
 services:
   catalogo:
     environment:
-      FLYWAY_LOCATIONS: classpath:db/migration
+      FLYWAY_LOCATIONS: ${INKO_FLYWAY_LOCATIONS:-classpath:db/migration}
   circulacao:
     environment:
-      FLYWAY_LOCATIONS: classpath:db/migration
+      FLYWAY_LOCATIONS: ${INKO_FLYWAY_LOCATIONS:-classpath:db/migration}
   usuarios:
     environment:
-      FLYWAY_LOCATIONS: classpath:db/migration
+      FLYWAY_LOCATIONS: ${INKO_FLYWAY_LOCATIONS:-classpath:db/migration}
       INKO_BOOTSTRAP_ADMIN_EMAIL: ${INKO_BOOTSTRAP_ADMIN_EMAIL:?Configure a conta da biblioteca}
       INKO_BOOTSTRAP_ADMIN_PASSWORD: ${INKO_BOOTSTRAP_ADMIN_PASSWORD:?Configure a senha de bootstrap}

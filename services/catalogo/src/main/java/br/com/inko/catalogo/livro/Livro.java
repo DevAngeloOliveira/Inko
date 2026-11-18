@@ -5,7 +5,14 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public record Livro(String id, String titulo, String autor, String categoria, String volume, String editora, String tituloOriginal,
-        String capaVersao) {
+        String capaVersao, FichaEditorial ficha) {
+    public record FichaEditorial(String descricao, String capa, String fonte, String isbn, String generos) {}
+
+    public Livro(String id, String titulo, String autor, String categoria, String volume, String editora,
+            String tituloOriginal, String capaVersao) {
+        this(id, titulo, autor, categoria, volume, editora, tituloOriginal, capaVersao, null);
+    }
+
     public static final Set<String> CATEGORIAS = Set.of("Mangá", "HQ", "Graphic novel");
     private static final Pattern IDENTIFICADOR = Pattern.compile("INK-\\d{4}");
     private static final Pattern VERSAO_CAPA = Pattern.compile("[0-9a-f]{16}");

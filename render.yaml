@@ -50,7 +50,7 @@ services:
       name: inko-piloto-db
       property: password
   - key: FLYWAY_LOCATIONS
-    value: classpath:db/migration
+    value: classpath:db/migration,classpath:db/piloto
   - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
     value: '4'
   - key: INKO_MEDIA_POSTGRES
@@ -87,7 +87,7 @@ services:
       name: inko-piloto-db
       property: password
   - key: FLYWAY_LOCATIONS
-    value: classpath:db/migration
+    value: classpath:db/migration,classpath:db/piloto
   - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
     value: '4'
   - key: INKO_BOOTSTRAP_ADMIN_EMAIL
@@ -126,7 +126,7 @@ services:
       name: inko-piloto-db
       property: password
   - key: FLYWAY_LOCATIONS
-    value: classpath:db/migration
+    value: classpath:db/migration,classpath:db/piloto
   - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
     value: '4'
   - key: CATALOGO_HOST
@@ -212,6 +212,7 @@ services:
   plan: free
   region: oregon
   dockerfilePath: ./infra/render/web.Dockerfile
+  healthCheckPath: /login
   autoDeployTrigger: 'off'
   envVars:
   - fromGroup: inko-piloto-interno

@@ -7,7 +7,7 @@ import { AppShell } from '../../../components/app-shell';
 import { CoverUpload } from '../../../components/cover-upload';
 import { Icon, type IconName } from '../../../components/icon';
 import { ConfirmDialog, useToast } from '../../../components/inko-interactions';
-import { CategoryTag, DemoNotice, InkoBadge, InkoButton, InkoCover, InkoEmpty, InkoLinkButton, Section, type Tone } from '../../../components/inko-kit';
+import { CategoryTag, InkoBadge, InkoButton, InkoCover, InkoEmpty, InkoLinkButton, Section, type Tone } from '../../../components/inko-kit';
 import { InkoAlert, InkoSkeleton, InkoTabs, LoanCard } from '../../../components/inko-patterns';
 import { activeLoanOf, daysBetween, daysOverdue, fineInCents, formatBRL, formatDate, workLabel, type Loan, type Work } from '../../../lib/demo';
 import { animeOf, editorialOf } from '../../../lib/editorial';
@@ -110,13 +110,14 @@ function HistorySection({ work, history }: Readonly<{ work: Work; history: reado
 function AboutSection({ work, loanCount }: Readonly<{ work: Work; loanCount: number }>) {
   const editorial = editorialOf(work.id, work.title, work.author);
   const anime = editorial && animeOf(work.id);
-  const reference = editorial?.reference;
+  const reference = work.sourceUrl ? { source: work.publisher ?? 'Editora', url: work.sourceUrl } : editorial?.reference;
   return <Section id="sobre-obra" title="Sobre a obra">
     {work.synopsis ? <p className={styles.synopsis}>{work.synopsis}</p> : <p className={`${styles.synopsis} inko-muted`}>Sinopse não informada.</p>}
     <dl className="inko-definition">
       <div><dt>Título original</dt>{work.originalTitle ? <dd lang="ja">{work.originalTitle}</dd> : <dd className="inko-muted">Não informado</dd>}</div>
       <div><dt>Editora</dt><dd>{work.publisher ?? 'Não informado'}</dd></div>
       <div><dt>Volume</dt><dd>{work.volume || 'Não informado'}</dd></div>
+      {work.isbn && <div><dt>ISBN</dt><dd>{work.isbn}</dd></div>}
       <div><dt>Empréstimos registrados</dt><dd>{loanCount}</dd></div>
     </dl>
     {work.genres && work.genres.length > 0 && <ul className={styles.genres} aria-label="Gêneros">{work.genres.map(genre => <li key={genre}>{genre}</li>)}</ul>}
@@ -124,7 +125,6 @@ function AboutSection({ work, loanCount }: Readonly<{ work: Work; loanCount: num
       <strong>Adaptação em anime:</strong> {anime.title} ({anime.studios.join(' e ')}, {anime.year}). É uma referência editorial; o acervo empresta apenas o volume impresso.
     </p>}
     {reference && <p className="inko-footnote">Autoria conferida em <a href={reference.url} target="_blank" rel="noopener noreferrer">{reference.source}</a>.</p>}
-    <DemoNotice>A capa é ilustrativa: capas reais dependem de licença de uso. Metadados e circulação vêm dos serviços INKO.</DemoNotice>
   </Section>;
 }
 
@@ -183,7 +183,7 @@ export default function WorkDetailsPage() {
       <div className={`${styles.hero} inko-motion-enter`}>
         <div className={styles.coverColumn}>
           <div className={styles.coverFrame}><InkoCover work={work}/></div>
-          <span className="inko-footnote">{work.coverUrl ? 'Capa enviada pela equipe' : 'Capa ilustrada do INKO · sem imagem enviada'}</span>
+          <span className="inko-footnote">{work.coverUrl ? 'Capa enviada pela equipe' : work.publisherCover ? 'Capa do catálogo da editora' : 'Capa ilustrada do INKO · sem imagem enviada'}</span>
           <CoverUpload work={work}/>
         </div>
 

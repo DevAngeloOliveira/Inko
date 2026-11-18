@@ -57,7 +57,7 @@ export class ApiError extends Error {
   }
 }
 
-export interface LivroDto { id: string; titulo: string; autor: string; categoria: Category; volume: string | null; editora: string | null; tituloOriginal: string | null; capaVersao?: string | null }
+export interface LivroDto { id: string; titulo: string; autor: string; categoria: Category; volume: string | null; editora: string | null; tituloOriginal: string | null; capaVersao?: string | null; ficha?: { descricao: string; capa: string; fonte: string; isbn: string | null; generos: string } | null }
 interface OperatorDto { nome: string; email: string; papel: string; expiraEm: string }
 interface UsuarioDto { id: string; nome: string; matricula: string; email: string | null; cadastradoEm: string }
 interface EmprestimoDto { id: string; livroId: string; usuarioId: string; dataEmprestimo: string; dataPrevista: string; dataDevolucao: string | null }
@@ -104,7 +104,9 @@ export function toWork(dto: LivroDto): Work {
   return {
     id: dto.id, title: dto.titulo, author: dto.autor, category: dto.categoria, volume: dto.volume ?? '',
     cover: coverFor(dto.id), coverUrl: coverUrlFor(dto), publisher: dto.editora ?? undefined, originalTitle: dto.tituloOriginal ?? undefined,
-    synopsis: editorial?.synopsis, genres: editorial?.genres,
+    synopsis: dto.ficha?.descricao ?? editorial?.synopsis,
+    genres: dto.ficha?.generos.split('|').filter(Boolean) ?? editorial?.genres,
+    publisherCover: dto.ficha?.capa, sourceUrl: dto.ficha?.fonte, isbn: dto.ficha?.isbn ?? undefined,
   };
 }
 
