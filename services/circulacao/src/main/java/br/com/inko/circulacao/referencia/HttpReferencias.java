@@ -57,6 +57,7 @@ public class HttpReferencias implements Referencias {
 
     private static RestClient cliente(String url, Duration connectTimeout, Duration readTimeout) {
         HttpClient http = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(connectTimeout)
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();

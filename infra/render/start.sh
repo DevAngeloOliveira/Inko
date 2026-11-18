@@ -63,6 +63,10 @@ case "$INKO_SERVICE" in
     catalogo|circulacao|usuarios)
         export DB_URL="jdbc:postgresql://${DB_HOST:?}:5432/${DB_NAME:?}?currentSchema=$INKO_SERVICE"
         export SPRING_FLYWAY_SCHEMAS="$INKO_SERVICE"
+        if [ "$INKO_SERVICE" = circulacao ]; then
+            export INKO_CIRCULATION_CONNECT_TIMEOUT="${INKO_CIRCULATION_CONNECT_TIMEOUT:-600ms}"
+            export INKO_CIRCULATION_READ_TIMEOUT="${INKO_CIRCULATION_READ_TIMEOUT:-900ms}"
+        fi
         ;;
     relatorios)
         export INKO_REPORT_CONNECT_TIMEOUT="${INKO_REPORT_CONNECT_TIMEOUT:-800ms}"

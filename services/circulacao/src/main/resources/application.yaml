@@ -23,5 +23,5 @@ inko:
   catalogo-url: ${CATALOGO_URL:http://localhost:8081}
   usuarios-url: ${USUARIOS_URL:http://localhost:8082}
   http:
-    connect-timeout: 300ms
-    read-timeout: 500ms
+    connect-timeout: ${INKO_CIRCULATION_CONNECT_TIMEOUT:300ms}
+    read-timeout: ${INKO_CIRCULATION_READ_TIMEOUT:500ms}
