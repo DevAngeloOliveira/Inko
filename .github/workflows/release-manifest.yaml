@@ -208,7 +208,7 @@ jobs:
         shell: bash
         run: |
           if ! gh release view "$RELEASE_VERSION" >/dev/null 2>&1; then
-            gh release create "$RELEASE_VERSION" --verify-tag --generate-notes --title "INKO $RELEASE_VERSION"
+            gh release create "$RELEASE_VERSION" --verify-tag --notes-file "releases/$RELEASE_VERSION.md" --title "INKO $RELEASE_VERSION — MVP acadêmico"
           fi
       - name: Summarize
         env:

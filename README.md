@@ -1,9 +1,397 @@
-# INKO — Sistema de Biblioteca de Mangás e HQs
+<div align="center">
 
-Projeto final da disciplina de Paradigmas de Linguagens de Programação: gestão de acervo, leitores, empréstimos, devoluções e multas de uma
-biblioteca de mangás, HQs e graphic novels, combinando **orientação a objetos** e **programação funcional** em Java.
+<img src="apps/web/public/inko/logo/inko-logo.png" width="220" alt="INKO - identidade visual da plataforma">
 
-Arquitetura poliglota: Next.js 16 (interface) → FastAPI (API Gateway) → quatro serviços Spring Boot 4 / Java 21 → PostgreSQL 17 com um banco por serviço.
+# INKO — Uma estante. Infinitos universos.
+
+### Grandes histórias merecem uma estante à altura.
+
+**Sistema de Biblioteca de Mangás, HQs e Graphic Novels**
+
+**Projeto acadêmico de Paradigmas de Linguagens de Programação · Java 21 · 2026**
+
+[![Piloto INKO](https://img.shields.io/badge/ACESSAR%20O%20PILOTO-Render-bc332a?style=for-the-badge)](https://inko-piloto-web.onrender.com/landing)
+[![Release](https://img.shields.io/badge/RELEASE-v0.5.0-253c50?style=for-the-badge)](https://github.com/DevAngeloOliveira/Inko/releases/tag/v0.5.0)
+[![GitHub](https://img.shields.io/badge/C%C3%93DIGO-FONTE-181717?style=for-the-badge&logo=github)](https://github.com/DevAngeloOliveira/Inko)
+
+**[Landing pública](https://inko-piloto-web.onrender.com/landing)** · **[Catálogo](https://inko-piloto-web.onrender.com/)** · **[Área de operadores](https://inko-piloto-web.onrender.com/login)** · **[Releases](https://github.com/DevAngeloOliveira/Inko/releases)**
+
+</div>
+
+---
+
+> **Apresentação do projeto:** o INKO gerencia livros, leitores, empréstimos, devoluções, disponibilidade e multas em uma biblioteca de mangás e quadrinhos. O núcleo foi desenvolvido em Java para demonstrar **orientação a objetos, funções puras, imutabilidade e §map§ / §filter§ / §reduce§**, como exigido na disciplina. A aplicação foi ampliada para um MVP web com microsserviços e persistência, embora banco de dados **não fosse obrigatório** no exercício.
+
+## Apresentação acadêmica — o que o professor solicitou
+
+| Requisito | Como o INKO demonstra | Referência |
+| --- | --- | --- |
+| **POO** | §Livro§, §Usuario§, §Emprestimo§, §Biblioteca§ e interfaces de repositório | [UML](#diagrama-uml-de-classes) |
+| **Funções puras** | §calcularMulta§ e transformações determinísticas de coleções | [Java](#funções-puras-e-regra-da-multa) |
+| **Imutabilidade** | Java §record§; §Emprestimo.devolver§ retorna novo valor; §List.copyOf§ | [Código](#imutabilidade-e-orientação-a-objetos) |
+| **map, filter, reduce** | Pipeline de relatório de multas com Java Streams | [Código](#pipeline-funcional-filter--map--reduce) |
+| **Empréstimos** | Cadastro de empréstimo com livro, usuário e prazo | [Circulação](#regras-de-empréstimo-devolução-e-disponibilidade) |
+| **Devoluções** | Devolução que encerra empréstimo e preserva histórico | [Circulação](#regras-de-empréstimo-devolução-e-disponibilidade) |
+| **Disponibilidade** | Um empréstimo ativo por livro, protegido pelo banco | [SQL](#regras-de-empréstimo-devolução-e-disponibilidade) |
+| **Multa** | **R$ 2,00 por dia de atraso**, com §BigDecimal§ | [Java](#funções-puras-e-regra-da-multa) |
+| **GitHub, README e testes** | Monorepo público, JUnit, pytest, testes web e E2E | [Testes](#testes) |
+| **Código sem comentários** | Núcleo de domínio Java escrito sem comentários de implementação | [FuncoesBiblioteca](services/relatorios/src/main/java/br/com/inko/relatorios/biblioteca/FuncoesBiblioteca.java) |
+
+### Regras da entrega
+
+| Modalidade | Nota | Material solicitado |
+| --- | --- | --- |
+| **Coletiva** | **3,0 pontos** | Projeto no GitHub, README e testes |
+| **Individual (incluída na entrega de 3,0 pontos)** | — | Dois diagramas e respostas a cinco questões **escritos à mão** |
+| **Apresentação** | **2,0 pontos** | Cada integrante responde individualmente a uma pergunta sobre o código |
+
+> **Entrega física obrigatória:** os **dois diagramas e as cinco respostas manuscritas em papel A4 branco** devem ser entregues **presencialmente ao professor em sala de aula**. Os Mermaid abaixo são modelos para estudo e transcrição: **não substituem os desenhos feitos à mão**. Consulte [material de estudo](docs/academic/PRESENTATION-QA.md); confira as cinco perguntas exatas fornecidas pelo professor antes de redigir as respostas.
+
+### Piloto online e acervo
+
+**[Acessar o piloto publicado no Render](https://inko-piloto-web.onrender.com/landing)** — experiência editorial de descoberta de mangás, HQs e graphic novels, com uma área privada para operações dos bibliotecários.
+
+A carga prevista nas migrations do piloto contempla **505 edições**, **36 leitores fictícios** e **60 empréstimos demonstrativos**. São dados de demonstração preparados para a apresentação, e **não** clientes, usuários comerciais ou métricas de audiência. Instâncias Render gratuitas podem apresentar atraso na primeira abertura. [Detalhes do piloto](docs/devops/PILOTO.md).
+
+## Diagrama de arquitetura — componentes e integrações
+
+O frontend **Next.js 16** utiliza um BFF que centraliza acesso e validação de sessão. O **Gateway FastAPI** trata requisições de negócio com limites de admissão, rate limiting, bulkheads, deadline e circuit breaker. Os quatro serviços **Spring Boot / Java 21** isolam os domínios. Login e imagens utilizam rotas específicas no BFF.
+
+```mermaid
+flowchart TB
+    N["Navegador<br/>Visitante ou operador"]
+    WEB["Next.js + React<br/>BFF da aplicação"]
+    GW["FastAPI Gateway<br/>Rate limit · Bulkhead · Circuit breaker"]
+    subgraph MS["Microsserviços Spring Boot / Java 21"]
+        C["Catálogo<br/>Obras e capas"]
+        U["Usuários<br/>Leitores / Operadores / Sessões"]
+        E["Circulação<br/>Empréstimos e devoluções"]
+        R["Relatórios<br/>Funções puras e estatísticas"]
+    end
+    subgraph DATA["PostgreSQL 17"]
+        DC[("inko_catalogo")]
+        DU[("inko_usuarios")]
+        DE[("inko_circulacao")]
+    end
+    MEDIA[("Capas: volume Docker<br/>ou BYTEA no Render")]
+    N --> WEB
+    WEB -->|"Requisições de negócio"| GW
+    WEB -->|"Login / sessão"| U
+    WEB -->|"Capas / mídia"| C
+    GW --> C
+    GW --> U
+    GW --> E
+    GW --> R
+    C --> DC
+    U --> DU
+    E --> DE
+    C -.-> MEDIA
+    E -.->|"Validação de obra"| C
+    E -.->|"Validação de leitor"| U
+    R -.->|"Consulta em lote"| C
+    R -.-> U
+    R -.-> E
+    classDef api fill:#243c4e,color:#fff,stroke:#243c4e
+    classDef svc fill:#eaf2f6,color:#183247,stroke:#7391a8
+    class WEB,GW api
+    class C,U,E,R svc
+```
+
+**Decisões importantes:** uma requisição no Gateway tem orçamento de capacidade; o relatório evita N+1 distribuído; não existem transações distribuídas entre os serviços. Para preservar o limite JSON de 64 KiB no Gateway, o upload de capas utiliza o caminho BFF → Catálogo. Veja [SDD-001](docs/architecture/SDD-001-gateway-resilience-capacity.md) e [ADR-004](docs/architecture/ADR-004-media-outside-gateway.md).
+
+## Diagrama de relacionamento — DER
+
+As linhas **pontilhadas** abaixo representam **referências lógicas entre bancos**, não chaves estrangeiras físicas. Os vínculos sólidos representam relacionamentos internos com FK, como o livro e sua capa e o operador e suas sessões.
+
+```mermaid
+erDiagram
+    LIVROS {
+        varchar id PK
+        varchar titulo
+        varchar autor
+        varchar categoria
+        varchar volume
+        varchar editora
+        text descricao
+        varchar isbn
+    }
+    CAPAS_LIVROS {
+        uuid id PK
+        varchar livro_id FK
+        varchar object_key UK
+        varchar mime_type
+        char sha256
+    }
+    CAPA_OBJETOS {
+        varchar chave PK
+        bytea conteudo
+    }
+    USUARIOS {
+        varchar id PK
+        varchar nome
+        varchar matricula UK
+        varchar email UK
+    }
+    OPERADORES {
+        uuid id PK
+        varchar email UK
+        varchar nome
+        varchar senha_hash
+        varchar papel
+    }
+    SESSOES_OPERADOR {
+        uuid id PK
+        uuid operador_id FK
+        char token_hash UK
+        timestamptz expira_em
+    }
+    EMPRESTIMOS {
+        varchar id PK
+        varchar livro_id
+        varchar usuario_id
+        date data_emprestimo
+        date data_prevista
+        date data_devolucao
+    }
+    LIVROS ||--o| CAPAS_LIVROS : possui
+    CAPAS_LIVROS ||..o| CAPA_OBJETOS : objeto_opcional
+    OPERADORES ||--o{ SESSOES_OPERADOR : autentica
+    LIVROS ||..o{ EMPRESTIMOS : livroId_logico
+    USUARIOS ||..o{ EMPRESTIMOS : usuarioId_logico
+```
+
+## Diagrama UML de classes
+
+Além de classes de serviço e repositórios, o domínio inclui quatro tipos fundamentais que o aluno pode explicar na apresentação. A classe §Biblioteca§ agrega **projeções imutáveis** dos outros serviços, não instâncias das entidades JPA nem referências diretas aos seus bancos.
+
+```mermaid
+classDiagram
+    direction TB
+    class Livro {
+        <<record>>
+        +String id
+        +String titulo
+        +String autor
+        +String categoria
+        +pertenceA(String categoria) boolean
+    }
+    class Usuario {
+        <<record>>
+        +String id
+        +String nome
+        +String matricula
+        +String email
+    }
+    class Emprestimo {
+        <<record>>
+        +String id
+        +String livroId
+        +String usuarioId
+        +LocalDate dataPrevista
+        +LocalDate dataDevolucao
+        +ativo() boolean
+        +atrasadoEm(LocalDate ref) boolean
+        +devolver(LocalDate data) Emprestimo
+    }
+    class Biblioteca {
+        <<record>>
+        +List~LivroResumo~ livros
+        +List~UsuarioResumo~ usuarios
+        +List~EmprestimoResumo~ emprestimos
+        +relatorioMultas(LocalDate ref) RelatorioMultas
+        +estatisticas(LocalDate ref) Estatisticas
+    }
+    class FuncoesBiblioteca {
+        <<utility>>
+        +calcularMulta(long dias) BigDecimal
+        +gerarRelatorioMultas(List emprestimos, LocalDate ref) List
+        +totalizarMultas(List multas) BigDecimal
+    }
+    class LivroResumo
+    class UsuarioResumo
+    class EmprestimoResumo
+    Livro "1" .. "0..*" Emprestimo : livroId
+    Usuario "1" .. "0..*" Emprestimo : usuarioId
+    Biblioteca o-- LivroResumo
+    Biblioteca o-- UsuarioResumo
+    Biblioteca o-- EmprestimoResumo
+    Biblioteca ..> FuncoesBiblioteca : usa
+```
+
+**Atenção:** os tipos são §record§ imutáveis; relações pontilhadas entre §Livro§/§Usuario§ e §Emprestimo§ são vínculos por identificador. Para a entrega física, o grupo deve reproduzir **os dois diagramas definidos no enunciado**; este terceiro é material complementar para entender POO.
+
+## Programação funcional — código Java real
+
+Os exemplos seguintes são extraídos das classes Java do repositório e evidenciam os conceitos exigidos. O código de implementação do núcleo não possui comentários, conforme orientação do professor.
+
+### Imutabilidade e orientação a objetos
+
+A operação §devolver§ retorna um **novo** §Emprestimo§ em vez de modificar o objeto anterior. A verificação de atraso usa a data recebida, mantendo previsibilidade.
+
+```java
+public boolean ativo() {
+    return dataDevolucao == null;
+}
+
+public boolean atrasadoEm(LocalDate referencia) {
+    return ativo() && dataPrevista.isBefore(referencia);
+}
+
+public Emprestimo devolver(LocalDate data) {
+    if (!ativo()) {
+        throw ApiException.conflito("ALREADY_RETURNED",
+                "O empréstimo " + id + " já foi devolvido.", null);
+    }
+    return new Emprestimo(id, livroId, usuarioId, dataEmprestimo, dataPrevista, data);
+}
+```
+
+O snapshot §Biblioteca§ evita alterações externas nas coleções recebidas:
+
+```java
+public record Biblioteca(List<LivroResumo> livros, List<UsuarioResumo> usuarios,
+        List<EmprestimoResumo> emprestimos) {
+    public Biblioteca {
+        livros = List.copyOf(livros);
+        usuarios = List.copyOf(usuarios);
+        emprestimos = List.copyOf(emprestimos);
+    }
+}
+```
+
+### Funções puras e regra da multa
+
+§filtrarLivrosPorCategoria§ aplica §filter§ e produz uma nova lista:
+
+```java
+public static List<Livro> filtrarLivrosPorCategoria(List<Livro> livros, String categoria) {
+    return livros.stream()
+            .filter(livro -> livro.pertenceA(categoria))
+            .toList();
+}
+```
+
+O valor cobrado por atraso é **R$ 2,00 por dia**, calculado por uma função pura com §BigDecimal§:
+
+```java
+public static final BigDecimal MULTA_DIARIA = new BigDecimal("2.00");
+
+public static BigDecimal calcularMulta(long diasDeAtraso) {
+    if (diasDeAtraso <= 0) {
+        return ZERO;
+    }
+    return MULTA_DIARIA.multiply(BigDecimal.valueOf(diasDeAtraso));
+}
+```
+
+| Atraso | Multa |
+| ---: | ---: |
+| 0 dias | R$ 0,00 |
+| 1 dia | R$ 2,00 |
+| 5 dias | R$ 10,00 |
+| 15 dias | R$ 30,00 |
+
+### Pipeline funcional — filter → map → reduce
+
+O relatório identifica empréstimos **ativos e atrasados**, transforma cada registro em multa e reduz os valores à soma total.
+
+```java
+public static List<MultaIndividual> gerarRelatorioMultas(
+        List<EmprestimoResumo> emprestimos, LocalDate referencia) {
+    return emprestimos.stream()
+            .filter(EmprestimoResumo::ativo)
+            .filter(emprestimo -> emprestimo.atrasadoEm(referencia))
+            .map(emprestimo -> new MultaIndividual(
+                    emprestimo.id(), emprestimo.livroId(),
+                    emprestimo.usuarioId(), emprestimo.dataPrevista(),
+                    emprestimo.diasDeAtraso(referencia),
+                    calcularMulta(emprestimo.diasDeAtraso(referencia))))
+            .sorted(Comparator.comparingLong(
+                    MultaIndividual::diasAtraso).reversed()
+                    .thenComparing(MultaIndividual::emprestimoId))
+            .toList();
+}
+
+public static BigDecimal totalizarMultas(List<MultaIndividual> multas) {
+    return multas.stream()
+            .map(MultaIndividual::valor)
+            .reduce(ZERO, BigDecimal::add);
+}
+```
+
+```mermaid
+flowchart LR
+    A["Empréstimos"] --> B["filter: ativos"]
+    B --> C["filter: atrasados"]
+    C --> D["map: multa por empréstimo"]
+    D --> E["map: valor"]
+    E --> F["reduce: total BigDecimal"]
+```
+
+### Imperativo versus funcional — mesma regra
+
+**Implementação imperativa:** utiliza laço, condição e variável acumuladora.
+
+```java
+public static BigDecimal calcularTotalDeMultasImperativo(
+        List<EmprestimoResumo> emprestimos, LocalDate referencia) {
+    BigDecimal total = ZERO;
+    for (EmprestimoResumo emprestimo : emprestimos) {
+        if (emprestimo.dataDevolucao() == null
+                && emprestimo.dataPrevista().isBefore(referencia)) {
+            long dias = ChronoUnit.DAYS.between(emprestimo.dataPrevista(), referencia);
+            total = total.add(MULTA_DIARIA.multiply(BigDecimal.valueOf(dias)));
+        }
+    }
+    return total;
+}
+```
+
+**Implementação funcional:** compõe funções puras reutilizáveis.
+
+```java
+public static BigDecimal calcularTotalDeMultas(
+        List<EmprestimoResumo> emprestimos, LocalDate referencia) {
+    return totalizarMultas(gerarRelatorioMultas(emprestimos, referencia));
+}
+```
+
+As duas abordagens são verificadas no teste §versaoImperativaEFuncionalProduzemOMesmoTotal§. Outros usos de §reduce§ estão em §somarDiasDeAtraso§ e §contarEmprestimosAtivos§. Veja [a explicação completa](docs/academic/FUNCTIONAL-PROGRAMMING.md).
+
+## Regras de empréstimo, devolução e disponibilidade
+
+- **Empréstimo:** seleciona livro, leitor e prazo; valida a existência dos registros e registra o empréstimo no banco de Circulação.
+- **Devolução:** registra a data efetiva, encerra o empréstimo e preserva o histórico.
+- **Disponibilidade:** deriva da ausência de empréstimo ativo, evitando flags duplicadas.
+- **Atraso:** ocorre somente quando a data prevista é anterior à data de referência e o empréstimo continua ativo.
+- **Multa:** §diasDeAtraso × R$ 2,00§. O relatório acadêmico considera multas de empréstimos **ativos atrasados**.
+
+Para impedir que duas requisições emprestem simultaneamente o mesmo livro, o serviço usa uma restrição real no PostgreSQL:
+
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS uq_emprestimo_ativo_livro
+    ON emprestimos (livro_id)
+    WHERE data_devolucao IS NULL;
+```
+
+Somente **um empréstimo ativo por livro** pode existir; a tentativa concorrente recebe **HTTP 409**.
+
+## Guia rápido para a apresentação
+
+A turma deve conseguir apontar **o arquivo e o método** responsável por cada requisito:
+
+| Se perguntarem... | Abra este código |
+| --- | --- |
+| O que é orientação a objetos aqui? | [§Livro.java§](services/catalogo/src/main/java/br/com/inko/catalogo/livro/Livro.java) e [§Emprestimo.java§](services/circulacao/src/main/java/br/com/inko/circulacao/emprestimo/Emprestimo.java) |
+| Onde há função pura? | [§FuncoesBiblioteca.calcularMulta§](services/relatorios/src/main/java/br/com/inko/relatorios/biblioteca/FuncoesBiblioteca.java) |
+| Onde está a imutabilidade? | [§Emprestimo.devolver§](services/circulacao/src/main/java/br/com/inko/circulacao/emprestimo/Emprestimo.java) e [§Biblioteca§](services/relatorios/src/main/java/br/com/inko/relatorios/biblioteca/Biblioteca.java) |
+| Onde estão map, filter e reduce? | [§FuncoesBiblioteca§](services/relatorios/src/main/java/br/com/inko/relatorios/biblioteca/FuncoesBiblioteca.java) |
+| Como impedem empréstimo duplo? | [§V1__criar_emprestimos.sql§](services/circulacao/src/main/resources/db/migration/V1__criar_emprestimos.sql) |
+| Como testar o ciclo completo? | [§e2e-academic-flow.py§](scripts/ci/e2e-academic-flow.py) |
+
+**Material de estudo individual:** [questões e respostas](docs/academic/PRESENTATION-QA.md) · [roteiro de apresentação](docs/academic/DEMO-SCRIPT.md) · [visão arquitetural](docs/academic/ARCHITECTURE-OVERVIEW.md).
+
+---
 
 ## Piloto de uma biblioteca física
 
