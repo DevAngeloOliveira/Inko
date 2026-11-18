@@ -10,6 +10,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlunsplit
 
 
 SERVICES = ("catalogo", "usuarios", "circulacao", "relatorios")
@@ -80,7 +81,7 @@ class LocalTarget:
     @property
     def origin(self):
         host = "127.0.0.1" if self.family is AddressFamily.IPV4 else "[::1]"
-        return f"http://{host}:{self.port}"
+        return urlunsplit(("http", f"{host}:{self.port}", "", "", ""))
 
 
 def percentiles(values):

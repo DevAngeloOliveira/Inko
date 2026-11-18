@@ -10,7 +10,11 @@ import org.springframework.stereotype.Repository;
 public class JdbcLivroRepository implements LivroRepository {
     private static final RowMapper<Livro> MAPPER = (rs, row) -> new Livro(
             rs.getString("id"), rs.getString("titulo"), rs.getString("autor"), rs.getString("categoria"),
-            rs.getString("volume"), rs.getString("editora"), rs.getString("titulo_original"));
+            rs.getString("volume"), rs.getString("editora"), rs.getString("titulo_original"), rs.getString("capa_versao"));
+    private static final String CONSULTA = """
+            SELECT l.*, substr(c.sha256, 1, 16) AS capa_versao
+            FROM livros l LEFT JOIN capas_livros c ON c.livro_id = l.id
+            """;
 
     private final JdbcClient jdbc;
 
@@ -36,11 +40,11 @@ public class JdbcLivroRepository implements LivroRepository {
 
     @Override
     public Optional<Livro> buscar(String id) {
-        return jdbc.sql("SELECT * FROM livros WHERE id = :id").param("id", id).query(MAPPER).optional();
+        return jdbc.sql(CONSULTA + " WHERE l.id = :id").param("id", id).query(MAPPER).optional();
     }
 
     @Override
     public List<Livro> listar() {
-        return jdbc.sql("SELECT * FROM livros ORDER BY id").query(MAPPER).list();
+        return jdbc.sql(CONSULTA + " ORDER BY l.id").query(MAPPER).list();
     }
 }

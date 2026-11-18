@@ -60,6 +60,6 @@ O teste integrado "Caso B" dispara duas requisições em paralelo e confirma exa
 | O que o Gateway faz? | Roteia contratos fixos, limita taxa e concorrência, prazo de 2 s, circuit breaker | `apps/gateway/inko_gateway` |
 | Onde ficam os dados? | PostgreSQL 17, três bancos: `inko_catalogo`, `inko_usuarios`, `inko_circulacao` | `compose.yaml`, migrações Flyway |
 | Como rodar os testes? | `mvn test` por serviço; `pytest` no Gateway; `pnpm test`; script E2E | README, seção Testes |
-| O login é seguro? | Não; é demonstrativo e só local (RF-25 pendente) | `lib/library-api.ts` |
+| O login é seguro? | É real no MVP: BCrypt, token opaco guardado como SHA-256, expiração de 8 h, revogação, rate limit e cookie HttpOnly com checagem de Origin. Não é produção: o Gateway local não valida a sessão | `services/usuarios/.../auth`, `apps/web/lib/server`, SDD-002 |
 | O frontend calcula a multa? | Só uma pré-visualização na devolução; o relatório oficial vem do Java | `app/relatorios/page.tsx` |
 | Diferença entre imperativo e funcional no código? | Laço com acumulador × pipeline; mesmo resultado provado em teste | `FuncoesBibliotecaTest` |

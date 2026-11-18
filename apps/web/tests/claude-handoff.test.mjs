@@ -31,7 +31,7 @@ test('business operations run against the mock API until the backend exists', ()
   assert.match(source('app/acervo/novo/page.tsx'), /createWork\(/);
   assert.match(source('app/usuarios/page.tsx'), /createUser\(/);
   assert.match(source('app/login/page.tsx'), /signIn\(/);
-  assert.match(source('app/login/page.tsx'), /Acesso demonstrativo/);
+  assert.doesNotMatch(source('app/login/page.tsx'), /Acesso demonstrativo|Qualquer e-mail/);
 });
 
 test('operational screens read persisted data through the real API boundary', () => {

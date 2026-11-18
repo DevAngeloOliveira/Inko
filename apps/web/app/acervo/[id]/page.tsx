@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { AppShell } from '../../../components/app-shell';
+import { CoverUpload } from '../../../components/cover-upload';
 import { Icon, type IconName } from '../../../components/icon';
 import { ConfirmDialog, useMockQuery, useToast } from '../../../components/inko-interactions';
 import { CategoryTag, DemoNotice, InkoBadge, InkoButton, InkoCover, InkoEmpty, InkoLinkButton, Section, type Tone } from '../../../components/inko-kit';
@@ -181,7 +182,8 @@ export default function WorkDetailsPage() {
       <div className={`${styles.hero} inko-motion-enter`}>
         <div className={styles.coverColumn}>
           <div className={styles.coverFrame}><InkoCover work={work}/></div>
-          <span className="inko-footnote">{work.cover === null ? 'Sem capa' : 'Capa fictícia'} · slot 2:3 para imagem licenciada</span>
+          <span className="inko-footnote">{work.coverUrl ? 'Capa enviada pela equipe' : 'Capa ilustrada do INKO · sem imagem enviada'}</span>
+          <CoverUpload work={work}/>
         </div>
 
         <div className={styles.summary}>

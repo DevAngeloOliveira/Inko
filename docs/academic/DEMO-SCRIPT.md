@@ -6,6 +6,7 @@ Tudo roda localmente, sem internet e sem nuvem. Ensaiar uma vez completo antes d
 
 ```bash
 cp .env.example .env
+# Defina INKO_BOOTSTRAP_ADMIN_EMAIL e INKO_BOOTSTRAP_ADMIN_PASSWORD (12+ caracteres) no .env.
 docker compose up --build -d --wait
 docker compose ps
 ```
@@ -23,7 +24,8 @@ Arquitetura: Next.js → Gateway FastAPI → 4 serviços Java → PostgreSQL (um
 
 ## 2. Fluxo na interface (5 min)
 
-1. **Login** (http://localhost:3000/login): qualquer e-mail válido e senha com 6+ caracteres. Diga que é **demonstrativo** (RF-25 fora do escopo).
+1. **Login** (http://localhost:3000/login): mostre primeiro uma senha errada (alerta genérico). Depois entre com a conta de operador do `.env`, recarregue a página e mostre que a sessão continua (cookie HttpOnly validado no servidor, SDD-002).
+   Em seguida, abra uma obra e envie uma capa JPEG/PNG própria (até 2 MiB). Ela continua lá depois de `docker compose restart catalogo web`.
 2. **Acervo**: filtre por categoria *HQ* (RF-03). Abra *Maré de Tinta · Vol. 3*: está **Atrasado**.
 3. **Cadastrar obra** (`/acervo/novo`): `INK-0500`, *Obra da Apresentação*, autor qualquer, *Mangá* → Salvar (RF-01).
    Tente salvar de novo com o mesmo identificador → erro "já existe" (409).
@@ -69,7 +71,7 @@ duas requisições simultâneas para o mesmo livro e só uma gravada.
 
 ## 6. Encerramento (1 min)
 
-Limitações honestas: login demonstrativo, sem e-mail, sem catálogo público, capas ilustrativas. Próximos passos: RF-25 e RF-27.
+Limitações honestas: o MVP é local; o Gateway na porta 8000 não exige credencial (defesa em profundidade fica para P1); não há envio de e-mail; o volume de capas não é backup. Próximos passos: autorização no Gateway e nos serviços e RF-27.
 
 ## Plano B
 

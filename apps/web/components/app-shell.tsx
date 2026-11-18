@@ -197,7 +197,7 @@ export interface Crumb {
 /**
  * Moldura das telas autenticadas: sidebar (248 px ≥ 1024, rail 72 px em tablet,
  * drawer abaixo de 768), topbar com busca global ou breadcrumb, avisos e menu do usuário.
- * Sem sessão demonstrativa, redireciona para `/login`; se os serviços falharem, mostra o erro em vez de dados.
+ * Sem sessão de operador válida no servidor, redireciona para `/login`; se os serviços falharem, mostra o erro em vez de dados.
  */
 export function AppShell({ children, breadcrumb }: Readonly<{ children: ReactNode; breadcrumb?: readonly Crumb[] }>) {
   const pathname = usePathname();
@@ -211,9 +211,13 @@ export function AppShell({ children, breadcrumb }: Readonly<{ children: ReactNod
     if (ready && !session) router.replace('/login');
   }, [ready, session, router]);
 
+  const toast = useToast();
+
   function handleSignOut() {
     setDrawerOpen(false);
-    signOut();
+    signOut().catch((error: unknown) => {
+      toast({ title: 'Não foi possível sair', text: error instanceof Error ? error.message : 'Tente novamente em instantes.' });
+    });
   }
 
   return <div className="inko-app-layout">

@@ -1,6 +1,6 @@
 # SDD-002 — INKO MVP: Autenticação Real, Sessões e Capas Persistentes
 
-**Status:** PROPOSTO — ainda não implementado.
+**Status:** IMPLEMENTADO (P0) em `dev/angelo` — evidências em [`docs/academic/SDD-002-EVIDENCIAS.md`](../academic/SDD-002-EVIDENCIAS.md); exceção de mídia registrada no [ADR-004](ADR-004-media-outside-gateway.md). P1 pendente.
 **Data:** 2026-11-17. **Prazo de apresentação:** 2026-11-18.
 **Branch de implementação:** `dev/angelo`. **Branch protegida:** `main`.
 **Baseline consultada:** `1d50063405b53589c1e702b51d2afa9cc3419ee0`; conferir HEAD antes de alterar código.

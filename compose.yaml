@@ -42,6 +42,9 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/inko_catalogo
       DB_USER: catalogo_user
       DB_PASSWORD: ${CATALOG_DB_PASSWORD:?Defina CATALOG_DB_PASSWORD no .env}
+      INKO_MEDIA_ROOT: /var/lib/inko/covers
+    volumes:
+      - catalogo_media:/var/lib/inko/covers
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,6 +69,10 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/inko_usuarios
       DB_USER: usuarios_user
       DB_PASSWORD: ${USERS_DB_PASSWORD:?Defina USERS_DB_PASSWORD no .env}
+      INKO_BOOTSTRAP_ADMIN_EMAIL: ${INKO_BOOTSTRAP_ADMIN_EMAIL:-}
+      INKO_BOOTSTRAP_ADMIN_PASSWORD: ${INKO_BOOTSTRAP_ADMIN_PASSWORD:-}
+      INKO_BOOTSTRAP_ADMIN_NAME: ${INKO_BOOTSTRAP_ADMIN_NAME:-Administrador INKO}
+      INKO_SESSION_TTL: ${INKO_SESSION_TTL:-8h}
     depends_on:
       postgres:
         condition: service_healthy
@@ -154,6 +161,9 @@ services:
       dockerfile: apps/web/Dockerfile
     environment:
       GATEWAY_INTERNAL_URL: http://gateway:8000
+      USUARIOS_INTERNAL_URL: http://usuarios:8082
+      CATALOGO_INTERNAL_URL: http://catalogo:8081
+      INKO_COOKIE_SECURE: ${INKO_COOKIE_SECURE:-}
       PORT: 3000
       HOSTNAME: 0.0.0.0
     ports:
@@ -171,6 +181,7 @@ services:
 
 volumes:
   postgres_data:
+  catalogo_media:
 
 networks:
   inko-internal:

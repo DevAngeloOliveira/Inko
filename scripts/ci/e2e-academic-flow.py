@@ -5,7 +5,13 @@ Uso: python scripts/ci/e2e-academic-flow.py [URL_DO_GATEWAY] [--warmup]
 Antes das verificações, aquece cada serviço Java com leituras e requisições inválidas
 (respostas 4xx, sem gravar nada): a primeira chamada de uma JVM recém-iniciada pode
 passar do prazo de 2 s do Gateway. Com --warmup, só aquece e encerra.
+
+Contra o BFF do Next (SDD-002), as rotas privadas exigem sessão de operador: defina
+INKO_E2E_EMAIL e INKO_E2E_PASSWORD (nunca commitados) e o script entra por
+/api/auth/session, guarda o cookie HttpOnly e envia `Origin` nas mutações.
 """
+import http.cookiejar
+import os
 import json
 import sys
 import time
@@ -23,23 +29,37 @@ WARMUP = [
     ("GET", "/api/v1/relatorios/estatisticas?referenceDate=2026-11-09", None),
     ("POST", "/api/v1/livros", {"id": "INVALIDO"}), ("POST", "/api/v1/usuarios", {"nome": ""}),
     ("POST", "/api/v1/emprestimos", {"livroId": "INK-0000", "usuarioId": "USR-0000"}),
-    ("POST", "/api/v1/emprestimos/EMP-0/devolucao", {}),
+    ("POST", "/api/v1/emprestimos/EMP-0/devolucao", {}), ("GET", "/api/v1/emprestimos/EMP-0", None),
+    ("GET", "/api/v1/emprestimos/atrasados?referenceDate=2026-11-09", None),
 ]
 REFERENCIA = "2026-11-09"
 STEPS = []
+COOKIES = http.cookiejar.CookieJar()
+OPENER = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(COOKIES))
 
 
 def call(method, path, body=None):
+    for _ in range(10):
+        status, payload, retry_after = attempt(method, path, body)
+        if not (status == 429 and isinstance(payload, dict) and payload.get("code") == "RATE_LIMITED"):
+            return status, payload
+        time.sleep(min(float(retry_after or 1), 5))
+    return status, payload
+
+
+def attempt(method, path, body=None):
     data = json.dumps(body).encode() if body is not None else None
     request = urllib.request.Request(BASE + path, data=data, method=method)
     if data is not None:
         request.add_header("Content-Type", "application/json")
+    if method != "GET":
+        request.add_header("Origin", BASE)
     try:
-        with urllib.request.urlopen(request, timeout=5) as response:
-            return response.status, json.loads(response.read() or b"null")
+        with OPENER.open(request, timeout=5) as response:
+            return response.status, json.loads(response.read() or b"null"), None
     except urllib.error.HTTPError as error:
         payload = error.read()
-        return error.code, json.loads(payload) if payload else None
+        return error.code, json.loads(payload) if payload else None, error.headers.get("Retry-After")
 
 
 def cents(value):
@@ -51,6 +71,26 @@ def step(name, condition, detail=""):
     print(("PASS " if condition else "FAIL ") + name + (f" — {detail}" if detail and not condition else ""))
     if not condition:
         raise SystemExit(1)
+
+
+def sign_in():
+    email, password = os.environ.get("INKO_E2E_EMAIL"), os.environ.get("INKO_E2E_PASSWORD")
+    if not email or not password:
+        return
+    deadline = time.monotonic() + 90
+    while True:
+        try:
+            status, _ = call("POST", "/api/auth/session", {"email": email, "senha": password})
+        except OSError:
+            status = 0
+        if status == 200:
+            print("Sessão de operador aberta no BFF.")
+            return
+        if status == 404:
+            return
+        if status in (401, 403, 429) or time.monotonic() > deadline:
+            raise SystemExit(f"Login de operador falhou: HTTP {status}")
+        time.sleep(1)
 
 
 def warm_up(timeout=90):
@@ -78,6 +118,7 @@ def free_book_id():
 
 
 def main():
+    sign_in()
     warm_up()
     if "--warmup" in sys.argv:
         return
@@ -127,9 +168,9 @@ def main():
     status, active = call("GET", "/api/v1/emprestimos/ativos")
     step("RF-10 empréstimo aparece entre os ativos", any(item["id"] == loan["id"] for item in active))
     status, late = call("GET", "/api/v1/emprestimos/atrasados?referenceDate=2026-11-24")
-    step("RF-11 atrasado após o vencimento", any(item["id"] == loan["id"] for item in late))
+    step("RF-11 atrasado após o vencimento", status == 200 and any(item["id"] == loan["id"] for item in late), f"{status} {late}")
     status, late = call("GET", "/api/v1/emprestimos/atrasados?referenceDate=2026-11-23")
-    step("RF-11 sem atraso no dia do vencimento", all(item["id"] != loan["id"] for item in late))
+    step("RF-11 sem atraso no dia do vencimento", status == 200 and all(item["id"] != loan["id"] for item in late), f"{status} {late}")
 
     status, report_before = call("GET", "/api/v1/relatorios/multas?referenceDate=2026-11-26")
     item = next((row for row in report_before["itens"] if row["emprestimoId"] == loan["id"]), None)

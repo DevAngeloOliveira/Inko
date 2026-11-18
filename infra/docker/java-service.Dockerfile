@@ -8,7 +8,7 @@ RUN mvn -ntp -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-RUN addgroup -S inko && adduser -S inko -G inko
+RUN addgroup -S inko && adduser -S inko -G inko     && mkdir -p /var/lib/inko/covers     && chown inko:inko /var/lib/inko/covers     && chmod 750 /var/lib/inko/covers
 COPY --from=build /build/target/*.jar /app/app.jar
 USER inko
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
