@@ -37,16 +37,6 @@
 | **GitHub, README e testes** | Monorepo público, JUnit, pytest, testes web e E2E | [Testes](#testes) |
 | **Código sem comentários** | Núcleo de domínio Java escrito sem comentários de implementação | [FuncoesBiblioteca](services/relatorios/src/main/java/br/com/inko/relatorios/biblioteca/FuncoesBiblioteca.java) |
 
-### Regras da entrega
-
-| Modalidade | Nota | Material solicitado |
-| --- | --- | --- |
-| **Coletiva** | **3,0 pontos** | Projeto no GitHub, README e testes |
-| **Individual (incluída na entrega de 3,0 pontos)** | — | Dois diagramas e respostas a cinco questões **escritos à mão** |
-| **Apresentação** | **2,0 pontos** | Cada integrante responde individualmente a uma pergunta sobre o código |
-
-> **Entrega física obrigatória:** os **dois diagramas e as cinco respostas manuscritas em papel A4 branco** devem ser entregues **presencialmente ao professor em sala de aula**. Os Mermaid abaixo são modelos para estudo e transcrição: **não substituem os desenhos feitos à mão**. Consulte [material de estudo](docs/academic/PRESENTATION-QA.md); confira as cinco perguntas exatas fornecidas pelo professor antes de redigir as respostas.
-
 ### Piloto online e acervo
 
 **[Acessar o piloto publicado no Render](https://inko-piloto-web.onrender.com/landing)** — experiência editorial de descoberta de mangás, HQs e graphic novels, com uma área privada para operações dos bibliotecários.
