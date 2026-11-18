@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ArmazenamentoCapas {
+public class ArmazenamentoCapas implements ObjetosCapa {
     private static final Logger LOG = LoggerFactory.getLogger(ArmazenamentoCapas.class);
     private static final Pattern CHAVE = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.(jpg|png)");
     private static final Set<PosixFilePermission> PERMISSOES = PosixFilePermissions.fromString("rw-r-----");

@@ -18,11 +18,11 @@ public class CapaService {
 
     private final CapaRepository repository;
     private final ValidadorCapa validador;
-    private final ArmazenamentoCapas armazenamento;
+    private final ObjetosCapa armazenamento;
     private final TransactionOperations transacao;
     private final Clock relogio;
 
-    public CapaService(CapaRepository repository, ValidadorCapa validador, ArmazenamentoCapas armazenamento,
+    public CapaService(CapaRepository repository, ValidadorCapa validador, ObjetosCapa armazenamento,
             TransactionOperations transacao, Clock relogio) {
         this.repository = repository;
         this.validador = validador;
