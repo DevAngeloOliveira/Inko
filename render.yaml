@@ -1,0 +1,210 @@
+envVarGroups:
+- name: inko-piloto-interno
+  envVars:
+  - key: INKO_SERVICE_KEY
+    generateValue: true
+services:
+- type: web
+  name: inko-piloto-catalogo
+  runtime: docker
+  repo: https://github.com/DevAngeloOliveira/Inko
+  branch: main
+  plan: free
+  region: oregon
+  dockerfilePath: ./infra/render/java.Dockerfile
+  autoDeployTrigger: 'off'
+  envVars:
+  - fromGroup: inko-piloto-interno
+  - key: INKO_SERVICE
+    value: catalogo
+  - key: SERVICE
+    value: catalogo
+  - key: DB_HOST
+    fromDatabase:
+      name: inko-piloto-db
+      property: host
+  - key: DB_USER
+    fromDatabase:
+      name: inko-piloto-db
+      property: user
+  - key: DB_PASSWORD
+    fromDatabase:
+      name: inko-piloto-db
+      property: password
+  - key: FLYWAY_LOCATIONS
+    value: classpath:db/migration
+  - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+    value: '4'
+  - key: INKO_MEDIA_POSTGRES
+    value: 'true'
+- type: web
+  name: inko-piloto-usuarios
+  runtime: docker
+  repo: https://github.com/DevAngeloOliveira/Inko
+  branch: main
+  plan: free
+  region: oregon
+  dockerfilePath: ./infra/render/java.Dockerfile
+  autoDeployTrigger: 'off'
+  envVars:
+  - fromGroup: inko-piloto-interno
+  - key: INKO_SERVICE
+    value: usuarios
+  - key: SERVICE
+    value: usuarios
+  - key: DB_HOST
+    fromDatabase:
+      name: inko-piloto-db
+      property: host
+  - key: DB_USER
+    fromDatabase:
+      name: inko-piloto-db
+      property: user
+  - key: DB_PASSWORD
+    fromDatabase:
+      name: inko-piloto-db
+      property: password
+  - key: FLYWAY_LOCATIONS
+    value: classpath:db/migration
+  - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+    value: '4'
+  - key: INKO_BOOTSTRAP_ADMIN_EMAIL
+    value: dev.angelooliveira@gmail.com
+  - key: INKO_BOOTSTRAP_ADMIN_PASSWORD
+    generateValue: true
+- type: web
+  name: inko-piloto-circulacao
+  runtime: docker
+  repo: https://github.com/DevAngeloOliveira/Inko
+  branch: main
+  plan: free
+  region: oregon
+  dockerfilePath: ./infra/render/java.Dockerfile
+  autoDeployTrigger: 'off'
+  envVars:
+  - fromGroup: inko-piloto-interno
+  - key: INKO_SERVICE
+    value: circulacao
+  - key: SERVICE
+    value: circulacao
+  - key: DB_HOST
+    fromDatabase:
+      name: inko-piloto-db
+      property: host
+  - key: DB_USER
+    fromDatabase:
+      name: inko-piloto-db
+      property: user
+  - key: DB_PASSWORD
+    fromDatabase:
+      name: inko-piloto-db
+      property: password
+  - key: FLYWAY_LOCATIONS
+    value: classpath:db/migration
+  - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+    value: '4'
+  - key: CATALOGO_HOST
+    fromService:
+      type: web
+      name: inko-piloto-catalogo
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+  - key: USUARIOS_HOST
+    fromService:
+      type: web
+      name: inko-piloto-usuarios
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+- type: web
+  name: inko-piloto-relatorios
+  runtime: docker
+  repo: https://github.com/DevAngeloOliveira/Inko
+  branch: main
+  plan: free
+  region: oregon
+  dockerfilePath: ./infra/render/java.Dockerfile
+  autoDeployTrigger: 'off'
+  envVars:
+  - fromGroup: inko-piloto-interno
+  - key: INKO_SERVICE
+    value: relatorios
+  - key: SERVICE
+    value: relatorios
+  - key: CATALOGO_HOST
+    fromService:
+      type: web
+      name: inko-piloto-catalogo
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+  - key: USUARIOS_HOST
+    fromService:
+      type: web
+      name: inko-piloto-usuarios
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+  - key: CIRCULACAO_HOST
+    fromService:
+      type: web
+      name: inko-piloto-circulacao
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+- type: web
+  name: inko-piloto-gateway
+  runtime: docker
+  repo: https://github.com/DevAngeloOliveira/Inko
+  branch: main
+  plan: free
+  region: oregon
+  dockerfilePath: ./infra/render/gateway.Dockerfile
+  autoDeployTrigger: 'off'
+  envVars:
+  - fromGroup: inko-piloto-interno
+  - key: INKO_SERVICE
+    value: gateway
+  - key: INKO_GATEWAY_DOCS_ENABLED
+    value: 'false'
+  - key: CATALOGO_HOST
+    fromService:
+      type: web
+      name: inko-piloto-catalogo
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+  - key: USUARIOS_HOST
+    fromService:
+      type: web
+      name: inko-piloto-usuarios
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+  - key: CIRCULACAO_HOST
+    fromService:
+      type: web
+      name: inko-piloto-circulacao
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+  - key: RELATORIOS_HOST
+    fromService:
+      type: web
+      name: inko-piloto-relatorios
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+- type: web
+  name: inko-piloto-web
+  runtime: docker
+  repo: https://github.com/DevAngeloOliveira/Inko
+  branch: main
+  plan: free
+  region: oregon
+  dockerfilePath: ./infra/render/web.Dockerfile
+  autoDeployTrigger: 'off'
+  envVars:
+  - fromGroup: inko-piloto-interno
+  - key: INKO_SERVICE
+    value: web
+  - key: INKO_COOKIE_SECURE
+    value: 'true'
+  - key: GATEWAY_HOST
+    fromService:
+      type: web
+      name: inko-piloto-gateway
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+  - key: CATALOGO_HOST
+    fromService:
+      type: web
+      name: inko-piloto-catalogo
+      envVarKey: RENDER_EXTERNAL_HOSTNAME
+  - key: USUARIOS_HOST
+    fromService:
+      type: web
+      name: inko-piloto-usuarios
+      envVarKey: RENDER_EXTERNAL_HOSTNAME

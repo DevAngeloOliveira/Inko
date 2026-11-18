@@ -2,6 +2,7 @@ package br.com.inko.catalogo.capa;
 
 import java.nio.file.Path;
 import java.time.Clock;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,12 +17,16 @@ public class CapaConfiguracao {
     }
 
     @Bean
-    ArmazenamentoCapas armazenamentoCapas(@Value("${inko.media.root:/var/lib/inko/covers}") String raiz) {
+    ObjetosCapa armazenamentoCapas(@Value("${inko.media.root:/var/lib/inko/covers}") String raiz,
+            @Value("${inko.media.postgres:false}") boolean postgres, JdbcTemplate jdbc) {
+        if (postgres) {
+            return new ObjetosCapaPostgres(jdbc);
+        }
         return new ArmazenamentoCapas(Path.of(raiz));
     }
 
     @Bean
-    CapaService capaService(CapaRepository repository, ValidadorCapa validador, ArmazenamentoCapas armazenamento,
+    CapaService capaService(CapaRepository repository, ValidadorCapa validador, ObjetosCapa armazenamento,
             PlatformTransactionManager transacoes) {
         return new CapaService(repository, validador, armazenamento, new TransactionTemplate(transacoes), Clock.systemUTC());
     }
