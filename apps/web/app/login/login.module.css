@@ -49,6 +49,7 @@
 
 .main { display: flex; flex: 1; justify-content: center; padding: 28px var(--inko-spacing-4) var(--inko-spacing-6); }
 .card { display: flex; flex-direction: column; gap: var(--inko-spacing-5); width: 100%; max-width: 400px; }
+.back { align-self: flex-start; }
 
 .heading { display: flex; flex-direction: column; gap: 4px; }
 .heading h1 { margin: 0; font: 800 28px/36px var(--inko-font-display); }

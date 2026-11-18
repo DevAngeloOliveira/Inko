@@ -563,3 +563,11 @@ export async function fetchPublicCatalog(): Promise<PublicCatalog> {
   ]);
   return { works: livros.map(toWork), onLoan: new Set(disponibilidade.emprestados) };
 }
+
+export async function fetchPublicWork(id: string): Promise<{ work: Work; onLoan: boolean | null }> {
+  const [livro, disponibilidade] = await Promise.all([
+    request<LivroDto>('GET', `livros/${encodeURIComponent(id)}`),
+    fetchAvailability().catch(() => null),
+  ]);
+  return { work: toWork(livro), onLoan: disponibilidade?.emprestados.includes(livro.id) ?? null };
+}

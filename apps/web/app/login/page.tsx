@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { InkoPasswordInput } from '../../components/inko-interactions';
-import { Enso, InkoButton, InkoInput, SeigaihaBand, WashiTexture } from '../../components/inko-kit';
+import { Enso, InkoButton, InkoInput, InkoLinkButton, SeigaihaBand, WashiTexture } from '../../components/inko-kit';
 import { InkoAlert } from '../../components/inko-patterns';
 import { ApiError, signIn, useLibrary } from '../../lib/library-api';
 import { isValidEmailAddress } from '../../lib/validation';
@@ -88,6 +88,7 @@ export default function LoginPage() {
 
     <main className={styles.main}>
       <div className={styles.card}>
+        <InkoLinkButton href="/landing" variant="ghost" leftIcon="seta-esquerda" className={styles.back}>Voltar ao início</InkoLinkButton>
         <header className={styles.heading}>
           <h1>Entrar</h1>
           <p>Use sua conta de equipe da biblioteca.</p>
