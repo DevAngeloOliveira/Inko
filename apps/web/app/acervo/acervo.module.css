@@ -38,6 +38,22 @@
 .table { min-width: 720px; }
 .table th { padding-top: 12px; padding-bottom: 12px; }
 
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--inko-spacing-4);
+  width: 100%;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 1152px) {
+  .cardGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 68rem;
+  }
+}
+
 .footer {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--inko-spacing-3);
   font: 400 13px/20px var(--inko-font-body); color: var(--inko-text-secondary); font-variant-numeric: tabular-nums;

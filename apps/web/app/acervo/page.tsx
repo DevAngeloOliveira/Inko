@@ -79,7 +79,7 @@ function SortHeader({ label, sortKey, active, onSort }: Readonly<{ label: string
 function CatalogSkeleton() {
   return <>
     <output className="sr-only">Carregando acervo…</output>
-    <div className="inko-work-grid" aria-hidden="true">
+    <div className={styles.cardGrid} aria-hidden="true">
       {Array.from({ length: PAGE_SIZE }, (_, index) => <div key={index} className={styles.skeletonCard}>
         <span className={`${styles.skeletonCover} inko-motion-shimmer`}/>
         <span className="inko-skeleton-line inko-motion-shimmer" style={{ width: '45%' }}/>
@@ -219,7 +219,7 @@ function Catalog() {
       </li>)}
     </ul>}
 
-    {!busy && rows.length > 0 && view === 'cards' && <div className="inko-work-grid inko-only-desktop inko-motion-enter">
+    {!busy && rows.length > 0 && view === 'cards' && <div className={`${styles.cardGrid} inko-only-desktop inko-motion-enter`}>
       {visible.map(({ work, status: availability }) => <MangaCard key={work.id} work={work} status={availability}/>)}
     </div>}
 
