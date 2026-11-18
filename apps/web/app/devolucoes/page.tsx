@@ -1,17 +1,17 @@
 'use client';
 
+import { businessDate } from '../../lib/business-date';
 import { Suspense, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AppShell } from '../../components/app-shell';
 import { Icon } from '../../components/icon';
 import { useToast } from '../../components/inko-interactions';
 import { InkoBadge, InkoButton, InkoEmpty, InkoInput, InkoLinkButton, InkoSearch, InkoStatus, PageHeading } from '../../components/inko-kit';
-import { DEMO_REFERENCE_DATE, daysBetween, daysOverdue, fineInCents, formatBRL, formatDate, normalize, parseBRDate, type Loan } from '../../lib/demo';
+import { daysBetween, daysOverdue, fineInCents, formatBRL, formatDate, normalize, parseBRDate, type Loan } from '../../lib/demo';
 import { ApiError, returnLoan, useLibrary, type ReturnReceipt } from '../../lib/library-api';
 import styles from './devolucoes.module.css';
 
-const BREADCRUMB = [{ label: 'Início', href: '/' }, { label: 'Registrar devolução' }] as const;
-const TODAY_BR = formatDate(DEMO_REFERENCE_DATE);
+const BREADCRUMB = [{ label: 'Início', href: '/dashboard' }, { label: 'Registrar devolução' }] as const;
 
 interface Done {
   receipt: ReturnReceipt;
@@ -23,7 +23,7 @@ function returnDateError(value: string, loan: Loan): string {
   const iso = parseBRDate(value);
   if (!iso) return 'Use o formato dd/mm/aaaa.';
   if (daysBetween(loan.start, iso) < 0) return 'A devolução não pode ser antes do empréstimo.';
-  if (daysBetween(iso, DEMO_REFERENCE_DATE) < 0) return 'A data não pode estar no futuro.';
+  if (daysBetween(iso, businessDate()) < 0) return 'A data não pode estar no futuro.';
   return '';
 }
 
@@ -62,7 +62,7 @@ function LoanState({ late, struck = false }: Readonly<{ late: number; struck?: b
 }
 
 function ReturnForm({ loan, onDone }: Readonly<{ loan: Loan; onDone: (done: Done) => void }>) {
-  const [value, setValue] = useState(TODAY_BR);
+  const [value, setValue] = useState(() => formatDate(businessDate()));
   const [apiError, setApiError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -79,7 +79,7 @@ function ReturnForm({ loan, onDone }: Readonly<{ loan: Loan; onDone: (done: Done
     setSaving(true);
     try {
       const receipt = await returnLoan(loan.id, iso);
-      onDone({ receipt, previousLate: daysOverdue(loan.due, DEMO_REFERENCE_DATE) });
+      onDone({ receipt, previousLate: daysOverdue(loan.due, businessDate()) });
     } catch (failure) {
       setSaving(false);
       setApiError(failure instanceof ApiError ? failure.message : 'Não foi possível registrar a devolução.');
@@ -95,7 +95,7 @@ function ReturnForm({ loan, onDone }: Readonly<{ loan: Loan; onDone: (done: Done
       <div><dt>Prazo</dt><dd className={styles.plain}>{formatDate(loan.due)}</dd></div>
     </dl>
     <InkoInput id="devolucao-data" label="Data efetiva da devolução" inputMode="numeric" autoComplete="off" placeholder="dd/mm/aaaa" maxLength={10} className={styles.date}
-      value={value} error={error || undefined} help={`Padrão: hoje (${TODAY_BR})`} disabled={saving}
+      value={value} error={error || undefined} help={`Padrão: hoje (${formatDate(businessDate())})`} disabled={saving}
       onChange={event => { setValue(event.target.value); setApiError(''); }}/>
     <output className={`${styles.fine} ${days > 0 ? styles.fineLate : styles.fineOk}`}>
       <span className={styles.fineText}>{lateLabel(days)}<small>R$ 2,00 por dia de atraso</small></span>
@@ -110,7 +110,7 @@ function ReturnDone({ done, onReset }: Readonly<{ done: Done; onReset: () => voi
   return <div className={`${styles.done} inko-motion-swap`}>
     <div className={styles.doneHead}>
       <span className={styles.doneIcon}><Icon name="check-circulo" size={24}/></span>
-      <div><h2 id="devolucao-painel" tabIndex={-1}>Devolução registrada</h2><span>{loan.id} encerrado em {formatDate(loan.returnedAt ?? DEMO_REFERENCE_DATE)}</span></div>
+      <div><h2 id="devolucao-painel" tabIndex={-1}>Devolução registrada</h2><span>{loan.id} encerrado em {formatDate(loan.returnedAt ?? businessDate())}</span></div>
     </div>
     <div className={styles.transition}>
       <strong>{loan.work}</strong>
@@ -183,7 +183,7 @@ function ReturnsContent() {
             const checked = loan.id === selectedId;
             return <button key={loan.id} type="button" role="radio" aria-checked={checked} tabIndex={radioTabIndex(checked, index, anyChecked)} className="inko-choice" onClick={() => select(loan.id)}>
               <span className="inko-choice-text"><strong>{loan.work}</strong><small>{loan.id} · {loan.user} · prazo {formatDate(loan.due)}</small></span>
-              <LoanState late={daysOverdue(loan.due, DEMO_REFERENCE_DATE)}/>
+              <LoanState late={daysOverdue(loan.due, businessDate())}/>
             </button>;
           })}
         </div>}

@@ -1,23 +1,15 @@
 'use client';
 
+import { businessDate } from '../../lib/business-date';
 import { useEffect, useMemo, useState } from 'react';
 import { AppShell } from '../../components/app-shell';
 import { Icon } from '../../components/icon';
 import { useToast } from '../../components/inko-interactions';
 import { InkoButton, InkoEmpty, InkoErrorState, InkoInput, InkoLinkButton, PageHeading, Section } from '../../components/inko-kit';
 import { FineSummary, InkoAlert, InkoSkeleton, InkoStatisticSkeleton, LoanCard } from '../../components/inko-patterns';
-import { CATEGORIES, DEMO_REFERENCE_DATE, formatBRL, formatDate, parseBRDate, type Loan } from '../../lib/demo';
+import { CATEGORIES, addDays, formatBRL, formatDate, parseBRDate, type Loan } from '../../lib/demo';
 import { fetchFineReport, fetchStatistics, useLibrary, type FineReport, type LibraryStatistics } from '../../lib/library-api';
 import styles from './relatorios.module.css';
-
-/** Primeiro empréstimo do seed: antes disso não há o que calcular. */
-const MIN_REFERENCE = '2026-10-06';
-
-const QUICK_DATES = [
-  { value: DEMO_REFERENCE_DATE, label: 'Hoje · 09/11' },
-  { value: '2026-11-16', label: '16/11' },
-  { value: '2026-11-30', label: '30/11' },
-] as const;
 
 /** Linha do relatório do serviço Java, no formato que a tabela e o LoanCard usam. */
 type LateLoan = Loan & { days: number; fineCents: number };
@@ -119,11 +111,12 @@ function returnHref(loanId: string): string {
 export default function ReportsPage() {
   const library = useLibrary();
   const toast = useToast();
-  const [referenceText, setReferenceText] = useState(formatDate(DEMO_REFERENCE_DATE));
+  const [referenceText, setReferenceText] = useState(formatDate(businessDate()));
   const [sort, setSort] = useState<SortState>({ key: 'days', direction: 'desc' });
 
-  const parsed = parseBRDate(referenceText);
-  const reference = parsed !== null && parsed >= MIN_REFERENCE ? parsed : null;
+  const today = businessDate();
+  const quickDates = [{ value: today, label: 'Hoje' }, { value: addDays(today, -7), label: 'Há 7 dias' }];
+  const reference = parseBRDate(referenceText);
 
   const [data, setData] = useState<ReportData | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
@@ -185,12 +178,12 @@ export default function ReportsPage() {
       <InkoInput
         id="ref" label="Data de referência" className={styles.referenceField} inputMode="numeric" autoComplete="off"
         placeholder="dd/mm/aaaa" maxLength={10} value={referenceText} onChange={event => setReferenceText(event.target.value)}
-        error={reference ? undefined : 'Data inválida. Use dd/mm/aaaa (a partir de 06/10/2026).'}
+        error={reference ? undefined : 'Data inválida. Use dd/mm/aaaa.'}
         help="Multa = dias de atraso até a data × R$ 2,00"
       />
       <fieldset className={styles.quick}>
         <legend className="sr-only">Atalhos de data</legend>
-        {QUICK_DATES.map(date => <button key={date.value} type="button" aria-pressed={reference === date.value} onClick={() => setReferenceText(formatDate(date.value))}>{date.label}</button>)}
+        {quickDates.map(date => <button key={date.value} type="button" aria-pressed={reference === date.value} onClick={() => setReferenceText(formatDate(date.value))}>{date.label}</button>)}
       </fieldset>
     </section>
 
@@ -247,7 +240,7 @@ export default function ReportsPage() {
           <div className="inko-only-mobile">
             <ul className={`inko-loan-list ${styles.mobileList}`}>
               {rows.map(row => <li key={row.id}>
-                <LoanCard loan={row} reference={reference ?? DEMO_REFERENCE_DATE} work={library.works.find(work => work.id === row.workId)} action={<div className={styles.mobileFine}>
+                <LoanCard loan={row} reference={reference ?? businessDate()} work={library.works.find(work => work.id === row.workId)} action={<div className={styles.mobileFine}>
                   <strong>{formatBRL(row.fineCents)}</strong>
                   <InkoLinkButton href={returnHref(row.id)} variant="outline" size="sm" leftIcon="devolucoes" aria-label={`Registrar devolução de ${row.work} (${row.id})`}>Registrar devolução</InkoLinkButton>
                 </div>}/>

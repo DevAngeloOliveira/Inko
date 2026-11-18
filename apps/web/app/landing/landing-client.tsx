@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { Icon } from '../../components/icon';
 import { InkoBadge, InkoCover } from '../../components/inko-kit';
-import { CATEGORIES, type Category, type Work } from '../../lib/demo';
+import { CATEGORIES, normalize, type Category, type Work } from '../../lib/demo';
 import { ANIME, CAMPAIGNS, COLLECTIONS, GENRES, collectionById, type Campaign, type EditorialFilter } from '../../lib/editorial';
 import { fetchPublicCatalog, type PublicCatalog } from '../../lib/library-api';
 import styles from './landing.module.css';
@@ -98,7 +98,7 @@ export function CatalogProvider({ children }: Readonly<{ children: ReactNode }>)
 function matches(work: Work, filter: ShowcaseFilter): boolean {
   if (filter.category && work.category !== filter.category) return false;
   if (filter.genre && !work.genres?.includes(filter.genre)) return false;
-  if (filter.collection && !collectionById(filter.collection)?.works.includes(work.id)) return false;
+  if (filter.collection && (!work.genres || !collectionById(filter.collection)?.works.includes(work.id))) return false;
   return true;
 }
 
@@ -127,7 +127,12 @@ function WorkCard({ work, onLoan }: Readonly<{ work: Work; onLoan: boolean }>) {
       <div className={styles.workFoot}>
         {!onLoan && <InkoBadge tone="success" icon="check-circulo">Na estante</InkoBadge>}
         {onLoan && <InkoBadge tone="info" icon="emprestimos">Emprestado</InkoBadge>}
-        <Link href={`/acervo/${work.id}`} className={styles.workLink} aria-label={`Ver detalhes de ${work.title}`}>Detalhes<Icon name="seta" size={14}/></Link>
+        <details>
+          <summary className={styles.workLink} aria-label={`Ver detalhes de ${work.title}`}>Detalhes</summary>
+          <p>Exemplar <strong>{work.id}</strong>{work.publisher && <> · {work.publisher}</>}</p>
+          {work.synopsis && <p>{work.synopsis}</p>}
+          <p>{onLoan ? 'O exemplar está emprestado.' : 'Informe o código à equipe para solicitar o empréstimo na biblioteca.'}</p>
+        </details>
       </div>
     </div>
   </article>;
@@ -145,13 +150,17 @@ function ShowcaseSkeleton() {
 export function CatalogShowcase() {
   const { state, filter, applyFilter, reload } = useCatalog();
   const [limit, setLimit] = useState(PAGE_SIZE);
+  const [query, setQuery] = useState('');
   const panelId = useId();
   const category = filter.category ?? 'all';
   const extra = filterLabel(filter);
 
-  useEffect(() => { setLimit(PAGE_SIZE); }, [filter]);
+  useEffect(() => { setLimit(PAGE_SIZE); }, [filter, query]);
 
-  const visible = state.status === 'ok' ? state.data.works.filter(work => matches(work, filter)) : [];
+  const term = normalize(query.trim());
+  const visible = state.status === 'ok' ? state.data.works.filter(work =>
+    matches(work, filter) && normalize([work.title, work.author, work.id].join(' ')).includes(term)
+  ) : [];
 
   return <section id="acervo" aria-labelledby="ac-t" className={`${styles.container} ${styles.showcase}`}>
     <div className={styles.showcaseHead}>
@@ -169,6 +178,10 @@ export function CatalogShowcase() {
       </div>
     </div>
 
+    <label className="inko-field">Buscar no acervo
+      <input className="inko-input" type="search" placeholder="Título, autor ou código" value={query} onChange={event => setQuery(event.target.value)}/>
+    </label>
+
     {extra && <p className={styles.activeFilter}>
       <span>Mostrando: <strong>{extra}</strong></span>
       <button type="button" onClick={() => applyFilter({ category: filter.category }, false)}><Icon name="fechar" size={14}/>Limpar</button>
@@ -183,7 +196,7 @@ export function CatalogShowcase() {
       </div>}
       {state.status === 'ok' && visible.length === 0 && <div className={styles.stateBox}>
         <strong>Nenhuma obra neste recorte</strong>
-        <span>Experimente outra categoria, gênero ou coleção.</span>
+        <span>Verifique o termo de busca ou escolha outra categoria.</span>
       </div>}
       {state.status === 'ok' && visible.length > 0 && <>
         <ul className={`${styles.works} inko-motion-swap`} aria-label="Obras do acervo" key={JSON.stringify(filter)}>
@@ -195,7 +208,7 @@ export function CatalogShowcase() {
         </div>
       </>}
     </div>
-    <p className={styles.finePrint}>Capas ilustrativas criadas pelo INKO: nenhuma arte original de editoras é reproduzida. Ao entrar, cada obra mostra prazo, histórico e empréstimo ativo.</p>
+    <p className={styles.finePrint}>A equipe pode adicionar capas. Exemplares sem imagem usam a ilustração do INKO.</p>
   </section>;
 }
 
@@ -216,7 +229,7 @@ function CampaignBanner({ campaign, titles }: Readonly<{ campaign: Campaign; tit
 export function CampaignBanners() {
   const { state } = useCatalog();
   const titles = (ids: readonly string[]) => state.status === 'ok'
-    ? ids.map(id => state.data.works.find(work => work.id === id)?.title).filter((title): title is string => Boolean(title))
+    ? ids.map(id => state.data.works.find(work => work.genres && work.id === id)?.title).filter((title): title is string => Boolean(title))
     : [];
 
   return <section aria-labelledby="cp-t" className={`${styles.container} ${styles.campaigns}`}>
@@ -259,7 +272,7 @@ export function GenreNavigation() {
 
 export function CollectionsShowcase() {
   const { state, applyFilter } = useCatalog();
-  const worksOf = (ids: readonly string[]) => state.status === 'ok' ? state.data.works.filter(work => ids.includes(work.id)) : [];
+  const worksOf = (ids: readonly string[]) => state.status === 'ok' ? state.data.works.filter(work => work.genres && ids.includes(work.id)) : [];
 
   return <section id="colecoes" aria-labelledby="cl-t" className={`${styles.container} ${styles.collections}`}>
     <div className={styles.sectionHead}>
@@ -284,7 +297,7 @@ export function CollectionsShowcase() {
 
 export function AnimeAdaptations() {
   const { state, applyFilter } = useCatalog();
-  const titleOf = (id: string) => state.status === 'ok' ? state.data.works.find(work => work.id === id)?.title : undefined;
+  const titleOf = (id: string) => state.status === 'ok' ? state.data.works.find(work => work.genres && work.id === id)?.title : undefined;
 
   return <section aria-labelledby="an-t" className={`${styles.dark} ${styles.anime}`}>
     <div className={styles.container}>

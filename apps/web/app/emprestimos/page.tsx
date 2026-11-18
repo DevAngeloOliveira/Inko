@@ -1,5 +1,6 @@
 'use client';
 
+import { businessDate } from '../../lib/business-date';
 import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -9,7 +10,7 @@ import { useToast } from '../../components/inko-interactions';
 import { Avatar, InkoButton, InkoCover, InkoEmpty, InkoField, InkoLinkButton, InkoSearch, InkoStatus, PageHeading } from '../../components/inko-kit';
 import { InkoAlert } from '../../components/inko-patterns';
 import {
-  DEFAULT_LOAN_DAYS, DEMO_REFERENCE_DATE, activeLoanOf, addDays, availabilityOf, daysOverdue, fineInCents, formatBRL, formatDate,
+  DEFAULT_LOAN_DAYS, activeLoanOf, addDays, availabilityOf, daysOverdue, fineInCents, formatBRL, formatDate,
   normalize, workLabel, type LibraryUser, type Loan, type Work,
 } from '../../lib/demo';
 import { ApiError, createLoan, useLibrary } from '../../lib/library-api';
@@ -18,7 +19,7 @@ import styles from './emprestimos.module.css';
 const STEP_LABELS = ['Usuário', 'Obra', 'Disponibilidade', 'Datas', 'Confirmar', 'Resultado'] as const;
 const NEXT_LABELS: Record<number, string> = { 1: 'Continuar', 2: 'Verificar disponibilidade', 3: 'Informar datas', 4: 'Revisar' };
 const TERMS = [7, 14, 21] as const;
-const BREADCRUMB = [{ label: 'Início', href: '/' }, { label: 'Novo empréstimo' }] as const;
+const BREADCRUMB = [{ label: 'Início', href: '/dashboard' }, { label: 'Novo empréstimo' }] as const;
 
 interface StepAlert {
   step: number;
@@ -64,7 +65,7 @@ interface Pending {
 
 function pendingOf(userId: string, loans: readonly Loan[]): Pending {
   const active = loans.filter(loan => loan.userId === userId && !loan.returnedAt);
-  const overdue = active.map(loan => daysOverdue(loan.due, DEMO_REFERENCE_DATE)).filter(days => days > 0);
+  const overdue = active.map(loan => daysOverdue(loan.due, businessDate())).filter(days => days > 0);
   return { active: active.length, late: overdue.length, fineCents: overdue.reduce((sum, days) => sum + fineInCents(days), 0) };
 }
 
@@ -75,7 +76,7 @@ function userNote(pending: Pending): string {
 }
 
 function conflictText(loan: Loan): string {
-  const days = daysOverdue(loan.due, DEMO_REFERENCE_DATE);
+  const days = daysOverdue(loan.due, businessDate());
   if (days > 0) return `Emprestada a ${loan.user} · prazo vencido em ${formatDate(loan.due)} (${days} ${days === 1 ? 'dia' : 'dias'} de atraso).`;
   return `Emprestada a ${loan.user} desde ${formatDate(loan.start)} · prazo ${formatDate(loan.due)}.`;
 }
@@ -133,7 +134,7 @@ function WorkStep({ works, loans, selectedId, onSelect }: Readonly<{ works: read
         return <button key={work.id} type="button" role="radio" aria-checked={checked} tabIndex={radioTabIndex(checked, index, anyChecked)} className="inko-choice" onClick={() => onSelect(work.id)}>
           <InkoCover work={work} size="xs"/>
           <span className="inko-choice-text"><strong>{workLabel(work)}</strong><small>{work.id} · {work.author}</small></span>
-          <InkoStatus status={availabilityOf(loans, work.id, DEMO_REFERENCE_DATE)} size="sm"/>
+          <InkoStatus status={availabilityOf(loans, work.id, businessDate())} size="sm"/>
         </button>;
       })}
     </div>}
@@ -168,7 +169,7 @@ function DatesStep({ term, due, onTerm }: Readonly<{ term: number; due: string; 
   return <>
     <div className={styles.dates}>
       <InkoField id="emprestimo-data" label="Data do empréstimo" help="Hoje">
-        <span className="inko-control inko-control--select"><input id="emprestimo-data" className="inko-input inko-input--lg inko-tabular" readOnly value={formatDate(DEMO_REFERENCE_DATE)} aria-describedby="emprestimo-data-help"/><Icon name="calendario" size={18}/></span>
+        <span className="inko-control inko-control--select"><input id="emprestimo-data" className="inko-input inko-input--lg inko-tabular" readOnly value={formatDate(businessDate())} aria-describedby="emprestimo-data-help"/><Icon name="calendario" size={18}/></span>
       </InkoField>
       <fieldset className={styles.terms}>
         <legend>Prazo</legend>
@@ -216,7 +217,8 @@ function LoanWizard() {
   const available = Boolean(work) && !conflict;
   // Depois de gravado, o fluxo fica no resultado (evita reenvio ao voltar no histórico).
   const step = created ? 6 : reachableStep(Number(params.get('step') ?? 1), Boolean(user), Boolean(work), available);
-  const due = addDays(DEMO_REFERENCE_DATE, term);
+  const start = businessDate();
+  const due = addDays(start, term);
   const pending = useMemo(() => (user ? pendingOf(user.id, loans) : null), [user, loans]);
   const blocked = step === 3 && !available;
 
@@ -259,7 +261,7 @@ function LoanWizard() {
     setSaving(true);
     setAlert(null);
     try {
-      const loan = await createLoan({ workId: work.id, userId: user.id, start: DEMO_REFERENCE_DATE, due });
+      const loan = await createLoan({ workId: work.id, userId: user.id, start, due });
       setCreated(loan);
       router.replace(href({ step: 6 }), { scroll: false });
       toast({ title: 'Empréstimo registrado', text: `${loan.work} com ${loan.user} até ${formatDate(loan.due)}.` });
@@ -320,7 +322,7 @@ function LoanWizard() {
             <dl className={styles.review}>
               <div><dt>Usuário</dt><dd>{user.name}</dd></div>
               <div><dt>Obra</dt><dd>{workLabel(work)} <span>· {work.id}</span></dd></div>
-              <div><dt>Empréstimo</dt><dd>{formatDate(DEMO_REFERENCE_DATE)}</dd></div>
+              <div><dt>Empréstimo</dt><dd>{formatDate(businessDate())}</dd></div>
               <div><dt>Devolução até</dt><dd>{formatDate(due)}</dd></div>
             </dl>
           </>}
@@ -343,8 +345,8 @@ function LoanWizard() {
         <dl>
           <div><dt>Usuário</dt><dd>{user?.name ?? 'Não selecionado'}</dd></div>
           <div><dt>Obra</dt><dd>{work ? workLabel(work) : 'Não selecionada'}</dd></div>
-          <div><dt>Disponibilidade</dt><dd>{work ? <InkoStatus status={availabilityOf(loans, work.id, DEMO_REFERENCE_DATE)} size="sm"/> : '—'}</dd></div>
-          <div><dt>Empréstimo</dt><dd>{formatDate(DEMO_REFERENCE_DATE)}</dd></div>
+          <div><dt>Disponibilidade</dt><dd>{work ? <InkoStatus status={availabilityOf(loans, work.id, businessDate())} size="sm"/> : '—'}</dd></div>
+          <div><dt>Empréstimo</dt><dd>{formatDate(businessDate())}</dd></div>
           <div><dt>Devolução até</dt><dd>{formatDate(due)} <span>({term} dias)</span></dd></div>
         </dl>
         <p className="inko-footnote">A disponibilidade é verificada de novo no momento da confirmação.</p>

@@ -1,6 +1,6 @@
 # INKO HTTPS Edge
 
-O `compose.edge.yaml` utiliza Caddy como reverse proxy com HTTPS automático para um domínio configurado pelo operador. Ele publica somente o frontend Next.js; toda a API `/api/*` é bloqueada intencionalmente até existir autenticação real e uma revisão de segurança do Gateway.
+O Caddy termina HTTPS e encaminha a interface e as chamadas de mesma origem ao Next.js. Os handlers de sessão, catálogo, disponibilidade e capas pertencem ao BFF. O gateway, PostgreSQL e os serviços Java continuam na rede interna.
 
 ## Pré-requisitos
 
@@ -27,4 +27,4 @@ INKO_RELEASE_TAG=v0.4.0 docker compose --env-file .env \
 
 Não executar `down -v`: os certificados Caddy e dados PostgreSQL residem em volumes persistentes.
 
-**Escopo:** trata-se de um edge seguro para **demonstração do frontend**. O INKO ainda não possui autenticação real, autorização ou funcionalidades completas e não está liberado como sistema de produção. O gateway só deve ser publicado após implementação e auditoria das proteções necessárias.
+Para uso com dados reais, siga a [configuração e homologação do piloto](PILOTO.md).

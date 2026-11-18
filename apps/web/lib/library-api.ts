@@ -12,9 +12,10 @@
  * `sessionStorage` guarda apenas preferências de interface, nunca autenticação.
  */
 
+import { businessDate } from './business-date';
 import { useSyncExternalStore } from 'react';
 import {
-  DEMO_REFERENCE_DATE, daysBetween, daysOverdue, fineInCents, workLabel,
+  daysBetween, daysOverdue, fineInCents, workLabel,
   type Category, type LibraryUser, type Loan, type Work,
 } from './demo';
 import { editorialOf } from './editorial';
@@ -99,7 +100,7 @@ export function coverUrlFor(dto: Pick<LivroDto, 'id' | 'capaVersao'>): string | 
 }
 
 export function toWork(dto: LivroDto): Work {
-  const editorial = editorialOf(dto.id);
+  const editorial = editorialOf(dto.id, dto.titulo, dto.autor);
   return {
     id: dto.id, title: dto.titulo, author: dto.autor, category: dto.categoria, volume: dto.volume ?? '',
     cover: coverFor(dto.id), coverUrl: coverUrlFor(dto), publisher: dto.editora ?? undefined, originalTitle: dto.tituloOriginal ?? undefined,
@@ -514,7 +515,7 @@ export interface LibraryNotification {
 }
 
 /** Notificações derivadas dos empréstimos persistidos: atrasos, vencimentos próximos e devoluções do dia. */
-export function buildNotifications(library: LibraryState, reference: string = DEMO_REFERENCE_DATE): LibraryNotification[] {
+export function buildNotifications(library: LibraryState, reference: string = businessDate()): LibraryNotification[] {
   const active = library.loans.filter(loan => !loan.returnedAt);
   const late = active.filter(loan => daysOverdue(loan.due, reference) > 0)
     .sort((left, right) => daysBetween(right.due, left.due))

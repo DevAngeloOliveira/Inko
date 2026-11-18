@@ -567,7 +567,7 @@ function GuidelinesSection() {
 /* ---------- Página ---------- */
 
 export default function DesignSystemPage() {
-  return <AppShell breadcrumb={[{ label: 'Início', href: '/' }, { label: 'Design System' }]}>
+  return <AppShell breadcrumb={[{ label: 'Início', href: '/dashboard' }, { label: 'Design System' }]}>
     <PageHeading eyebrow="Documentação viva" title="Design System INKO" description="Marca, fundamentos, componentes reais da fundação e diretrizes de uso — a mesma biblioteca que monta as telas."/>
     <div className={styles.layout}>
       <nav className={styles.toc} aria-label="Seções do Design System">

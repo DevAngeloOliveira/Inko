@@ -41,7 +41,7 @@ export default function LoginPage() {
   const signedIn = library.ready && Boolean(library.session);
 
   useEffect(() => {
-    if (signedIn) router.replace('/');
+    if (signedIn) router.replace('/dashboard');
   }, [signedIn, router]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -57,7 +57,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await signIn(email, password);
-      router.replace('/');
+      router.replace('/dashboard');
     } catch (error) {
       setSubmitting(false);
       if (error instanceof ApiError && (error.field === 'email' || error.field === 'password')) {

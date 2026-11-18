@@ -1,14 +1,15 @@
 'use client';
 
+import { businessDate } from '../../../lib/business-date';
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { AppShell } from '../../../components/app-shell';
 import { CoverUpload } from '../../../components/cover-upload';
 import { Icon, type IconName } from '../../../components/icon';
-import { ConfirmDialog, useMockQuery, useToast } from '../../../components/inko-interactions';
+import { ConfirmDialog, useToast } from '../../../components/inko-interactions';
 import { CategoryTag, DemoNotice, InkoBadge, InkoButton, InkoCover, InkoEmpty, InkoLinkButton, Section, type Tone } from '../../../components/inko-kit';
 import { InkoAlert, InkoSkeleton, InkoTabs, LoanCard } from '../../../components/inko-patterns';
-import { DEMO_REFERENCE_DATE, activeLoanOf, daysBetween, daysOverdue, fineInCents, formatBRL, formatDate, workLabel, type Loan, type Work } from '../../../lib/demo';
+import { activeLoanOf, daysBetween, daysOverdue, fineInCents, formatBRL, formatDate, workLabel, type Loan, type Work } from '../../../lib/demo';
 import { animeOf, editorialOf } from '../../../lib/editorial';
 import { ApiError, deleteWork, useLibrary } from '../../../lib/library-api';
 import styles from './obra.module.css';
@@ -32,16 +33,16 @@ function dayCount(days: number): string {
 function describeCirculation(loan: Loan | undefined): Circulation {
   if (!loan) return { tone: 'success', icon: 'check-circulo', title: 'Disponível', text: 'Na estante e pronta para um novo empréstimo.' };
   const holder = `Com ${loan.user} desde ${formatDate(loan.start)} · prazo ${formatDate(loan.due)}`;
-  const late = daysOverdue(loan.due, DEMO_REFERENCE_DATE);
+  const late = daysOverdue(loan.due, businessDate());
   if (late > 0) return { tone: 'danger', icon: 'relogio', title: `Atrasado · ${dayCount(late)}`, text: `${holder} · multa acumulada ${formatBRL(fineInCents(late))}` };
-  const left = daysBetween(DEMO_REFERENCE_DATE, loan.due);
+  const left = daysBetween(businessDate(), loan.due);
   const title = left === 0 ? 'Emprestado · vence hoje' : `Emprestado · faltam ${dayCount(left)}`;
   return { tone: 'info', icon: 'emprestimos', title, text: `${holder} · sem multa` };
 }
 
 function historyStatus(loan: Loan): { tone: Tone; icon: IconName; label: string } {
   if (!loan.returnedAt) {
-    const late = daysOverdue(loan.due, DEMO_REFERENCE_DATE);
+    const late = daysOverdue(loan.due, businessDate());
     if (late > 0) return { tone: 'danger', icon: 'relogio', label: `Ativo · atrasado ${late} d` };
     return { tone: 'info', icon: 'emprestimos', label: 'Ativo · no prazo' };
   }
@@ -52,7 +53,7 @@ function historyStatus(loan: Loan): { tone: Tone; icon: IconName; label: string 
 
 function historyRowClass(loan: Loan): string | undefined {
   if (loan.returnedAt) return undefined;
-  return daysOverdue(loan.due, DEMO_REFERENCE_DATE) > 0 ? styles.rowLate : styles.rowActive;
+  return daysOverdue(loan.due, businessDate()) > 0 ? styles.rowLate : styles.rowActive;
 }
 
 function CirculationPanel({ work, loan }: Readonly<{ work: Work; loan: Loan | undefined }>) {
@@ -101,14 +102,15 @@ function HistorySection({ work, history }: Readonly<{ work: Work; history: reado
       </table>
     </div>}
     {history.length > 0 && <ul className={`inko-loan-list inko-only-mobile ${styles.historyList}`}>
-      {history.map(loan => <li key={loan.id}><LoanCard loan={loan} reference={DEMO_REFERENCE_DATE} work={work}/></li>)}
+      {history.map(loan => <li key={loan.id}><LoanCard loan={loan} reference={businessDate()} work={work}/></li>)}
     </ul>}
   </Section>;
 }
 
 function AboutSection({ work, loanCount }: Readonly<{ work: Work; loanCount: number }>) {
-  const anime = animeOf(work.id);
-  const reference = editorialOf(work.id)?.reference;
+  const editorial = editorialOf(work.id, work.title, work.author);
+  const anime = editorial && animeOf(work.id);
+  const reference = editorial?.reference;
   return <Section id="sobre-obra" title="Sobre a obra">
     {work.synopsis ? <p className={styles.synopsis}>{work.synopsis}</p> : <p className={`${styles.synopsis} inko-muted`}>Sinopse não informada.</p>}
     <dl className="inko-definition">
@@ -131,7 +133,6 @@ export default function WorkDetailsPage() {
   const router = useRouter();
   const library = useLibrary();
   const toast = useToast();
-  const { loading } = useMockQuery(500);
 
   const id = decodeURIComponent(params.id ?? '').toUpperCase();
   const work = library.works.find(item => item.id === id);
@@ -145,7 +146,7 @@ export default function WorkDetailsPage() {
   const [leaving, setLeaving] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const busy = loading || !library.ready || leaving;
+  const busy = !library.ready || leaving;
 
   async function handleDelete() {
     if (!work) return;

@@ -7,7 +7,8 @@ const home = readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
 const stylesheet = readFileSync(new URL('../app/inko-ui.css', import.meta.url), 'utf8');
 
 test('homepage renders the real INKO layout rather than temporary system health', () => {
-  assert.match(home, /Dashboard/);
+  assert.match(home, /landing\/page/);
+  assert.match(readFileSync(new URL('../app/dashboard/page.tsx', import.meta.url), 'utf8'), /Dashboard/);
   assert.match(dashboard, /Cada volume/);
   assert.match(dashboard, /DEMONSTRAÇÃO ACADÊMICA/);
 });
