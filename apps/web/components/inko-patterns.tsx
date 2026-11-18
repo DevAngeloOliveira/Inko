@@ -45,13 +45,22 @@ export function InkoPillTabs<T extends string>({ label, items, active, onChange 
   </button>)}</div>;
 }
 
+function paginationItems(page: number, pages: number) {
+  if (pages <= 5) return Array.from({ length: pages }, (_, index) => index + 1);
+  const start = Math.max(2, Math.min(page - 1, pages - 3));
+  const end = start + 2;
+  return [1, ...(start > 2 ? ['before'] : []), start, start + 1, end, ...(end < pages - 1 ? ['after'] : []), pages];
+}
+
 export function Pagination({ page, pages, onChange, compact = false }: Readonly<{ page: number; pages: number; onChange: (page: number) => void; compact?: boolean }>) {
   if (pages <= 1) return null;
   return <nav aria-label="Paginação" className="inko-pagination">
     <button type="button" aria-label="Página anterior" disabled={page <= 1} onClick={() => onChange(page - 1)}><Icon name="chevron-esquerda" size={16}/></button>
     {compact
       ? <span aria-live="polite">Página {page} de {pages}</span>
-      : Array.from({ length: pages }, (_, index) => index + 1).map(number => <button key={number} type="button" aria-current={number === page ? 'page' : undefined} onClick={() => onChange(number)}>{number}</button>)}
+      : paginationItems(page, pages).map(item => typeof item === 'number'
+        ? <button key={item} type="button" aria-current={item === page ? 'page' : undefined} onClick={() => onChange(item)}>{item}</button>
+        : <span key={item} aria-hidden="true">…</span>)}
     <button type="button" aria-label="Próxima página" disabled={page >= pages} onClick={() => onChange(page + 1)}><Icon name="chevron-direita" size={16}/></button>
   </nav>;
 }
