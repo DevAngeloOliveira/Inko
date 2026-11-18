@@ -3,6 +3,20 @@ envVarGroups:
   envVars:
   - key: INKO_SERVICE_KEY
     generateValue: true
+  - key: GATEWAY_INTERNAL_URL
+    value: http://127.0.0.1:8000
+  - key: CATALOGO_INTERNAL_URL
+    value: http://127.0.0.1:8081
+  - key: USUARIOS_INTERNAL_URL
+    value: http://127.0.0.1:8082
+  - key: CATALOGO_URL
+    value: http://127.0.0.1:8081
+  - key: USUARIOS_URL
+    value: http://127.0.0.1:8082
+  - key: CIRCULACAO_URL
+    value: http://127.0.0.1:8083
+  - key: RELATORIOS_URL
+    value: http://127.0.0.1:8084
 services:
 - type: web
   name: inko-piloto-catalogo
