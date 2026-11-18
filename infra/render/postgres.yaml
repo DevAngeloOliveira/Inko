@@ -1,0 +1,8 @@
+databases:
+  - name: inko-piloto-db
+    plan: free
+    region: virginia
+    postgresMajorVersion: "17"
+    databaseName: inko
+    user: inko_piloto
+    ipAllowList: []
