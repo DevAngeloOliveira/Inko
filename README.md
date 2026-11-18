@@ -9,6 +9,18 @@ Arquitetura poliglota: Next.js 16 (interface) → FastAPI (API Gateway) → quat
 
 O leitor consulta obras, códigos e disponibilidade em `/`. A equipe entra por `/login` e opera em `/dashboard`. Consulte a [avaliação da base, configuração do piloto e critérios de abertura](docs/devops/PILOTO.md).
 
+### Carga da apresentação
+
+O perfil de demonstração contém 505 edições identificadas por ISBN, com autoria, descrição, capa e fonte editorial, além de 36 leitores fictícios e 60 empréstimos. As capas editoriais são carregadas do distribuidor. Uma capa enviada pela equipe tem prioridade.
+
+O Blueprint do Render habilita as migrações de demonstração em `db/piloto`. O Flyway registra a execução por serviço e preserva as movimentações feitas depois da carga. Para reproduzir em uma base de demonstração vazia com as credenciais do piloto configuradas, execute:
+
+```sh
+INKO_FLYWAY_LOCATIONS=classpath:db/migration,classpath:db/piloto docker compose -p inko-demo -f compose.yaml -f compose.piloto.yaml up --build -d
+```
+
+Na data da carga, `INK-3001` tem empréstimo atrasado, `INK-3021` está emprestado dentro do prazo e `INK-3041` tem uma devolução concluída. O exemplar `INK-3061` está livre para emprestar durante a apresentação.
+
 ## Escopo acadêmico
 
 - Classes de domínio `Livro`, `Usuario`, `Emprestimo` e `Biblioteca`, modeladas como records imutáveis.

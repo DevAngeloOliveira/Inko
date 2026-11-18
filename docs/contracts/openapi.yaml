@@ -137,6 +137,15 @@ components:
         volume: { type: [string, 'null'], maxLength: 40 }
         editora: { type: [string, 'null'], maxLength: 120 }
         tituloOriginal: { type: [string, 'null'], maxLength: 160 }
+        ficha:
+          type: [object, 'null']
+          readOnly: true
+          properties:
+            descricao: { type: string }
+            capa: { type: string, format: uri }
+            fonte: { type: string, format: uri }
+            isbn: { type: [string, 'null'] }
+            generos: { type: string, description: 'Gêneros separados por barra vertical.' }
     NovoUsuario:
       type: object
       required: [nome, matricula]

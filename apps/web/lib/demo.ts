@@ -23,6 +23,9 @@ export interface Work {
   cover: number | null;
   /** Capa persistida no Catálogo (`/api/media/livros/{id}?v=…`); sem ela, vale a capa em CSS. */
   coverUrl?: string;
+  publisherCover?: string;
+  sourceUrl?: string;
+  isbn?: string;
   publisher?: string;
   originalTitle?: string;
   synopsis?: string;

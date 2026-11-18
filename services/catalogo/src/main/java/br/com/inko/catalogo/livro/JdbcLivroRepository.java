@@ -10,7 +10,9 @@ import org.springframework.stereotype.Repository;
 public class JdbcLivroRepository implements LivroRepository {
     private static final RowMapper<Livro> MAPPER = (rs, row) -> new Livro(
             rs.getString("id"), rs.getString("titulo"), rs.getString("autor"), rs.getString("categoria"),
-            rs.getString("volume"), rs.getString("editora"), rs.getString("titulo_original"), rs.getString("capa_versao"));
+            rs.getString("volume"), rs.getString("editora"), rs.getString("titulo_original"), rs.getString("capa_versao"),
+            rs.getString("descricao") == null ? null : new Livro.FichaEditorial(rs.getString("descricao"),
+                    rs.getString("capa_editorial"), rs.getString("fonte"), rs.getString("isbn"), rs.getString("generos")));
     private static final String CONSULTA = """
             SELECT l.*, substr(c.sha256, 1, 16) AS capa_versao
             FROM livros l LEFT JOIN capas_livros c ON c.livro_id = l.id

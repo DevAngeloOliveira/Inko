@@ -131,6 +131,8 @@ function WorkCard({ work, onLoan }: Readonly<{ work: Work; onLoan: boolean }>) {
           <summary className={styles.workLink} aria-label={`Ver detalhes de ${work.title}`}>Detalhes</summary>
           <p>Exemplar <strong>{work.id}</strong>{work.publisher && <> · {work.publisher}</>}</p>
           {work.synopsis && <p>{work.synopsis}</p>}
+          {work.isbn && <p>ISBN {work.isbn}</p>}
+          {work.sourceUrl && <a href={work.sourceUrl} target="_blank" rel="noopener noreferrer">Ficha da editora</a>}
           <p>{onLoan ? 'O exemplar está emprestado.' : 'Informe o código à equipe para solicitar o empréstimo na biblioteca.'}</p>
         </details>
       </div>

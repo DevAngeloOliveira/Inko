@@ -197,11 +197,12 @@ export function Section({ title, action, children, className = '', flush = false
  * Capa fictícia em CSS no slot 2:3 onde entrarão capas reais licenciadas.
  * `work.cover === null` mostra o estado "Sem capa".
  */
-export function InkoCover({ work, size = 'md' }: Readonly<{ work: Pick<Work, 'title' | 'volume' | 'cover' | 'coverUrl'>; size?: 'xs' | 'sm' | 'md' }>) {
-  if (work.coverUrl) {
+export function InkoCover({ work, size = 'md' }: Readonly<{ work: Pick<Work, 'title' | 'volume' | 'cover' | 'coverUrl' | 'publisherCover'>; size?: 'xs' | 'sm' | 'md' }>) {
+  const src = work.coverUrl ?? work.publisherCover;
+  if (src) {
     return <div className={`inko-cover inko-cover--${work.cover ?? 0} inko-cover--${size}`}>
       <span className="inko-cover-a"/><span className="inko-cover-b"/><span className="inko-cover-c"/>
-      <CoverImage src={work.coverUrl} alt={`Capa de ${workLabel(work)}`}/>
+      <CoverImage src={src} alt={`Capa de ${workLabel(work)}`}/>
     </div>;
   }
   if (work.cover === null) {
