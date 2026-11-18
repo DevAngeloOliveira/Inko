@@ -13,6 +13,8 @@ import editorialManifest from '../../../data/seeds/colecoes-editoriais.json';
 import type { Category } from './demo';
 
 export interface EditorialWork {
+  title: string;
+  author: string;
   genres: readonly string[];
   synopsis: string;
   franchise?: string;
@@ -54,6 +56,7 @@ export interface Collection {
 export const GENRES: readonly string[] = catalogManifest.generos;
 
 const BY_ID = new Map<string, EditorialWork>(catalogManifest.obras.map(work => [work.id, {
+  title: work.titulo, author: work.autorOuCriador,
   genres: work.generos,
   synopsis: work.sinopseCurta,
   franchise: 'franquia' in work ? work.franquia : undefined,
@@ -79,8 +82,9 @@ export const COLLECTIONS: readonly Collection[] = editorialManifest.colecoes.map
   id: item.id, title: item.titulo, description: item.descricao, works: item.obras,
 }));
 
-export function editorialOf(workId: string): EditorialWork | undefined {
-  return BY_ID.get(workId);
+export function editorialOf(workId: string, title: string, author: string): EditorialWork | undefined {
+  const item = BY_ID.get(workId);
+  return item?.title === title && item.author === author ? item : undefined;
 }
 
 export function animeOf(workId: string): AnimeAdaptation | undefined {

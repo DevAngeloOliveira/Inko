@@ -1,14 +1,15 @@
 'use client';
 
+import { businessDate } from '../../lib/business-date';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useMemo, useState } from 'react';
 import { AppShell } from '../../components/app-shell';
 import { Icon } from '../../components/icon';
-import { useMockQuery, useToast } from '../../components/inko-interactions';
+import { useToast } from '../../components/inko-interactions';
 import { InkoButton, InkoCover, InkoEmpty, InkoLinkButton, InkoSearch, InkoSegmented, InkoStatus, MangaCard, PageHeading } from '../../components/inko-kit';
 import { Pagination } from '../../components/inko-patterns';
-import { CATEGORIES, DEMO_REFERENCE_DATE, availabilityOf, normalize, workLabel, type Availability, type Category, type Work } from '../../lib/demo';
+import { CATEGORIES, availabilityOf, normalize, workLabel, type Availability, type Category, type Work } from '../../lib/demo';
 import { useLibrary } from '../../lib/library-api';
 import styles from './acervo.module.css';
 
@@ -95,7 +96,6 @@ function Catalog() {
   const params = useSearchParams();
   const library = useLibrary();
   const toast = useToast();
-  const { loading } = useMockQuery(600);
 
   // A busca tem estado local: escrever direto na URL atrasaria a digitação.
   const [query, setQuery] = useState(() => params.get('q') ?? '');
@@ -107,15 +107,16 @@ function Catalog() {
   const sort = oneOf<SortKey>(params.get('ordem'), ['id', 'titulo', 'autor'], 'id');
   const requestedPage = Math.max(1, Number.parseInt(params.get('pagina') ?? '1', 10) || 1);
 
+  const today = businessDate();
   const rows = useMemo(() => {
     const term = normalize(query.trim());
     return library.works
-      .map(work => ({ work, status: availabilityOf(library.loans, work.id, DEMO_REFERENCE_DATE) }))
+      .map(work => ({ work, status: availabilityOf(library.loans, work.id, today) }))
       .filter(row => (category === 'all' || row.work.category === category)
         && (status === 'all' || row.status === status)
         && (!term || normalize(`${row.work.title} ${row.work.volume} ${row.work.author} ${row.work.id}`).includes(term)))
       .sort((left, right) => SORTERS[sort](left.work, right.work));
-  }, [library.works, library.loans, query, category, status, sort]);
+  }, [today, library.works, library.loans, query, category, status, sort]);
 
   const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const page = Math.min(requestedPage, pages);
@@ -123,7 +124,7 @@ function Catalog() {
   const visible = rows.slice(first, first + PAGE_SIZE);
   const filtered = query.trim() !== '' || category !== 'all' || status !== 'all';
   const hiddenFilters = (status === 'all' ? 0 : 1) + (sort === 'id' ? 0 : 1);
-  const busy = loading || !library.ready;
+  const busy = !library.ready;
 
   /** Grava filtros na URL; qualquer mudança que não seja de página volta para a primeira. */
   function update(changes: Record<string, string>) {

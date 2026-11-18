@@ -6,7 +6,7 @@
 - GHCR: publicação de seis imagens em tags SemVer pela main
 - Docker Compose: smoke automático em PRs que alterem serviços/infraestrutura; teste agendado e manual
 - Observabilidade opt-in: Prometheus 3.16, Blackbox Exporter e Grafana 13.3
-- HTTPS edge opcional: Caddy 2.11 com certificados automáticos, sem publicar a API enquanto não existir autenticação real
+- HTTPS edge opcional: Caddy 2.11 com certificados automáticos, com acesso ao BFF Next.js
 - Backup: PostgreSQL com `pg_dump`, verificação de integridade e restauração em banco isolado
 - Staging: workflow manual por SSH e rollback por tag, dependente de Environment e host
 - IaC: playbook Ansible para provisionar um Ubuntu 24.04 de staging
@@ -52,7 +52,7 @@ docker compose --env-file .env -f compose.yaml -f compose.release.yaml -f compos
 docker compose --env-file .env -f compose.yaml -f compose.release.yaml -f compose.edge.yaml up -d --no-build --wait
 ```
 
-Caddy fornece TLS automático quando o domínio resolve e as portas estão acessíveis. O Gateway não é exposto pelo proxy. A interface pública ainda é apenas uma demonstração; autenticação e autorização reais continuam pendentes.
+Caddy fornece TLS automático quando o domínio resolve e as portas estão acessíveis. O Gateway não é exposto pelo proxy. O BFF atende catálogo e disponibilidade públicos e exige sessão de operador para consultas privadas e mutações.
 
 Mais detalhes em [HTTPS-EDGE.md](HTTPS-EDGE.md).
 

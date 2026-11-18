@@ -1,14 +1,15 @@
 'use client';
 
+import { businessDate } from '../lib/business-date';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { DEMO_REFERENCE_DATE, activeLateLoans, daysBetween, formatDate, type Loan, type Work } from '../lib/demo';
-import { setRemindersSent, useLibrary } from '../lib/library-api';
+import { activeLateLoans, daysBetween, formatDate, type Loan, type Work } from '../lib/demo';
+import { refreshLibrary, setRemindersSent, useLibrary } from '../lib/library-api';
 import { AppShell } from './app-shell';
 import styles from './dashboard.module.css';
 import { Icon, type IconName } from './icon';
-import { useMockQuery, useToast } from './inko-interactions';
+import { useToast } from './inko-interactions';
 import { DemoNotice, DemoTag, Enso, InkoBadge, InkoButton, InkoCover, InkoEmpty, InkoLinkButton, WashiTexture } from './inko-kit';
 import { FineSummary, InkoPillTabs, InkoStatistic, InkoStatisticSkeleton } from './inko-patterns';
 
@@ -98,16 +99,26 @@ function MoveWork({ move, works }: Readonly<{ move: Movement; works: readonly Wo
 }
 
 export function Dashboard() {
+  const today = businessDate();
   const library = useLibrary();
   const toast = useToast();
-  const { loading, reload } = useMockQuery();
+  const [refreshing, setRefreshing] = useState(false);
+  const loading = refreshing || !library.ready;
+  async function reload() {
+    setRefreshing(true);
+    try {
+      await refreshLibrary();
+    } finally {
+      setRefreshing(false);
+    }
+  }
   const [filter, setFilter] = useState<MoveFilter>('all');
 
-  const lateLoans = useMemo(() => activeLateLoans(library.loans, DEMO_REFERENCE_DATE), [library.loans]);
+  const lateLoans = useMemo(() => activeLateLoans(library.loans, today), [library.loans, today]);
   const movements = useMemo(() => buildMovements(library.loans), [library.loans]);
   const activeLoans = library.loans.filter(loan => !loan.returnedAt);
   const dueSoon = activeLoans.filter(loan => {
-    const left = daysBetween(DEMO_REFERENCE_DATE, loan.due);
+    const left = daysBetween(today, loan.due);
     return left >= 0 && left < WEEK_DAYS;
   }).length;
   const late = lateLoans.length;
@@ -140,9 +151,9 @@ export function Dashboard() {
         <Enso size={240} animated className={styles.heroEnso}/>
       </div>
       <div className={styles.heroText}>
-        <time className="inko-eyebrow inko-eyebrow--brown" dateTime={DEMO_REFERENCE_DATE}>
-          <span className="inko-only-desktop">{longDate(DEMO_REFERENCE_DATE, WEEKDAYS)}</span>
-          <span className="inko-only-mobile">{longDate(DEMO_REFERENCE_DATE, WEEKDAYS_SHORT)}</span>
+        <time className="inko-eyebrow inko-eyebrow--brown" dateTime={today}>
+          <span className="inko-only-desktop">{longDate(today, WEEKDAYS)}</span>
+          <span className="inko-only-mobile">{longDate(today, WEEKDAYS_SHORT)}</span>
         </time>
         <h1 id="dashboard-hello">Bom dia, {firstName}.</h1>
         <p className="inko-only-desktop"><AttentionText late={late} dueSoon={dueSoon}/></p>
@@ -151,7 +162,7 @@ export function Dashboard() {
           <InkoLinkButton href="/emprestimos" leftIcon="mais" className={`${styles.heroButton} inko-only-desktop`}>Novo empréstimo</InkoLinkButton>
           <InkoButton variant="outline" leftIcon={sent ? 'check-circulo' : 'enviar'} aria-disabled={sent} onClick={sendReminders}
             className={`${styles.heroButton} ${styles.reminders}${sent ? ` ${styles.remindersSent}` : ''}`}>
-            {sent ? 'Lembretes enviados' : 'Enviar lembretes'}
+            {sent ? 'Simulação concluída' : 'Simular lembretes'}
           </InkoButton>
         </div>
       </div>
@@ -161,7 +172,7 @@ export function Dashboard() {
       <h2>Visão geral</h2>
       <div className={styles.overviewTools}>
         <InkoButton variant="ghost" size="sm" leftIcon="atualizar" loading={loading} onClick={reload}>Atualizar</InkoButton>
-        <DemoTag>Referência 09/11/2026</DemoTag>
+        <DemoTag>Referência {formatDate(today)}</DemoTag>
       </div>
     </div>
 
@@ -190,14 +201,14 @@ export function Dashboard() {
               <td><MoveWork move={move} works={library.works}/></td>
               <td><MoveBadge kind={move.kind}/></td>
               <td>{move.loan.user}</td>
-              <td className={`inko-table-end ${styles.when}`}>{relativeDay(move.date, DEMO_REFERENCE_DATE)}</td>
+              <td className={`inko-table-end ${styles.when}`}>{relativeDay(move.date, today)}</td>
             </tr>)}</tbody>
           </table>
         </div>}
         {visible.length > 0 && <ul className={`${styles.moveList} inko-only-mobile`}>
           {visible.map(move => <li key={move.key}>
             <InkoCover work={coverOf(move, library.works)} size="xs"/>
-            <span className={styles.moveListText}><strong>{move.loan.work}</strong><span>{move.loan.user} · {relativeDay(move.date, DEMO_REFERENCE_DATE)}</span></span>
+            <span className={styles.moveListText}><strong>{move.loan.work}</strong><span>{move.loan.user} · {relativeDay(move.date, today)}</span></span>
             <MoveBadge kind={move.kind} size="sm"/>
           </li>)}
         </ul>}
@@ -213,11 +224,11 @@ export function Dashboard() {
           <h2 id="dashboard-shortcuts">Atalhos</h2>
           <ul>{shortcuts.map(item => <li key={item.label}><Link href={item.href}><Icon name={item.icon} size={22}/>{item.label}</Link></li>)}</ul>
         </section>
-        <FineSummary rows={lateLoans} reference={DEMO_REFERENCE_DATE} href="/relatorios"/>
+        <FineSummary rows={lateLoans} reference={today} href="/relatorios"/>
       </div>
     </div>
 
-    <DemoNotice>Indicadores e movimentações vêm dos serviços INKO (PostgreSQL), com data de referência fixa em 09/11/2026 para a demonstração. Os lembretes não enviam e-mails.</DemoNotice>
+    <DemoNotice>Indicadores e movimentações vêm dos serviços INKO (PostgreSQL), com referência no dia atual da biblioteca. Os lembretes não enviam e-mails.</DemoNotice>
 
     <footer className={styles.footer}>
       <p className={styles.signature}>

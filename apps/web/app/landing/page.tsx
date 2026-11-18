@@ -46,7 +46,7 @@ const FAQ = [
   { question: 'Como funcionam as multas?', answer: 'R$ 2,00 por dia de atraso, por empréstimo. O relatório considera apenas empréstimos ativos e atrasados na data de referência escolhida; os devolvidos não entram.' },
   { question: 'Qual a diferença entre o mangá e o anime?', answer: 'O mangá é a obra em quadrinhos impressa, que o INKO cataloga e empresta. O anime é a adaptação em animação: aparece só como referência editorial e não é um exemplar do acervo.' },
   { question: 'Posso ler as obras digitalmente no INKO?', answer: 'Não. O INKO não é leitor digital nem serviço de streaming. Ele mostra o que existe na estante, com quem está cada volume e quando ele volta.' },
-  { question: 'Como explorar a demonstração?', answer: 'Use “Entrar” com qualquer e-mail válido e uma senha de 6 ou mais caracteres. É um acesso demonstrativo local: o acervo, os empréstimos e os relatórios usam dados de demonstração gravados no banco do INKO.' },
+  { question: 'Preciso de conta para consultar o acervo?', answer: 'O acervo e a disponibilidade são públicos. Para retirar ou devolver um exemplar, procure a equipe da biblioteca com o código da obra. A equipe entra com sua conta de operador para registrar a movimentação.' },
 ] as const;
 
 function MarqueeItems() {
@@ -168,9 +168,9 @@ export default function LandingPage() {
           <div className={styles.demoInner}>
             <Image src="/inko/logo/inko-logo-inverse.png" alt="" width={900} height={665} sizes="220px" className={styles.demoLogo}/>
             <h2 id="dm-t" className={styles.demoTitle}>Todo universo começa em algum lugar. O seu começa aqui.</h2>
-            <p className={styles.demoLead}>O próximo capítulo começa aqui: entre na demonstração e navegue pelo acervo, empréstimos e relatórios.</p>
+            <p className={styles.demoLead}>Consulte o acervo e leve o código do exemplar à biblioteca para solicitar o empréstimo.</p>
             <div className={styles.demoActions}>
-              <Link href="/acervo" className={`${styles.btn} ${styles.btnPrimary}`}>Conhecer o acervo<Icon name="seta" size={18}/></Link>
+              <Link href="#acervo" className={`${styles.btn} ${styles.btnPrimary}`}>Conhecer o acervo<Icon name="seta" size={18}/></Link>
               <Link href="/login" className={`${styles.btn} ${styles.btnOutlineLight}`}>Entrar</Link>
             </div>
           </div>

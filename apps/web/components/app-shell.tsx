@@ -1,10 +1,11 @@
 'use client';
 
+import { businessDate } from '../lib/business-date';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { DEMO_REFERENCE_DATE, activeLateLoans, availabilityOf, normalize, workLabel } from '../lib/demo';
+import { activeLateLoans, availabilityOf, normalize, workLabel } from '../lib/demo';
 import { buildNotifications, markNotificationsRead, refreshLibrary, signOut, useLibrary, type LibraryState, type Session } from '../lib/library-api';
 import { Icon, type IconName } from './icon';
 import { useDismiss, useToast } from './inko-interactions';
@@ -17,7 +18,7 @@ interface NavigationItem {
 }
 
 const navigation: readonly NavigationItem[] = [
-  { href: '/', icon: 'dashboard', label: 'Dashboard' },
+  { href: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
   { href: '/acervo', icon: 'acervo', label: 'Acervo' },
   { href: '/usuarios', icon: 'usuarios', label: 'Usuários' },
   { href: '/emprestimos', icon: 'emprestimos', label: 'Empréstimos' },
@@ -57,10 +58,10 @@ interface SearchResult {
 function searchLibrary(library: LibraryState, query: string): SearchResult[] {
   const term = normalize(query.trim());
   if (!term) return [];
-  const late = activeLateLoans(library.loans, DEMO_REFERENCE_DATE);
+  const late = activeLateLoans(library.loans, businessDate());
   const worksFound = library.works.map<SearchResult>(work => ({
     key: work.id, label: workLabel(work), kind: 'Obra', href: `/acervo/${work.id}`, icon: 'acervo',
-    meta: `${work.author} · ${work.id} · ${statusLabel[availabilityOf(library.loans, work.id, DEMO_REFERENCE_DATE)]}`,
+    meta: `${work.author} · ${work.id} · ${statusLabel[availabilityOf(library.loans, work.id, businessDate())]}`,
   }));
   const usersFound = library.users.map<SearchResult>(user => {
     const overdue = late.filter(loan => loan.userId === user.id).length;
@@ -205,7 +206,8 @@ export function AppShell({ children, breadcrumb }: Readonly<{ children: ReactNod
   const library = useLibrary();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { ready, session } = library;
-  const lateCount = useMemo(() => activeLateLoans(library.loans, DEMO_REFERENCE_DATE).length, [library.loans]);
+  const today = businessDate();
+  const lateCount = useMemo(() => activeLateLoans(library.loans, today).length, [library.loans, today]);
 
   useEffect(() => {
     if (ready && !session) router.replace('/login');
@@ -222,7 +224,7 @@ export function AppShell({ children, breadcrumb }: Readonly<{ children: ReactNod
 
   return <div className="inko-app-layout">
     <aside className="inko-app-sidebar">
-      <Link href="/" className="inko-sidebar-logo" aria-label="INKO — Dashboard"><Image src="/inko/logo/inko-logo-inverse.png" alt="" width={132} height={98} priority/></Link>
+      <Link href="/dashboard" className="inko-sidebar-logo" aria-label="INKO — Dashboard"><Image src="/inko/logo/inko-logo-inverse.png" alt="" width={132} height={98} priority/></Link>
       <Navigation current={pathname} lateCount={lateCount}/>
       <SeigaihaBand className="inko-sidebar-waves"/>
     </aside>

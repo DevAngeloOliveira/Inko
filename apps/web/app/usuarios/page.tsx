@@ -1,5 +1,6 @@
 'use client';
 
+import { businessDate } from '../../lib/business-date';
 import { Suspense, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppShell } from '../../components/app-shell';
@@ -8,7 +9,7 @@ import { useToast } from '../../components/inko-interactions';
 import { Avatar, Enso, InkoBadge, InkoButton, InkoEmpty, InkoInput, InkoLinkButton, InkoSearch, InkoStatus, PageHeading } from '../../components/inko-kit';
 import { InkoAlert } from '../../components/inko-patterns';
 import {
-  DEMO_REFERENCE_DATE, daysOverdue, fineInCents, formatBRL, formatDate, loanStatus, normalize,
+  daysOverdue, fineInCents, formatBRL, formatDate, loanStatus, normalize,
   type LibraryUser, type Loan,
 } from '../../lib/demo';
 import { ApiError, createUser, useLibrary } from '../../lib/library-api';
@@ -29,7 +30,7 @@ const FIELD_INPUTS = { name: 'novo-usuario-nome', registration: 'novo-usuario-ma
 /** Situação do usuário, derivada dos empréstimos ativos (não há campo persistido). */
 function summarize(user: LibraryUser, loans: readonly Loan[]): UserRow {
   const active = loans.filter(loan => loan.userId === user.id && !loan.returnedAt);
-  const overdue = active.map(loan => daysOverdue(loan.due, DEMO_REFERENCE_DATE)).filter(days => days > 0);
+  const overdue = active.map(loan => daysOverdue(loan.due, businessDate())).filter(days => days > 0);
   return { user, active: active.length, late: overdue.length, fineCents: overdue.reduce((sum, days) => sum + fineInCents(days), 0) };
 }
 
@@ -37,7 +38,7 @@ function summarize(user: LibraryUser, loans: readonly Loan[]): UserRow {
 function historyOf(userId: string, loans: readonly Loan[]): Loan[] {
   const rank = { atr: 0, emp: 1, disp: 1, dev: 2 } as const;
   return loans.filter(loan => loan.userId === userId).sort((left, right) => {
-    const byStatus = rank[loanStatus(left, DEMO_REFERENCE_DATE)] - rank[loanStatus(right, DEMO_REFERENCE_DATE)];
+    const byStatus = rank[loanStatus(left, businessDate())] - rank[loanStatus(right, businessDate())];
     return byStatus || right.start.localeCompare(left.start);
   });
 }
@@ -70,8 +71,8 @@ function UserSituation({ late }: Readonly<{ late: number }>) {
 }
 
 function HistoryStatus({ loan }: Readonly<{ loan: Loan }>) {
-  const status = loanStatus(loan, DEMO_REFERENCE_DATE);
-  if (status === 'atr') return <InkoStatus status="atr" detail={`${daysOverdue(loan.due, DEMO_REFERENCE_DATE)} d`}/>;
+  const status = loanStatus(loan, businessDate());
+  if (status === 'atr') return <InkoStatus status="atr" detail={`${daysOverdue(loan.due, businessDate())} d`}/>;
   if (status === 'dev') return <InkoStatus status="dev"/>;
   return <InkoBadge tone="info">Ativo</InkoBadge>;
 }

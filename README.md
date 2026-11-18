@@ -5,6 +5,10 @@ biblioteca de mangás, HQs e graphic novels, combinando **orientação a objetos
 
 Arquitetura poliglota: Next.js 16 (interface) → FastAPI (API Gateway) → quatro serviços Spring Boot 4 / Java 21 → PostgreSQL 17 com um banco por serviço.
 
+## Piloto de uma biblioteca física
+
+O leitor consulta obras, códigos e disponibilidade em `/`. A equipe entra por `/login` e opera em `/dashboard`. Consulte a [avaliação da base, configuração do piloto e critérios de abertura](docs/devops/PILOTO.md).
+
 ## Escopo acadêmico
 
 - Classes de domínio `Livro`, `Usuario`, `Emprestimo` e `Biblioteca`, modeladas como records imutáveis.
@@ -43,9 +47,9 @@ Migrações Flyway versionadas em cada serviço (`src/main/resources/db/migratio
 
 - **Autenticação de operadores (SDD-002)**: a senha é guardada como hash BCrypt e a sessão é opaca, revogável e expira em 8 h, num cookie HttpOnly. O BFF autoriza as rotas privadas. O Gateway (porta 8000) continua sem credencial e acessível só em `127.0.0.1`. Isso é um MVP local, não produção; os limites estão em `docs/academic/SDD-002-EVIDENCIAS.md`.
 - "Enviar lembretes" é simulação identificada; não há envio de e-mail (RF-27).
-- Exclusão de obras não faz parte do contrato desta versão; o botão informa isso.
+- A equipe pode excluir obras pelo detalhe do acervo, respeitando as restrições de circulação.
 - Capas: o operador envia JPEG/PNG de até 2 MiB, gravados no volume `catalogo_media` (ADR-004). Obras sem capa enviada mantêm a ilustração em CSS. O volume não é backup: faça backup dele junto com o PostgreSQL.
-- Catálogo público (RF-20), filtros históricos (RF-24) e auditoria (RF-26) estão pendentes.
+- O catálogo público já consulta os serviços. Filtros históricos (RF-24) e auditoria (RF-26) estão pendentes.
 - A primeira chamada a um serviço Java logo após subir os contêineres pode exceder o prazo de 2 s do Gateway (aquecimento da JVM); a seguinte responde normalmente.
 - Durante os testes, o frontend em modo `next dev` recarregou em ciclo uma vez e o problema não se repetiu; para a demonstração, prefira o frontend do Docker (ou `next build && next start`).
 
@@ -67,7 +71,7 @@ docker compose ps
 
 Acesse:
 
-- Frontend: http://localhost:3000 (entre com a conta de operador definida no `.env`)
+- Frontend: http://localhost:3000 (acervo público e entrada da equipe em `/login`)
 - Gateway e OpenAPI: http://localhost:8000/docs (os contratos de negócio estão em `docs/contracts/openapi.yaml`)
 - Status dos serviços: http://localhost:8000/api/v1/system/status
 - Exemplo de contrato: http://localhost:8000/api/v1/relatorios/multas?referenceDate=2026-11-09
@@ -156,7 +160,7 @@ Os assets originais estão em `apps/web/public/inko`. O CSS gerado de `packages/
 
 ## Frontend
 
-As telas operacionais (`/`, `/acervo`, `/usuarios`, `/emprestimos`, `/devolucoes`, `/relatorios`) leem e gravam pelos serviços reais, via `lib/library-api.ts` e o BFF `app/api/v1/[...path]/route.ts`. As páginas `/design-system` e `/landing` usam a amostra estática de `lib/demo.ts` apenas como documentação visual. `/motion-lab` e `/system/status` são diagnósticos.
+As telas operacionais (`/dashboard`, `/acervo`, `/usuarios`, `/emprestimos`, `/devolucoes`, `/relatorios`) leem e gravam pelos serviços reais, via `lib/library-api.ts` e o BFF `app/api/v1/[...path]/route.ts`. A vitrine de `/` e `/landing` lê obras e disponibilidade do BFF. A página `/design-system` usa a amostra estática de `lib/demo.ts`. `/motion-lab` e `/system/status` são diagnósticos.
 
 
 ## Assets estáticos no Docker

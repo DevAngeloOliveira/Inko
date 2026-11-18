@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { AppShell } from '../../../components/app-shell';
-import { Icon } from '../../../components/icon';
 import { useToast } from '../../../components/inko-interactions';
 import { CategoryTag, DemoNotice, InkoButton, InkoCover, InkoInput, InkoLinkButton, InkoSelect, InkoStatus, PageHeading } from '../../../components/inko-kit';
 import { InkoAlert } from '../../../components/inko-patterns';
@@ -67,7 +66,6 @@ export default function NewWorkPage() {
   const [failure, setFailure] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<Work | null>(null);
-  const [coverName, setCoverName] = useState('');
   // Trocar a chave recria o campo de arquivo (não controlado) ao limpar o formulário.
   const [formKey, setFormKey] = useState(0);
 
@@ -107,7 +105,6 @@ export default function NewWorkPage() {
       setValues(EMPTY);
       setTried(false);
       setServerErrors({});
-      setCoverName('');
       setFormKey(key => key + 1);
       toast({ title: 'Obra cadastrada', text: `${workLabel(work)} (${work.id}) já aparece no acervo como Disponível.` });
     } catch (cause) {
@@ -153,20 +150,12 @@ export default function NewWorkPage() {
           </fieldset>
 
           <details className={styles.optional}>
-            <summary>Metadados opcionais <span>· volume, editora, título original, capa — dependem do contrato da API</span></summary>
+            <summary>Metadados opcionais <span>· volume, editora e título original</span></summary>
             <div className={styles.optionalGrid}>
               <InkoInput id="work-volume" label="Volume" placeholder="Ex.: Vol. 3" autoComplete="off" value={values.volume} onChange={event => set('volume', event.target.value)}/>
               <InkoInput id="work-publisher" label="Editora" autoComplete="off" value={values.publisher} onChange={event => set('publisher', event.target.value)}/>
               <InkoInput id="work-original-title" label="Título original" lang="ja" autoComplete="off" value={values.originalTitle} onChange={event => set('originalTitle', event.target.value)}/>
-              <label className={styles.upload}>
-                <Icon name="upload" size={24}/>
-                <span className={styles.uploadText}>Enviar capa{' '}
-                  <small>JPG ou PNG, proporção 2:3, mín. 400×600. Somente imagens com licença de uso.</small>
-                  {coverName && <small className={styles.uploadFile}>{coverName} selecionado — não será enviado nesta demonstração.</small>}
-                </span>
-                <input type="file" accept="image/png,image/jpeg" className="sr-only" aria-describedby="work-cover-note" onChange={event => setCoverName(event.target.files?.[0]?.name ?? '')}/>
-              </label>
-              <p id="work-cover-note" className={`inko-footnote ${styles.uploadNote}`}>O envio é apenas visual: capas reais dependem de licença de uso e do armazenamento do backend de catálogo. A obra entra no acervo com o estado “Sem capa”.</p>
+              <p className="inko-footnote">Depois de salvar, abra a obra para enviar uma capa JPEG ou PNG de até 2 MiB.</p>
             </div>
           </details>
 
