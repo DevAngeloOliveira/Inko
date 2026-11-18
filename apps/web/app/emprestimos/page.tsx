@@ -8,7 +8,7 @@ import { AppShell } from '../../components/app-shell';
 import { Icon } from '../../components/icon';
 import { useToast } from '../../components/inko-interactions';
 import { Avatar, InkoButton, InkoCover, InkoEmpty, InkoField, InkoLinkButton, InkoSearch, InkoStatus, PageHeading } from '../../components/inko-kit';
-import { InkoAlert } from '../../components/inko-patterns';
+import { InkoAlert, Pagination } from '../../components/inko-patterns';
 import {
   DEFAULT_LOAN_DAYS, activeLoanOf, addDays, availabilityOf, daysOverdue, fineInCents, formatBRL, formatDate,
   normalize, workLabel, type LibraryUser, type Loan, type Work,
@@ -19,6 +19,7 @@ import styles from './emprestimos.module.css';
 const STEP_LABELS = ['Usuário', 'Obra', 'Disponibilidade', 'Datas', 'Confirmar', 'Resultado'] as const;
 const NEXT_LABELS: Record<number, string> = { 1: 'Continuar', 2: 'Verificar disponibilidade', 3: 'Informar datas', 4: 'Revisar' };
 const TERMS = [7, 14, 21] as const;
+const WORK_PAGE_SIZE = 20;
 const BREADCRUMB = [{ label: 'Início', href: '/dashboard' }, { label: 'Novo empréstimo' }] as const;
 
 interface StepAlert {
@@ -123,13 +124,19 @@ function UserStep({ users, loans, selectedId, onSelect }: Readonly<{ users: read
 
 function WorkStep({ works, loans, selectedId, onSelect }: Readonly<{ works: readonly Work[]; loans: readonly Loan[]; selectedId: string; onSelect: (id: string) => void }>) {
   const [query, setQuery] = useState('');
+  const [requestedPage, setPage] = useState(() => Math.floor(Math.max(0, works.findIndex(work => work.id === selectedId)) / WORK_PAGE_SIZE) + 1);
   const term = normalize(query.trim());
   const filtered = works.filter(work => !term || normalize(`${workLabel(work)} ${work.author} ${work.id}`).includes(term));
-  const anyChecked = filtered.some(work => work.id === selectedId);
+  const pages = Math.ceil(filtered.length / WORK_PAGE_SIZE);
+  const page = Math.max(1, Math.min(requestedPage, pages));
+  const offset = (page - 1) * WORK_PAGE_SIZE;
+  const visibleWorks = filtered.slice(offset, offset + WORK_PAGE_SIZE);
+  const anyChecked = visibleWorks.some(work => work.id === selectedId);
   return <>
-    <InkoSearch label="Buscar obra por título, autor ou identificador" placeholder="Título, autor ou identificador INK-…" value={query} onChange={event => setQuery(event.target.value)} className={styles.search}/>
+    <InkoSearch label="Buscar obra por título, autor ou identificador" placeholder="Título, autor ou identificador INK-…" value={query} onChange={event => { setQuery(event.target.value); setPage(1); }} className={styles.search}/>
+    <Pagination page={page} pages={pages} onChange={setPage} compact/>
     {filtered.length > 0 && <div role="radiogroup" tabIndex={-1} aria-label="Obra" className={styles.choices} onKeyDown={onRadioKeyDown}>
-      {filtered.map((work, index) => {
+      {visibleWorks.map((work, index) => {
         const checked = work.id === selectedId;
         return <button key={work.id} type="button" role="radio" aria-checked={checked} tabIndex={radioTabIndex(checked, index, anyChecked)} className="inko-choice" onClick={() => onSelect(work.id)}>
           <InkoCover work={work} size="xs"/>
