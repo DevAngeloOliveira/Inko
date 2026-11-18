@@ -15,15 +15,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 @Component
 public class HttpFonteBiblioteca implements FonteBiblioteca {
+    private static final Logger LOG = LoggerFactory.getLogger(HttpFonteBiblioteca.class);
     private final RestClient catalogo;
     private final RestClient usuarios;
     private final RestClient circulacao;
@@ -65,8 +71,17 @@ public class HttpFonteBiblioteca implements FonteBiblioteca {
 
     private <T> CompletableFuture<List<T>> buscar(RestClient client, String caminho, ParameterizedTypeReference<List<T>> tipo) {
         return CompletableFuture.supplyAsync(() -> {
-            List<T> corpo = client.get().uri(caminho).retrieve().body(tipo);
-            return corpo == null ? List.of() : corpo;
+            try {
+                List<T> corpo = client.get().uri(caminho).retrieve().body(tipo);
+                return corpo == null ? List.of() : corpo;
+            } catch (RestClientResponseException exception) {
+                LOG.warn("Falha na fonte {} dos relatórios: HTTP {}", caminho, exception.getStatusCode().value());
+                throw exception;
+            } catch (RestClientException exception) {
+                LOG.warn("Falha na fonte {} dos relatórios: {}", caminho,
+                        NestedExceptionUtils.getMostSpecificCause(exception).getClass().getSimpleName());
+                throw exception;
+            }
         }, executor);
     }
 
